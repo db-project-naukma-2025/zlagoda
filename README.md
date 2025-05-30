@@ -13,13 +13,13 @@
 ### 2. Apply Migrations
 
 ```bash
-docker exec -i database-zlagoda bash -c "psql -U $POSTGRES_USER -d $POSTGRES_DB" < migrations/001_init.sql
+docker exec -i database-zlagoda bash -c "psql -U $DB_USER -d $DB_NAME" < migrations/001_init.sql
 ```
 
 ### 3. Revert Migrations
 
 ```bash
-docker exec -i database-zlagoda bash -c "psql -U $POSTGRES_USER -d $POSTGRES_DB" < migrations/001_init.reverse.sql
+docker exec -i database-zlagoda bash -c "psql -U $DB_USER -d $DB_NAME" < migrations/001_init.reverse.sql
 ```
 
 ### 4. Create New Migrations
@@ -32,5 +32,5 @@ docker exec -i database-zlagoda bash -c "psql -U $POSTGRES_USER -d $POSTGRES_DB"
 To open an interactive psql shell inside the running container:
 
 ```bash
-docker exec -it database-zlagoda bash -c "psql -U $POSTGRES_USER -d $POSTGRES_DB"
+docker exec -it database-zlagoda bash -c "psql -U $DB_USER -d $DB_NAME"
 ```
