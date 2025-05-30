@@ -7,7 +7,8 @@ CREATE TABLE product (
     id_product INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     category_number INT REFERENCES category(category_number)
     ON UPDATE CASCADE 
-    ON DELETE NO ACTION,
+    ON DELETE NO ACTION
+    NOT NULL,
     product_name VARCHAR(50) NOT NULL,
     characteristics VARCHAR(100) NOT NULL
 );
@@ -38,7 +39,7 @@ CREATE TABLE employee (
     empl_role VARCHAR(10) NOT NULL,
     salary DECIMAL(13, 4) NOT NULL,
     date_of_birth DATE NOT NULL,
-    ate_of_start DATE NOT NULL,
+    date_of_start DATE NOT NULL,
     phone_number VARCHAR(13) NOT NULL,
     city VARCHAR(50) NOT NULL,
     street VARCHAR(50) NOT NULL,
