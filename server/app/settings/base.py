@@ -1,14 +1,15 @@
 import logging
+import logging.config
 from pathlib import Path
 
-from decouple import Config
+from decouple import AutoConfig
 
 from ._logging import *  # noqa: F401, F403
 
 CURRENT_PATH = Path(__file__).resolve().parent
 BASE_PATH = CURRENT_PATH.parent
 
-config = Config(BASE_PATH)
+config = AutoConfig(search_path=BASE_PATH)
 
 
 # Configuration settings
@@ -30,7 +31,6 @@ DATABASES = {
 }
 
 
-
 # Logging settings
 
 LOG_LEVEL = config("LOG_LEVEL", default="DEBUG")
@@ -38,21 +38,14 @@ LOG_LEVEL = config("LOG_LEVEL", default="DEBUG")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "formatters": {
-        "console": {
-            "format": "%(levelname)s %(asctime)s %(module)s: %(message)s",
-            "class": "logging.StreamHandler",
-        }
-    },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "level": LOG_LEVEL,
-            "formatter": "verbose",
         },
     },
     "loggers": {
-        "django": {
+        "app": {
             "handlers": ["console"],
             "level": LOG_LEVEL,
             "propagate": True,
@@ -60,4 +53,4 @@ LOGGING = {
     },
 }
 
-logging.config.dictConfig(LOGGING)  # type: ignore
+logging.config.dictConfig(LOGGING)

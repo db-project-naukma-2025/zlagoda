@@ -1,10 +1,8 @@
 import sys
-from typing import TypeVar, ParamSpec
 from functools import wraps
-from typing import Callable
+from typing import Callable, ParamSpec, TypeVar
 
 from overrides.overrides import _get_base_classes  # noqa: F401
-
 
 _P = ParamSpec("_P")
 _RT = TypeVar("_RT", covariant=True)

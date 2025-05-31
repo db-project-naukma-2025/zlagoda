@@ -3,8 +3,8 @@ from typing import Any
 import psycopg2
 import structlog
 
-from ..typing import implements
-from ._base import DatabaseError, IDatabase
+from ...decorators import implements
+from . import DatabaseError, IDatabase
 
 logger = structlog.getLogger(__name__)
 
@@ -13,6 +13,7 @@ class PostgresDatabase(IDatabase):
     def __init__(self, connection_string: str):
         self.connection_string = connection_string
         self._conn: psycopg2.extensions.connection | None = None
+        self.__commit_mode = True
 
     @implements
     def connect(self):
@@ -40,38 +41,53 @@ class PostgresDatabase(IDatabase):
     def execute(
         self, query: str, params: tuple[Any, ...] | None = None
     ) -> list[tuple[Any, ...]]:
-        logger.debug("executing query: %s", query)
+        logger.debug("execute_query.start", query=query)
+        conn = self._must_conn
         try:
-            with self._must_conn.cursor() as cursor:
+            with conn.cursor() as cursor:
                 cursor.execute(query, params)
                 if cursor.description:  # Check if the query returns rows
                     result = cursor.fetchall()
-                    logger.debug(
-                        "query executed successfully, fetched %d rows", len(result)
-                    )
+                    logger.debug("execute_query.success", rows=len(result))
                     return result
                 else:
-                    self._must_conn.commit()  # Commit for non-select queries
-                    logger.debug("query executed successfully, no rows returned")
+                    if self.__commit_mode:
+                        conn.commit()  # Commit for non-select queries
+                    logger.debug("execute_query.success", rows=0)
                     return []
         except psycopg2.Error as e:
-            logger.error("query.execution.failed: %s", e)
+            logger.error("execute_query.failed", error=e)
             raise DatabaseError("Failed to execute query") from e
 
     @implements
     def disconnect(self):
-        logger.debug("disconnecting")
-        if self._conn is not None:
-            try:
-                self._conn.close()
-                logger.info("disconnected")
-            except psycopg2.Error as e:
-                logger.error("disconnection.failed")
-                raise DatabaseError(
-                    "Failed to disconnect from PostgreSQL database"
-                ) from e
-            finally:
-                self._conn = None
-        else:
-            logger.warning("disconnect called but no connection exists")
-        logger.debug("disconnected")
+        logger.debug("disconnect.start")
+
+        if self._conn is None:
+            logger.warning("disconnect.no_connection")
+            return
+
+        try:
+            self._conn.close()
+            logger.info("disconnect.success")
+        except psycopg2.Error as e:
+            logger.error("disconnect.failed")
+            raise DatabaseError("Failed to disconnect from PostgreSQL database") from e
+        finally:
+            self._conn = None
+
+    @implements
+    def start_transaction(self):
+        self.__commit_mode = False
+
+    @implements
+    def commit_transaction(self):
+        if not self.__commit_mode:
+            self._must_conn.commit()
+            self.__commit_mode = True
+
+    @implements
+    def rollback_transaction(self):
+        if not self.__commit_mode:
+            self._must_conn.rollback()
+            self.__commit_mode = True
