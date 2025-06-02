@@ -2,32 +2,19 @@
 
 ## Getting Started
 
-### 1. Start the Containers
-
 1. Copy `.env.sample` to `.env` and adjust credentials if needed.
-2. Start the PostgreSQL container:
+
+1. Start the PostgreSQL container:
+
    ```bash
    docker-compose up -d
    ```
 
-### 2. Apply Migrations
+1. See [server/README.md](server/README.md) for more details on backend setup.
 
-```bash
-docker exec -i database-zlagoda bash -c "psql -U $DB_USER -d $DB_NAME" < migrations/001_init.sql
-```
+1. See [client/README.md](client/README.md) for more details on frontend setup.
 
-### 3. Revert Migrations
-
-```bash
-docker exec -i database-zlagoda bash -c "psql -U $DB_USER -d $DB_NAME" < migrations/001_init.reverse.sql
-```
-
-### 4. Create New Migrations
-
-1. Add a new SQL file in the `migrations/` directory, e.g. `002_feature.sql` for applying and `002_feature.reverse.sql` for reverting.
-2. Use the same process as above to apply or revert your new migration files.
-
-### 5. Enter psql Shell
+### Enter psql Shell
 
 To open an interactive psql shell inside the running container:
 
