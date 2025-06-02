@@ -31,6 +31,12 @@ DATABASES = {
 }
 
 
+# API settings
+
+API_HOST = str(config("API_HOST", default="0.0.0.0"))
+API_PORT = int(config("API_PORT", default=8000))
+
+
 # Logging settings
 
 LOG_LEVEL = config("LOG_LEVEL", default="DEBUG")

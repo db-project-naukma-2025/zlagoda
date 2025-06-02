@@ -1,9 +1,12 @@
 import click
 import structlog
+import uvicorn
+from fastapi import FastAPI
 
 from . import settings
 from .db.connection import IDatabase
 from .db.migrations import DatabaseMigrationService
+from .views import router as views_router
 
 logger = structlog.get_logger(__name__)
 
@@ -35,6 +38,17 @@ def migrate(number: int | None = None):
         dms = DatabaseMigrationService(db, settings.BASE_PATH / "migrations")
         dms.migrate(number=number)
     logger.info("migration_completed", target_number=number)
+
+
+@cli.command()
+def runserver():
+    """Run the application."""
+    app = FastAPI(title="Zlagoda API", version="0.1.0")
+    app.include_router(views_router)
+
+    logger.info("server.starting", host=settings.API_HOST, port=settings.API_PORT)
+    uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT)
+    logger.info("server.stopped", host=settings.API_HOST, port=settings.API_PORT)
 
 
 def main():
