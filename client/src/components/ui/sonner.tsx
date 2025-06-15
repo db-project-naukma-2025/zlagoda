@@ -1,8 +1,14 @@
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
-function Toaster({ ...props }: ToasterProps) {
-  const { theme = "system" } = useTheme();
+const isTheme = (
+  theme: string | undefined,
+): theme is Required<ToasterProps>["theme"] => {
+  return theme ? ["light", "dark", "system"].includes(theme) : false;
+};
+
+const Toaster = ({ ...props }: ToasterProps) => {
+  const { theme } = useTheme();
 
   return (
     <Sonner
@@ -14,10 +20,10 @@ function Toaster({ ...props }: ToasterProps) {
           "--normal-border": "var(--border)",
         } as React.CSSProperties
       }
-      theme={theme as ToasterProps["theme"]}
+      theme={isTheme(theme) ? theme : "system"}
       {...props}
     />
   );
-}
+};
 
 export { Toaster };
