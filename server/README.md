@@ -18,7 +18,7 @@ This app forms the backend of the zlagoda project. This includes the API and the
     poetry install
     ```
 
-1. Run the migrations
+2. Run the migrations
 
     As database schema can be changed from time to time, we have implemented an in-house migration system. Every migration is managed by the server side of the project.
 
