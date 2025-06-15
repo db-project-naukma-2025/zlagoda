@@ -41,18 +41,23 @@ class PostgresDatabase(IDatabase):
     def execute(
         self, query: str, params: tuple[Any, ...] | None = None
     ) -> list[tuple[Any, ...]]:
-        logger.debug("execute_query.start", query=query)
+        formatted_query = " ".join(
+            line.strip() for line in query.splitlines() if line.strip()
+        )
+        logger.debug("execute_query.start", query=formatted_query)
         conn = self._must_conn
         try:
             with conn.cursor() as cursor:
                 cursor.execute(query, params)
+                # Commit for any non-SELECT query when in auto-commit mode
+                if self.__commit_mode and not formatted_query.startswith("SELECT"):
+                    conn.commit()
+
                 if cursor.description:  # Check if the query returns rows
                     result = cursor.fetchall()
                     logger.debug("execute_query.success", rows=len(result))
                     return result
                 else:
-                    if self.__commit_mode:
-                        conn.commit()  # Commit for non-select queries
                     logger.debug("execute_query.success", rows=0)
                     return []
         except psycopg2.Error as e:
