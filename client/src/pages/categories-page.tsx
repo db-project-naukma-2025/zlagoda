@@ -402,7 +402,7 @@ export default function CategoriesPage() {
     sort_order: GetCategoriesOptions["sort_order"];
   }>({
     sort_by: "category_number",
-    sort_order: "asc",
+    sort_order: "desc",
   });
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
