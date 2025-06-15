@@ -2,25 +2,14 @@ import click
 import structlog
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from . import settings
-from .db.connection import IDatabase
+from .db import create_db
 from .db.migrations import DatabaseMigrationService
-from .views import router as views_router
+from .views import category
 
 logger = structlog.get_logger(__name__)
-
-
-def create_db() -> IDatabase:
-    config = settings.DATABASES["default"]
-    connection_uri = f"{config['ENGINE']}://{config['USER']}:{config['PASSWORD']}@{config['HOST']}:{config['PORT']}/{config['NAME']}"
-    match config["ENGINE"]:
-        case "postgresql":
-            from .db.connection.postgres import PostgresDatabase
-
-            return PostgresDatabase(connection_uri)
-        case _:
-            raise RuntimeError(f"Unsupported database engine: {config['ENGINE']}")
 
 
 @click.group()
@@ -44,7 +33,15 @@ def migrate(number: int | None = None):
 def runserver():
     """Run the application."""
     app = FastAPI(title="Zlagoda API", version="0.1.0")
-    app.include_router(views_router)
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.CORS_ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    app.include_router(category.router)
 
     logger.info("server.starting", host=settings.API_HOST, port=settings.API_PORT)
     uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT)

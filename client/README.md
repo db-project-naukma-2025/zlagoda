@@ -34,3 +34,13 @@ This app forms the frontend of the zlagoda project. Built with React, TypeScript
     # or
     yarn build
     ```
+
+4. To update api client & schemas based on backend OpenAPI spec, run:
+
+    ```bash
+    npm run generate:api
+    # or
+    yarn generate:api
+    ```
+
+    Generated results will be in `./src/generated/api.ts`

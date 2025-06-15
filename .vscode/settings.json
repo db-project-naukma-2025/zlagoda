@@ -17,5 +17,15 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "always"
   },
-  "cSpell.words": ["fastapi", "ipython", "psycopg", "pytest", "zlagoda"]
+  "eslint.workingDirectories": [
+    "client"
+  ],
+  "cSpell.words": [
+    "fastapi",
+    "ipython",
+    "psycopg",
+    "pytest",
+    "sonner",
+    "zlagoda"
+  ]
 }

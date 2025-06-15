@@ -21,10 +21,8 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  beforeLoad: async () => {
-    throw redirect({
-      to: "/dashboard",
-    });
+  beforeLoad: () => {
+    return redirect({ to: "/dashboard" });
   },
 });
 
