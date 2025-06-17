@@ -5,8 +5,7 @@ from pydantic import BaseModel
 
 from ..dal.repositories.category import CategoryRepository
 from ..dal.schemas.category import Category
-from ..db import get_db
-from ..db.connection._base import IDatabase
+from ..ioc_container import get_category_repository
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
@@ -29,10 +28,6 @@ class UpdateCategoryRequest(BaseModel):
 
 class BulkDeleteRequest(BaseModel):
     category_numbers: list[int]
-
-
-def get_category_repository(db: IDatabase = Depends(get_db)) -> CategoryRepository:
-    return CategoryRepository(db)
 
 
 @router.get("/", response_model=PaginatedCategories, operation_id="getCategories")

@@ -5,8 +5,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import settings
-from .db import create_db
 from .db.migrations import DatabaseMigrationService
+from .ioc_container import create_db
 from .views import category
 
 logger = structlog.get_logger(__name__)
