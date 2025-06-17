@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 
 import structlog
 
@@ -23,8 +23,8 @@ class CategoryRepository:
         skip: int = 0,
         limit: int = 10,
         search: Optional[str] = None,
-        sort_by: str = "category_number",
-        sort_order: str = "asc",
+        sort_by: Literal["category_number", "category_name"] = "category_number",
+        sort_order: Literal["asc", "desc"] = "asc",
     ) -> list[Category]:
         where_clause = ""
         params = []
@@ -32,14 +32,6 @@ class CategoryRepository:
         if search:
             where_clause = "WHERE category_name ILIKE %s"
             params.append(f"%{search}%")
-
-        # Validate sort_by to prevent SQL injection
-        allowed_sort_fields = ["category_number", "category_name"]
-        if sort_by not in allowed_sort_fields:
-            sort_by = "category_number"
-
-        # Validate sort_order to prevent SQL injection
-        sort_order = "ASC" if sort_order.lower() == "asc" else "DESC"
 
         query = f"""
             SELECT {", ".join(self._fields.keys())}
