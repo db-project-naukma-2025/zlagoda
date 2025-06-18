@@ -22,16 +22,12 @@ def create_db() -> IDatabase:
 
 
 def get_db() -> Generator[IDatabase, None, None]:
-    db = create_db()
-    db.connect()
-    try:
+    with create_db() as db:
         yield db
-    finally:
-        db.disconnect()
 
 
 # DAL setup
 
 
-def get_category_repository(db: IDatabase = Depends(get_db)) -> CategoryRepository:
+def category_repository(db: IDatabase = Depends(get_db)) -> CategoryRepository:
     return CategoryRepository(db)
