@@ -5,8 +5,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import settings
-from .db.migrations import DatabaseMigrationService
-from .ioc_container import create_db
+from .cli.commands.createuser import Command as CreateUserCommand
+from .cli.commands.migrate import Command as DatabaseMigrationCommand
+from .ioc_container import (
+    create_db,
+    database_migration_service,
+    password_hasher,
+    registration_controller,
+    user_repository,
+)
 from .views import category
 
 logger = structlog.get_logger(__name__)
@@ -22,11 +29,10 @@ def cli():
 @click.argument("number", type=int, required=False)
 def migrate(number: int | None = None):
     """Run database migrations."""
-    logger.info("start_migration", target_number=number)
     with create_db() as db:
-        dms = DatabaseMigrationService(db, settings.BASE_PATH / "migrations")
-        dms.migrate(number=number)
-    logger.info("migration_completed", target_number=number)
+        dms = database_migration_service(db)
+        dmc = DatabaseMigrationCommand(dms)
+        dmc.execute(number=number)
 
 
 @cli.command()
@@ -43,9 +49,22 @@ def runserver():
     )
     app.include_router(category.router)
 
-    logger.info("server.starting", host=settings.API_HOST, port=settings.API_PORT)
+    click.echo(
+        click.style(f"Starting server on {settings.API_HOST}:{settings.API_PORT}...")
+    )
     uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT)
-    logger.info("server.stopped", host=settings.API_HOST, port=settings.API_PORT)
+    click.echo(click.style("Server stopped."))
+
+
+@cli.command()
+@click.option("--superuser", is_flag=True, help="Create a superuser account.")
+def createuser(superuser: bool = False):
+    """Create a new user."""
+    with create_db() as db:
+        repo = user_repository(db)
+        controller = registration_controller(repo, password_hasher())
+        command = CreateUserCommand(controller)
+        command.execute(superuser=superuser)
 
 
 def main():
