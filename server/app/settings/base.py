@@ -30,6 +30,7 @@ config = AutoConfig(search_path=BASE_PATH)
 
 SETTINGS_MODE = config("SETTINGS_MODE", default="dev")
 
+SECRET_KEY = str(config("SECRET_KEY"))
 
 # Database settings
 
@@ -52,7 +53,12 @@ API_PORT = int(config("API_PORT", default=8000))
 
 # CORS settings
 CORS_ALLOWED_ORIGINS = get_list(
-    str(config("CORS_ALLOWED_ORIGINS", default="http://localhost:3000,http://127.0.0.1:3000"))
+    str(
+        config(
+            "CORS_ALLOWED_ORIGINS",
+            default="http://localhost:3000,http://127.0.0.1:3000",
+        )
+    )
 )
 
 

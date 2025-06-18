@@ -7,8 +7,11 @@ from pydantic import BaseModel
 from ..dal.repositories.category import CategoryRepository
 from ..dal.schemas.category import Category
 from ..ioc_container import category_repository
+from .auth import require_user
 
-router = APIRouter(prefix="/categories", tags=["categories"])
+router = APIRouter(
+    prefix="/categories", tags=["categories"], dependencies=[Depends(require_user)]
+)
 
 
 class PaginatedCategories(BaseModel):

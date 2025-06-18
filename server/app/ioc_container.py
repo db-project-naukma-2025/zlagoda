@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Generator
 
 from fastapi import Depends
@@ -6,6 +7,7 @@ from . import settings
 from .controllers.auth.hasher import IHasher, SHA256Hasher
 from .controllers.auth.login import LoginController
 from .controllers.auth.registration import RegistrationController
+from .controllers.auth.token_generator import ITokenGenerator, JWTTokenGenerator
 from .controllers.permissions.group import UserGroupController
 from .controllers.permissions.permissions import UserPermissionController
 from .dal.repositories.auth import (
@@ -86,11 +88,16 @@ def password_hasher() -> IHasher:
     return SHA256Hasher()
 
 
+def token_generator() -> ITokenGenerator:
+    return JWTTokenGenerator(settings.SECRET_KEY, "HS256", timedelta(minutes=120))
+
+
 def login_controller(
     user_repo: UserRepository = Depends(user_repository),
     password_hasher: IHasher = Depends(password_hasher),
+    token_generator: ITokenGenerator = Depends(token_generator),
 ) -> LoginController:
-    return LoginController(user_repo, password_hasher)
+    return LoginController(user_repo, password_hasher, token_generator)
 
 
 def registration_controller(
