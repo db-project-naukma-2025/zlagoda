@@ -1,0 +1,20 @@
+{
+  "configurations": [
+    {
+      "name": "Debug FastAPI server",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "server/manage.py",
+      "console": "integratedTerminal",
+      "args": ["runserver"]
+    },
+    {
+      "name": "Debug management commands",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "server/manage.py",
+      "console": "integratedTerminal",
+      "args": "${command:pickArgs}"
+    }
+  ]
+}
