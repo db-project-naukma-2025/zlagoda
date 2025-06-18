@@ -26,6 +26,8 @@
     "psycopg",
     "pytest",
     "sonner",
-    "zlagoda"
+    "zlagoda",
+    "cli",
+    "createuser"
   ]
 }

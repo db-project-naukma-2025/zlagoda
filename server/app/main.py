@@ -52,7 +52,11 @@ def runserver():
     click.echo(
         click.style(f"Starting server on {settings.API_HOST}:{settings.API_PORT}...")
     )
-    uvicorn.run(app, host=settings.API_HOST, port=settings.API_PORT)
+    uvicorn.run(
+        app,
+        host=settings.API_HOST,
+        port=settings.API_PORT,
+    )
     click.echo(click.style("Server stopped."))
 
 
