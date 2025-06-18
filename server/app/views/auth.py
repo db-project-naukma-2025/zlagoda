@@ -1,3 +1,5 @@
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi_utils.cbv import cbv
@@ -30,25 +32,25 @@ async def require_user(
     return user
 
 
-class Token(BaseModel):
+class TokenResponse(BaseModel):
     access_token: str
-    token_type: str
+    token_type: Literal["bearer"]
 
 
 @cbv(router)
 class AuthViewSet:
     login_controller: LoginController = Depends(login_controller)
 
-    @router.post("/token")
+    @router.post("/token", response_model=TokenResponse, operation_id="login")
     async def login(
         self,
         form_data: OAuth2PasswordRequestForm = Depends(),
-    ):
+    ) -> TokenResponse:
         username, password = form_data.username, form_data.password
 
         response = self.login_controller.login(username, password)
-        return Token(access_token=response.access_token, token_type="bearer")
+        return TokenResponse(access_token=response.access_token, token_type="bearer")
 
-    @router.get("/me")
-    async def me(self, user: User = Depends(require_user)):
+    @router.get("/me", response_model=User, operation_id="me")
+    async def me(self, user: User = Depends(require_user)) -> User:
         return user

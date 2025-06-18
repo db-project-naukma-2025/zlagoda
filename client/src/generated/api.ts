@@ -33,6 +33,27 @@ const UpdateCategoryRequest = z
 const BulkDeleteRequest = z
   .object({ category_numbers: z.array(z.number().int()) })
   .passthrough();
+const Body_login = z
+  .object({
+    grant_type: z.union([z.string(), z.null()]).optional(),
+    username: z.string(),
+    password: z.string(),
+    scope: z.string().optional().default(""),
+    client_id: z.union([z.string(), z.null()]).optional(),
+    client_secret: z.union([z.string(), z.null()]).optional(),
+  })
+  .passthrough();
+const TokenResponse = z
+  .object({ access_token: z.string(), token_type: z.string() })
+  .passthrough();
+const User = z
+  .object({
+    id: z.number().int(),
+    username: z.string(),
+    password: z.string(),
+    is_superuser: z.boolean().optional().default(false),
+  })
+  .passthrough();
 
 export const schemas = {
   Category,
@@ -42,9 +63,40 @@ export const schemas = {
   CreateCategoryRequest,
   UpdateCategoryRequest,
   BulkDeleteRequest,
+  Body_login,
+  TokenResponse,
+  User,
 };
 
 const endpoints = makeApi([
+  {
+    method: "get",
+    path: "/auth/me",
+    alias: "me",
+    requestFormat: "json",
+    response: User,
+  },
+  {
+    method: "post",
+    path: "/auth/token",
+    alias: "login",
+    requestFormat: "form-url",
+    parameters: [
+      {
+        name: "body",
+        type: "Body",
+        schema: Body_login,
+      },
+    ],
+    response: TokenResponse,
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
   {
     method: "get",
     path: "/categories/",

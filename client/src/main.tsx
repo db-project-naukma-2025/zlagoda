@@ -6,7 +6,24 @@ import App from "./App.tsx";
 
 import "./index.css";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error: unknown) => {
+        // Don't retry on auth errors (401)
+        if (error && typeof error === "object" && "response" in error) {
+          const errorResponse = error as { response?: { status?: number } };
+          if (errorResponse.response?.status === 401) {
+            return false;
+          }
+        }
+        return failureCount < 3;
+      },
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60, // 1 minute
+    },
+  },
+});
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
