@@ -98,7 +98,7 @@ class DatabaseMigrationService:
 
     def _find_backward_migration(self, fw_migration: str) -> str | None:
         all_backward = [
-            (x.stem.rstrip(".reverse"), x.stem)
+            (x.stem.removesuffix(".reverse"), x.stem)
             for x in self.migrations_dir.iterdir()
             if x.is_file() and re.match(self.BACKWARD_MIGRATION_FILE_PATTERN, x.name)
         ]
@@ -110,6 +110,11 @@ class DatabaseMigrationService:
         return None
 
     def migrate(self, *, number: int | None = None):
+        """Validates and performs migrations.
+
+        Returns:
+            bool: True if migrations were performed, False otherwise.
+        """
         available = self.get_available_migrations()
         executed = self.get_executed_migrations()
 
@@ -119,7 +124,9 @@ class DatabaseMigrationService:
             available = [x for x in available if x[0] <= number]
 
         if len(available) == len(executed):
-            return
+            return False
+
+        # TODO: add logs for executing each migration
 
         if len(available) > len(executed):
             to_be_executed = available[len(executed) :]
@@ -135,19 +142,21 @@ class DatabaseMigrationService:
                         self.INSERT_MIGRATION_QUERY,
                         (number, fw_migration),
                     )
-            return
+            return True
 
         # backward migration
         to_be_executed = executed[len(available) :][::-1]
 
         for number, fw_migration in to_be_executed:
             bw_migration = self._find_backward_migration(fw_migration)
-            if bw_migration is None:
-                continue
+            sql = None
 
-            with open(self.migrations_dir / f"{bw_migration}.sql", "r") as f:
-                sql = f.read()
+            if bw_migration:
+                with open(self.migrations_dir / f"{bw_migration}.sql", "r") as f:
+                    sql = f.read()
 
             with transaction(self.database):
-                self.database.execute(sql)
+                if sql:
+                    self.database.execute(sql)
                 self.database.execute(self.DELETE_MIGRATION_QUERY, (number,))
+        return True
