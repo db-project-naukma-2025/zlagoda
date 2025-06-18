@@ -18,7 +18,7 @@ class UserRepository(PydanticDBRepository[User]):
                 VALUES (%s, %s, %s)
                 RETURNING {", ".join(self._fields)}
             """,
-            (username, password, is_superuser),
+            (username, password.get_secret_value(), is_superuser),
         )
         return self._row_to_model(rows[0])
 
