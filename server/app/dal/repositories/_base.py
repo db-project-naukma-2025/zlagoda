@@ -23,4 +23,8 @@ class PydanticDBRepository(DBRepository, Generic[_T_BaseModel]):
         return list(self.model.model_fields.keys())
 
     def _row_to_model(self, row: tuple[Any, ...]) -> _T_BaseModel:
+        if len(row) != len(self._fields):
+            raise ValueError(
+                f"Row has {len(row)} columns, but model has {len(self._fields)} fields"
+            )
         return self.model(**dict(zip(self._fields, row)))
