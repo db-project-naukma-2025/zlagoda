@@ -52,6 +52,22 @@ def runserver():
     click.echo(
         click.style(f"Starting server on {settings.API_HOST}:{settings.API_PORT}...")
     )
+
+    with create_db() as db:
+        dms = database_migration_service(db)
+        executed = dms.get_executed_migrations()
+        available = dms.get_available_migrations()
+
+    if executed != available:
+        click.echo(
+            click.style(
+                f"You have {len(available) - len(executed)} unapplied migration(s). "
+                "Your project may not work properly until you apply the migrations.\n"
+                "Run 'python manage.py migrate' to apply them.",
+                fg="red",
+            )
+        )
+
     uvicorn.run(
         app,
         host=settings.API_HOST,
