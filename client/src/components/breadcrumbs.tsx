@@ -36,7 +36,6 @@ export function Breadcrumbs() {
     );
   }
 
-  // For nested routes, show the full breadcrumb path
   return (
     <Breadcrumb className="text-base">
       <BreadcrumbList className="text-base gap-2">

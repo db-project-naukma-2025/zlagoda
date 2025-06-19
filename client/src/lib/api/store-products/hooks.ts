@@ -5,6 +5,7 @@ import { useApiQuery } from "@/hooks/use-api-query";
 import { storeProductQueryKeys, storeProductsApi } from "./service";
 import {
   type BulkDeleteRequest,
+  type CreatePromotionalProductFormData,
   type CreateStoreProductFormData,
   type GetStoreProductsOptions,
   type StoreProductUPC,
@@ -35,6 +36,25 @@ export const useCreateStoreProduct = () => {
   return useMutation({
     mutationFn: (data: CreateStoreProductFormData) =>
       storeProductsApi.createStoreProduct(data),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: storeProductQueryKeys.all(),
+      });
+    },
+  });
+};
+
+export const useCreatePromotionalProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      sourceUpc,
+      data,
+    }: {
+      sourceUpc: StoreProductUPC;
+      data: CreatePromotionalProductFormData;
+    }) => storeProductsApi.createPromotionalProduct(sourceUpc, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: storeProductQueryKeys.all(),
