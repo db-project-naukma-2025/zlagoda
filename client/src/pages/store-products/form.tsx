@@ -1,6 +1,7 @@
 import { type AnyFieldApi } from "@tanstack/react-form";
 import { useEffect, useState } from "react";
 
+import { FieldError } from "@/components/common/field-error";
 import { Combobox } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,17 +64,7 @@ export function StoreProductFormFields({
                   field.handleChange(e.target.value);
                 }}
               />
-              {field.state.meta.errors.length ? (
-                <p className="text-sm font-medium text-destructive">
-                  {field.state.meta.errors
-                    .map((error: { message?: string } | string) =>
-                      typeof error === "string"
-                        ? error
-                        : (error.message ?? "Validation error"),
-                    )
-                    .join(", ")}
-                </p>
-              ) : null}
+              <FieldError field={field} />
             </div>
           )}
           name="UPC"
@@ -106,17 +97,7 @@ export function StoreProductFormFields({
                 field.handleChange(Number(value));
               }}
             />
-            {field.state.meta.errors.length ? (
-              <p className="text-sm font-medium text-destructive">
-                {field.state.meta.errors
-                  .map((error: { message?: string } | string) =>
-                    typeof error === "string"
-                      ? error
-                      : (error.message ?? "Validation error"),
-                  )
-                  .join(", ")}
-              </p>
-            ) : null}
+            <FieldError field={field} />
           </div>
         )}
         name="id_product"
@@ -158,17 +139,7 @@ export function StoreProductFormFields({
                   product.
                 </p>
               )}
-              {field.state.meta.errors.length ? (
-                <p className="text-sm font-medium text-destructive">
-                  {field.state.meta.errors
-                    .map((error: { message?: string } | string) =>
-                      typeof error === "string"
-                        ? error
-                        : (error.message ?? "Validation error"),
-                    )
-                    .join(", ")}
-                </p>
-              ) : null}
+              <FieldError field={field} />
             </div>
           );
         }}
@@ -191,17 +162,7 @@ export function StoreProductFormFields({
                 field.handleChange(e.target.value ? Number(e.target.value) : 0);
               }}
             />
-            {field.state.meta.errors.length ? (
-              <p className="text-sm font-medium text-destructive">
-                {field.state.meta.errors
-                  .map((error: { message?: string } | string) =>
-                    typeof error === "string"
-                      ? error
-                      : (error.message ?? "Validation error"),
-                  )
-                  .join(", ")}
-              </p>
-            ) : null}
+            <FieldError field={field} />
           </div>
         )}
         name="products_number"
@@ -241,17 +202,7 @@ export function PromotionalProductFormFields({
                 field.handleChange(e.target.value);
               }}
             />
-            {field.state.meta.errors.length ? (
-              <p className="text-sm font-medium text-destructive">
-                {field.state.meta.errors
-                  .map((error: { message?: string } | string) =>
-                    typeof error === "string"
-                      ? error
-                      : (error.message ?? "Validation error"),
-                  )
-                  .join(", ")}
-              </p>
-            ) : null}
+            <FieldError field={field} />
           </div>
         )}
         name="promotional_UPC"
@@ -278,17 +229,7 @@ export function PromotionalProductFormFields({
             <p className="text-xs text-muted-foreground">
               Available: {maxUnits} units
             </p>
-            {field.state.meta.errors.length ? (
-              <p className="text-sm font-medium text-destructive">
-                {field.state.meta.errors
-                  .map((error: { message?: string } | string) =>
-                    typeof error === "string"
-                      ? error
-                      : (error.message ?? "Validation error"),
-                  )
-                  .join(", ")}
-              </p>
-            ) : null}
+            <FieldError field={field} />
           </div>
         )}
         name="units_to_convert"

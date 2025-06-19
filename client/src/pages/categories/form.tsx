@@ -1,5 +1,6 @@
 import { type AnyFieldApi } from "@tanstack/react-form";
 
+import { FieldError } from "@/components/common/field-error";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -29,17 +30,7 @@ export function CategoryForm({ form }: CategoryFormProps) {
                 field.handleChange(e.target.value);
               }}
             />
-            {field.state.meta.errors.length ? (
-              <p className="text-sm font-medium text-destructive">
-                {field.state.meta.errors
-                  .map((error: { message?: string } | string) =>
-                    typeof error === "string"
-                      ? error
-                      : (error.message ?? "Validation error"),
-                  )
-                  .join(", ")}
-              </p>
-            ) : null}
+            <FieldError field={field} />
           </div>
         );
       }}

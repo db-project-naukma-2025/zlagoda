@@ -25,7 +25,6 @@ import {
 } from "./dialogs";
 import { type StoreProductWithId } from "./types";
 
-// Simplified product interface for the table components
 interface SimpleProduct {
   id_product: number;
   product_name: string;
