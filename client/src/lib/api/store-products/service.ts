@@ -2,6 +2,7 @@ import { apiClient } from "@/lib/api/client";
 
 import {
   type BulkDeleteRequest,
+  type CreatePromotionalProductFormData,
   type CreateStoreProductFormData,
   type GetStoreProductsOptions,
   type StoreProductUPC,
@@ -31,6 +32,15 @@ export const storeProductsApi = {
 
   async createStoreProduct(data: CreateStoreProductFormData) {
     return apiClient.createStoreProduct(data);
+  },
+
+  async createPromotionalProduct(
+    sourceUpc: StoreProductUPC,
+    data: CreatePromotionalProductFormData,
+  ) {
+    return apiClient.createPromotionalProduct(data, {
+      params: { source_upc: sourceUpc },
+    });
   },
 
   async updateStoreProduct(

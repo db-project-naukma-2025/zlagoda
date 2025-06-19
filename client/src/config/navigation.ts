@@ -11,15 +11,14 @@ import {
 } from "@tabler/icons-react";
 import { type RouteComponent } from "@tanstack/react-router";
 
-import BaseProductsPage from "../pages/base-products-page";
-import CategoriesPage from "../pages/categories-page";
+import CategoriesPage from "../pages/categories";
 import ChecksSalesPage from "../pages/checks-sales-page";
 import CustomersPage from "../pages/customers-page";
 import DashboardPage from "../pages/dashboard-page";
 import EmployeesPage from "../pages/employees-page";
-import ProductsPage from "../pages/products-page";
+import ProductsPage from "../pages/products";
 import ReportsPage from "../pages/reports-page";
-import StoreInventoryPage from "../pages/store-inventory-page";
+import StoreProductsPage from "../pages/store-products";
 
 export interface NavigationItem {
   id: string;
@@ -57,14 +56,14 @@ export const navigationConfig: NavigationItem[] = [
         title: "Base Products",
         path: "/products/base-products",
         icon: IconBox,
-        component: BaseProductsPage,
+        component: ProductsPage,
       },
       {
         id: "store-inventory",
         title: "Store Inventory",
         path: "/products/store-inventory",
         icon: IconArchive,
-        component: StoreInventoryPage,
+        component: StoreProductsPage,
       },
     ],
   },

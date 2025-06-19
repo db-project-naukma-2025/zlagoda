@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { type apiSchemas, type Api } from "../client";
+import { type Api, type apiSchemas } from "../client";
 
 export type Category = z.infer<typeof apiSchemas.Category>;
 export type CategoryNumber = Category["category_number"];
@@ -20,9 +20,10 @@ export type CreateCategoryFormData = z.infer<
 export type UpdateCategoryFormData = z.infer<
   typeof apiSchemas.UpdateCategoryRequest
 >;
-export type BulkDeleteRequest = z.infer<typeof apiSchemas.BulkDeleteRequest>;
+export type BulkDeleteRequest = z.infer<
+  typeof apiSchemas.app__views__category__BulkDeleteRequest
+>;
 
-// Schemas should match the API schemas, but they also have err messages
 export const createCategorySchema: z.ZodType<CreateCategoryFormData> = z.object(
   {
     category_name: z.string().min(1, "Category name is required"),
