@@ -27,7 +27,7 @@ class PaginatedCustomerCards(BaseModel):
     total_pages: int
 
 
-class BulkDeleteRequest(BaseModel):
+class BulkDeleteCustomerCardRequest(BaseModel):
     card_numbers: list[str]
 
 
@@ -85,6 +85,6 @@ class CustomerCardViewSet:
         return self.modification_controller.delete(card_number)
 
     @router.post("/bulk-delete", operation_id="bulkDeleteCustomerCards")
-    async def bulk_delete_customer_cards(self, request: BulkDeleteRequest):
+    async def bulk_delete_customer_cards(self, request: BulkDeleteCustomerCardRequest):
         for card_number in request.card_numbers:
             self.modification_controller.delete(card_number)

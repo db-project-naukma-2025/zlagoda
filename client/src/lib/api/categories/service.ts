@@ -1,7 +1,7 @@
 import { apiClient } from "@/lib/api/client";
 
 import {
-  type BulkDeleteRequest,
+  type BulkDeleteCategoryRequest,
   type CategoryNumber,
   type CreateCategoryFormData,
   type GetCategoriesOptions,
@@ -48,7 +48,7 @@ export const categoriesApi = {
     });
   },
 
-  async bulkDeleteCategories(request: BulkDeleteRequest) {
+  async bulkDeleteCategories(request: BulkDeleteCategoryRequest) {
     return apiClient.bulkDeleteCategories(request);
   },
 };
