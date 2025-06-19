@@ -11,6 +11,7 @@ from ..dal.schemas.store_product import (
     StoreProduct,
     UpdateStoreProduct,
 )
+from ..db.connection import transaction
 from ..ioc_container import store_product_repository
 
 router = APIRouter(prefix="/store-products", tags=["store-products"])
@@ -168,10 +169,6 @@ class StoreProductViewSet:
             products_number=request.units_to_convert,
             promotional_product=True,
         )
-
-        promotional_product = repo.create(promotional_product_data)
-
-        # Update the source product
         updated_source_data = UpdateStoreProduct(
             UPC_prom=request.promotional_UPC,
             id_product=source_product.id_product,
@@ -180,7 +177,9 @@ class StoreProductViewSet:
             promotional_product=False,
         )
 
-        repo.update(source_upc, updated_source_data)
+        with transaction(repo._db):
+            promotional_product = repo.create(promotional_product_data)
+            repo.update(source_upc, updated_source_data)
 
         return promotional_product
 
