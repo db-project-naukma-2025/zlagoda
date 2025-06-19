@@ -63,7 +63,7 @@ class CategoryRepository(PydanticDBRepository[Category]):
                 SELECT {", ".join(self._fields)}
                 FROM {self.table_name}
                 WHERE category_number = %s
-                """,
+            """,
             (category_number,),
         )
         return self._row_to_model(rows[0]) if rows else None
@@ -74,7 +74,7 @@ class CategoryRepository(PydanticDBRepository[Category]):
                 INSERT INTO {self.table_name} (category_name)
                 VALUES (%s)
                 RETURNING {", ".join(self._fields)}
-                """,
+            """,
             (category_name,),
         )
         return self._row_to_model(rows[0])
@@ -86,7 +86,7 @@ class CategoryRepository(PydanticDBRepository[Category]):
                 SET category_name = %s
                 WHERE category_number = %s
                 RETURNING {", ".join(self._fields)}
-                """,
+            """,
             (category_name, category_number),
         )
         return self._row_to_model(rows[0])
@@ -96,7 +96,7 @@ class CategoryRepository(PydanticDBRepository[Category]):
             f"""
                 DELETE FROM {self.table_name}
                 WHERE category_number = %s
-                """,
+            """,
             (category_number,),
         )
 
@@ -107,7 +107,7 @@ class CategoryRepository(PydanticDBRepository[Category]):
         self._db.execute(
             f"""
                 DELETE FROM {self.table_name}
-                WHERE category_number IN ({", ".join(["%s"] * len(category_numbers))})
-                """,
-            tuple(category_numbers),
+                WHERE category_number = ANY(%s)
+            """,
+            (category_numbers,),
         )

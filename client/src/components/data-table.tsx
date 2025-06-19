@@ -21,6 +21,7 @@ import {
   IconArrowDown,
   IconArrowsSort,
   IconArrowUp,
+  IconFilter,
   IconGripVertical,
 } from "@tabler/icons-react";
 import {
@@ -43,6 +44,12 @@ import { useCallback, useEffect, useId, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -56,40 +63,93 @@ import { cn } from "@/lib/utils";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar } from "./data-table-toolbar";
 
+export interface FilterConfig {
+  options: ComboboxOption[];
+  value?: string;
+  onValueChange: (value: string) => void;
+  placeholder?: string;
+  label?: string;
+}
+
 interface DataTableColumnHeaderProps<TData, TValue>
   extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>;
   title: string;
+  filter?: FilterConfig;
 }
 
 export function DataTableColumnHeader<TData, TValue>({
   column,
   title,
   className,
+  filter,
 }: DataTableColumnHeaderProps<TData, TValue>) {
-  if (!column.getCanSort()) {
+  if (!column.getCanSort() && !filter) {
     return <div className={cn(className)}>{title}</div>;
   }
 
   return (
-    <div className={cn("flex items-center space-x-2", className)}>
-      <Button
-        className="-ml-3 h-8 data-[state=open]:bg-accent"
-        size="sm"
-        variant="ghost"
-        onClick={() => {
-          column.toggleSorting(column.getIsSorted() === "asc");
-        }}
-      >
-        <span>{title}</span>
-        {column.getIsSorted() === "desc" ? (
-          <IconArrowDown className="ml-2 h-4 w-4" />
-        ) : column.getIsSorted() === "asc" ? (
-          <IconArrowUp className="ml-2 h-4 w-4" />
-        ) : (
-          <IconArrowsSort className="ml-2 h-4 w-4" />
-        )}
-      </Button>
+    <div className={cn("flex items-center", className)}>
+      {/* Sorting button */}
+      {column.getCanSort() && (
+        <Button
+          className="-ml-3 h-8 data-[state=open]:bg-accent"
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            column.toggleSorting(column.getIsSorted() === "asc");
+          }}
+        >
+          <span>{title}</span>
+          {column.getIsSorted() === "desc" ? (
+            <IconArrowDown className="ml-2 h-4 w-4" />
+          ) : column.getIsSorted() === "asc" ? (
+            <IconArrowUp className="ml-2 h-4 w-4" />
+          ) : (
+            <IconArrowsSort className="ml-2 h-4 w-4" />
+          )}
+        </Button>
+      )}
+
+      {/* Filter button */}
+      {filter && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              className="h-8 data-[state=open]:bg-accent"
+              size="sm"
+              variant="ghost"
+            >
+              <IconFilter className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-56 p-3">
+            <div className="space-y-2">
+              <h4 className="font-medium leading-none">
+                {filter.label ?? title}
+              </h4>
+              <Combobox
+                allowClear
+                clearText={`All ${filter.label ?? title}`}
+                emptyMessage={`No ${filter.label?.toLowerCase() ?? "options"} found.`}
+                options={filter.options}
+                placeholder={
+                  filter.placeholder ??
+                  `Select ${filter.label?.toLowerCase() ?? "option"}...`
+                }
+                searchPlaceholder={`Search ${filter.label?.toLowerCase() ?? "options"}...`}
+                value={filter.value ?? ""}
+                onValueChange={filter.onValueChange}
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
+
+      {/* Title only (when no sorting or filtering) */}
+      {!column.getCanSort() && !filter && (
+        <span className="font-medium">{title}</span>
+      )}
     </div>
   );
 }

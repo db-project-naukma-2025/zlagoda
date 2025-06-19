@@ -14,7 +14,7 @@ from .ioc_container import (
     registration_controller,
     user_repository,
 )
-from .views import category, customer_card
+from .views import category, customer_card, product, store_product
 
 logger = structlog.get_logger(__name__)
 
@@ -49,6 +49,8 @@ def runserver():
     )
     app.include_router(category.router)
     app.include_router(customer_card.router)
+    app.include_router(product.router)
+    app.include_router(store_product.router)
 
     click.echo(
         click.style(f"Starting server on {settings.API_HOST}:{settings.API_PORT}...")

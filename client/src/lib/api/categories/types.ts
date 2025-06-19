@@ -24,7 +24,6 @@ export type BulkDeleteCategoryRequest = z.infer<
   typeof apiSchemas.BulkDeleteCategoryRequest
 >;
 
-// Schemas should match the API schemas, but they also have err messages
 export const createCategorySchema: z.ZodType<CreateCategoryFormData> = z.object(
   {
     category_name: z.string().min(1, "Category name is required"),
