@@ -21,6 +21,42 @@ class UserRepository(PydanticDBRepository[User]):
         )
         return self._row_to_model(rows[0])
 
+    def update(
+        self,
+        user_id: int,
+        username: str | None,
+        password: str | None,
+        is_superuser: bool | None,
+    ) -> User:
+        if username is None and password is None and is_superuser is None:
+            raise ValueError("At least one field must be provided")
+
+        set_clauses = []
+        params = []
+
+        if username is not None:
+            set_clauses.append("username = %s")
+            params.append(username)
+        if password is not None:
+            set_clauses.append("password = %s")
+            params.append(password)
+        if is_superuser is not None:
+            set_clauses.append("is_superuser = %s")
+            params.append(is_superuser)
+
+        set_clause = ", ".join(set_clauses)
+
+        rows = self._db.execute(
+            f"""
+                UPDATE {self.table_name}
+                SET {set_clause}
+                WHERE id = %s
+                RETURNING {", ".join(self._fields)}
+            """,
+            (*params, user_id),
+        )
+        return self._row_to_model(rows[0])
+
     def get_by_username(self, username: str) -> User | None:
         rows = self._db.execute(
             f"""

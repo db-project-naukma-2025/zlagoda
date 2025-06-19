@@ -17,9 +17,7 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "always"
   },
-  "eslint.workingDirectories": [
-    "client"
-  ],
+  "eslint.workingDirectories": ["client"],
   "cSpell.words": [
     "fastapi",
     "ipython",
@@ -28,6 +26,8 @@
     "sonner",
     "zlagoda",
     "cli",
-    "createuser"
+    "createuser",
+    "cust",
+    "empl"
   ]
 }

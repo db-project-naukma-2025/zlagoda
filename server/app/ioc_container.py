@@ -6,6 +6,10 @@ from . import settings
 from .controllers.auth.hasher import IHasher, SHA256Hasher
 from .controllers.auth.login import LoginController
 from .controllers.auth.registration import RegistrationController
+from .controllers.customer_card import (
+    CustomerCardModificationController,
+    CustomerCardQueryController,
+)
 from .controllers.permissions.group import UserGroupController
 from .controllers.permissions.permissions import UserPermissionController
 from .dal.repositories.auth import (
@@ -16,6 +20,7 @@ from .dal.repositories.auth import (
     UserRepository,
 )
 from .dal.repositories.category import CategoryRepository
+from .dal.repositories.customer_card import CustomerCardRepository
 from .db.connection._base import IDatabase
 from .db.migrations import DatabaseMigrationService
 
@@ -79,6 +84,10 @@ def group_repository(db: IDatabase = Depends(get_db)) -> GroupRepository:
     return GroupRepository(db)
 
 
+def customer_card_repository(db: IDatabase = Depends(get_db)) -> CustomerCardRepository:
+    return CustomerCardRepository(db)
+
+
 # Controllers setup
 
 
@@ -120,3 +129,15 @@ def user_group_controller(
     ),
 ) -> UserGroupController:
     return UserGroupController(group_repo, user_group_repo, group_permission_repo)
+
+
+def customer_card_query_controller(
+    customer_card_repo: CustomerCardRepository = Depends(customer_card_repository),
+) -> CustomerCardQueryController:
+    return CustomerCardQueryController(customer_card_repo)
+
+
+def customer_card_modification_controller(
+    customer_card_repo: CustomerCardRepository = Depends(customer_card_repository),
+) -> CustomerCardModificationController:
+    return CustomerCardModificationController(customer_card_repo)
