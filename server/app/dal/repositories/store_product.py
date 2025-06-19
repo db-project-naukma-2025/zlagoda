@@ -121,7 +121,7 @@ class StoreProductRepository(PydanticDBRepository[StoreProduct]):
                 SELECT {", ".join(self._fields)}
                 FROM {self.table_name}
                 WHERE UPC = %s
-                """,
+            """,
             (upc,),
         )
         return self._row_to_model(rows[0]) if rows else None
@@ -135,7 +135,7 @@ class StoreProductRepository(PydanticDBRepository[StoreProduct]):
                 SELECT {", ".join(self._fields)}
                 FROM {self.table_name}
                 WHERE id_product = %s AND promotional_product = false
-                """,
+            """,
             (id_product,),
         )
         return self._row_to_model(rows[0]) if rows else None
@@ -149,7 +149,7 @@ class StoreProductRepository(PydanticDBRepository[StoreProduct]):
                 SELECT {", ".join(self._fields)}
                 FROM {self.table_name}
                 WHERE id_product = %s AND promotional_product = true
-                """,
+            """,
             (id_product,),
         )
         return self._row_to_model(rows[0]) if rows else None
@@ -163,7 +163,7 @@ class StoreProductRepository(PydanticDBRepository[StoreProduct]):
                 INSERT INTO {self.table_name} (UPC, UPC_prom, id_product, selling_price, products_number, promotional_product)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 RETURNING {", ".join(self._fields)}
-                """,
+            """,
             (
                 create_store_product.UPC,
                 create_store_product.UPC_prom,
@@ -186,7 +186,7 @@ class StoreProductRepository(PydanticDBRepository[StoreProduct]):
                 SET UPC_prom = %s, id_product = %s, selling_price = %s, products_number = %s, promotional_product = %s
                 WHERE UPC = %s
                 RETURNING {", ".join(self._fields)}
-                """,
+            """,
             (
                 update_store_product.UPC_prom,
                 update_store_product.id_product,
@@ -203,7 +203,7 @@ class StoreProductRepository(PydanticDBRepository[StoreProduct]):
             f"""
                 DELETE FROM {self.table_name}
                 WHERE UPC = %s
-                """,
+            """,
             (upc,),
         )
 
@@ -214,9 +214,9 @@ class StoreProductRepository(PydanticDBRepository[StoreProduct]):
         self._db.execute(
             f"""
                 DELETE FROM {self.table_name}
-                WHERE UPC IN ({", ".join(["%s"] * len(upcs))})
-                """,
-            tuple(upcs),
+                WHERE UPC = ANY(%s)
+            """,
+            (upcs,),
         )
 
     def exists_for_product_and_promo_type(

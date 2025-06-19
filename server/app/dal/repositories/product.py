@@ -145,7 +145,7 @@ class ProductRepository(PydanticDBRepository[Product]):
         self._db.execute(
             f"""
                 DELETE FROM {self.table_name}
-                WHERE id_product IN ({", ".join(["%s"] * len(product_ids))})
+                WHERE id_product = ANY(%s)
             """,
-            tuple(product_ids),
+            (product_ids,),
         )
