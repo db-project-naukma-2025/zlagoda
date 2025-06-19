@@ -14,7 +14,7 @@ from .ioc_container import (
     registration_controller,
     user_repository,
 )
-from .views import category
+from .views import category, employee
 
 logger = structlog.get_logger(__name__)
 
@@ -48,6 +48,7 @@ def runserver():
         allow_headers=["*"],
     )
     app.include_router(category.router)
+    app.include_router(employee.router)
 
     click.echo(
         click.style(f"Starting server on {settings.API_HOST}:{settings.API_PORT}...")
