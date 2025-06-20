@@ -4,6 +4,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { ConfirmationDialog } from "@/components/common/confirmation-dialog";
+import {
+  useCreateDialog,
+  useDeleteDialog,
+  useEditDialog,
+} from "@/components/common/crud-dialog-hooks";
 import { FormDialog } from "@/components/common/form-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,10 +52,9 @@ export function CreateStoreProductDialog({
   products,
   storeProducts = [],
 }: CreateStoreProductDialogProps) {
-  const [open, setOpen] = useState(false);
   const createMutation = useCreateStoreProduct();
 
-  const form = useForm({
+  const { form, open, setOpen, isPending } = useCreateDialog({
     defaultValues: {
       UPC: "",
       UPC_prom: null as string | null,
@@ -59,31 +63,16 @@ export function CreateStoreProductDialog({
       products_number: 0,
       promotional_product: false, // Always false for regular product creation
     },
-    validators: {
-      onChange: createStoreProductSchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        // promotional_product is already set to false in defaultValues
-        await createMutation.mutateAsync(value);
-        toast.success("Store product created successfully");
-        form.reset();
-        setOpen(false);
-      } catch (error) {
-        console.error("Failed to create store product:", error);
-        const errorMessage = getApiErrorMessage(
-          error,
-          "Failed to create store product",
-        );
-        toast.error(errorMessage);
-      }
-    },
+    schema: createStoreProductSchema,
+    createMutation,
+    successMessage: "Store product created successfully",
+    errorMessage: "Failed to create store product",
   });
 
   return (
     <FormDialog
       description="Add a new product to store inventory."
-      isPending={createMutation.isPending}
+      isPending={isPending}
       open={open}
       submitText="Create"
       title="Create Store Product"
@@ -126,40 +115,29 @@ export function EditStoreProductDialog({
 }: EditStoreProductDialogProps) {
   const updateMutation = useUpdateStoreProduct();
 
-  const form = useForm({
-    defaultValues: {
-      UPC_prom: storeProduct.UPC_prom,
-      id_product: storeProduct.id_product,
-      selling_price: storeProduct.selling_price,
-      products_number: storeProduct.products_number,
-      promotional_product: storeProduct.promotional_product,
-    },
-    validators: {
-      onChange: updateStoreProductSchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        await updateMutation.mutateAsync({
-          upc: storeProduct.UPC,
-          data: value,
-        });
-        toast.success("Store product updated successfully");
-        onOpenChange(false);
-      } catch (error) {
-        console.error("Failed to update store product:", error);
-        const errorMessage = getApiErrorMessage(
-          error,
-          "Failed to update store product",
-        );
-        toast.error(errorMessage);
-      }
+  const { form, isPending } = useEditDialog({
+    item: storeProduct,
+    schema: updateStoreProductSchema,
+    updateMutation,
+    getDefaultValues: (product) => ({
+      UPC_prom: product.UPC_prom,
+      id_product: product.id_product,
+      selling_price: product.selling_price,
+      products_number: product.products_number,
+      promotional_product: product.promotional_product,
+    }),
+    getId: (product) => product.UPC,
+    successMessage: "Store product updated successfully",
+    errorMessage: "Failed to update store product",
+    onSuccess: () => {
+      onOpenChange(false);
     },
   });
 
   return (
     <FormDialog
       description="Update the store product information."
-      isPending={updateMutation.isPending}
+      isPending={isPending}
       key={`${storeProduct.UPC}-${open.toString()}`}
       open={open}
       submitText="Update"
@@ -197,30 +175,23 @@ export function DeleteStoreProductDialog({
 }: DeleteStoreProductDialogProps) {
   const deleteMutation = useDeleteStoreProduct();
 
+  const { handleDelete, isPending } = useDeleteDialog({
+    deleteMutation,
+    successMessage: "Store product deleted successfully",
+    errorMessage: "Failed to delete store product",
+  });
+
   return (
     <ConfirmationDialog
       cancelText="Cancel"
       confirmButtonVariant="destructive"
       confirmText="Delete"
       description={`Are you sure you want to delete store product with UPC "${upc}"? This action cannot be undone.`}
-      isPending={deleteMutation.isPending}
+      isPending={isPending}
       open={open}
       title="Delete Store Product"
       onConfirm={() => {
-        void (async () => {
-          try {
-            await deleteMutation.mutateAsync(upc);
-            toast.success("Store product deleted successfully");
-            onOpenChange(false);
-          } catch (error) {
-            console.error("Failed to delete store product:", error);
-            const errorMessage = getApiErrorMessage(
-              error,
-              "Failed to delete store product",
-            );
-            toast.error(errorMessage);
-          }
-        })();
+        void handleDelete(upc, onOpenChange);
       }}
       onOpenChange={onOpenChange}
     />
@@ -254,7 +225,8 @@ export function CreatePromotionalDialog({
       promotional_UPC: "",
     },
     validators: {
-      onChange: createPromotionalProductSchema,
+      onBlur: createPromotionalProductSchema,
+      onSubmit: createPromotionalProductSchema,
     },
     onSubmit: async ({ value }) => {
       setIsSubmitting(true);

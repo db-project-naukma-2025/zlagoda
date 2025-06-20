@@ -1,6 +1,7 @@
 import { type AnyFieldApi } from "@tanstack/react-form";
 
 import { FieldError } from "@/components/common/field-error";
+import { RequiredIndicator } from "@/components/common/required-indicator";
 import { PhoneInput } from "@/components/phone-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,11 +29,13 @@ export function CustomerCardForm({
             children={(field) => {
               return (
                 <div className="space-y-2">
-                  <Label htmlFor={field.name}>Card Number</Label>
+                  <Label htmlFor={field.name}>
+                    Card Number <RequiredIndicator />
+                  </Label>
                   <Input
                     id={field.name}
                     name={field.name}
-                    placeholder="Enter card number"
+                    placeholder="e.g., CUST001234"
                     value={field.state.value as string}
                     onBlur={field.handleBlur}
                     onChange={(e) => {
@@ -51,11 +54,13 @@ export function CustomerCardForm({
           children={(field) => {
             return (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Customer Surname</Label>
+                <Label htmlFor={field.name}>
+                  Customer Surname <RequiredIndicator />
+                </Label>
                 <Input
                   id={field.name}
                   name={field.name}
-                  placeholder="Enter customer surname"
+                  placeholder="e.g., Smith"
                   value={field.state.value as string}
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -72,11 +77,13 @@ export function CustomerCardForm({
           children={(field) => {
             return (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Customer Name</Label>
+                <Label htmlFor={field.name}>
+                  Customer Name <RequiredIndicator />
+                </Label>
                 <Input
                   id={field.name}
                   name={field.name}
-                  placeholder="Enter customer name"
+                  placeholder="e.g., John"
                   value={field.state.value as string}
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -97,7 +104,7 @@ export function CustomerCardForm({
                 <Input
                   id={field.name}
                   name={field.name}
-                  placeholder="Enter customer patronymic"
+                  placeholder="e.g., Michael (optional)"
                   required={false}
                   value={field.state.value as string | undefined}
                   onBlur={field.handleBlur}
@@ -116,12 +123,14 @@ export function CustomerCardForm({
           children={(field) => {
             return (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Phone Number</Label>
+                <Label htmlFor={field.name}>
+                  Phone Number <RequiredIndicator />
+                </Label>
                 <PhoneInput
                   id={field.name}
                   international={true}
                   name={field.name}
-                  placeholder="Enter phone number"
+                  placeholder="e.g., +380501234567"
                   value={field.state.value as string}
                   onBlur={field.handleBlur}
                   onChange={(value) => {
@@ -143,7 +152,7 @@ export function CustomerCardForm({
                 <Input
                   id={field.name}
                   name={field.name}
-                  placeholder="Enter city"
+                  placeholder="e.g., Kyiv"
                   value={field.state.value as string}
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -165,7 +174,7 @@ export function CustomerCardForm({
                 <Input
                   id={field.name}
                   name={field.name}
-                  placeholder="Enter street"
+                  placeholder="e.g., 15 Shevchenko Street"
                   value={field.state.value as string}
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -187,7 +196,7 @@ export function CustomerCardForm({
                 <Input
                   id={field.name}
                   name={field.name}
-                  placeholder="Enter zip code"
+                  placeholder="e.g., 01001"
                   value={field.state.value as string}
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -205,13 +214,15 @@ export function CustomerCardForm({
           children={(field) => {
             return (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Discount percent</Label>
+                <Label htmlFor={field.name}>
+                  Discount percent <RequiredIndicator />
+                </Label>
                 <div className="relative">
                   <Input
                     className="pr-8"
                     id={field.name}
                     name={field.name}
-                    placeholder="Enter discount percent"
+                    placeholder="e.g., 5"
                     value={field.state.value as string}
                     onBlur={field.handleBlur}
                     onChange={(e) => {

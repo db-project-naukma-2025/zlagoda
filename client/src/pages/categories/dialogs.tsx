@@ -1,9 +1,11 @@
 import { IconPlus } from "@tabler/icons-react";
-import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import { ConfirmationDialog } from "@/components/common/confirmation-dialog";
+import {
+  useCreateDialog,
+  useDeleteDialog,
+  useEditDialog,
+} from "@/components/common/crud-dialog-hooks";
 import { FormDialog } from "@/components/common/form-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,32 +22,22 @@ import {
 import { CategoryForm } from "./form";
 
 export function CreateCategoryDialog() {
-  const [open, setOpen] = useState(false);
   const createMutation = useCreateCategory();
 
-  const form = useForm({
+  const { form, open, setOpen, isPending } = useCreateDialog({
     defaultValues: {
       category_name: "",
     },
-    validators: {
-      onChange: createCategorySchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        await createMutation.mutateAsync(value);
-        toast.success("Category created successfully");
-        form.reset();
-        setOpen(false);
-      } catch {
-        toast.error("Failed to create category");
-      }
-    },
+    schema: createCategorySchema,
+    createMutation,
+    successMessage: "Category created successfully",
+    errorMessage: "Failed to create category",
   });
 
   return (
     <FormDialog
       description="Add a new category to organize your products."
-      isPending={createMutation.isPending}
+      isPending={isPending}
       open={open}
       submitText="Create"
       title="Create Category"
@@ -77,31 +69,25 @@ export function EditCategoryDialog({
 }) {
   const updateMutation = useUpdateCategory();
 
-  const form = useForm({
-    defaultValues: {
-      category_name: category.category_name,
-    },
-    validators: {
-      onChange: updateCategorySchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        await updateMutation.mutateAsync({
-          id: category.category_number,
-          data: value,
-        });
-        toast.success("Category updated successfully");
-        onOpenChange(false);
-      } catch {
-        toast.error("Failed to update category");
-      }
+  const { form, isPending } = useEditDialog({
+    item: category,
+    schema: updateCategorySchema,
+    updateMutation,
+    getDefaultValues: (cat) => ({
+      category_name: cat.category_name,
+    }),
+    getId: (cat) => cat.category_number,
+    successMessage: "Category updated successfully",
+    errorMessage: "Failed to update category",
+    onSuccess: () => {
+      onOpenChange(false);
     },
   });
 
   return (
     <FormDialog
       description="Update the category information."
-      isPending={updateMutation.isPending}
+      isPending={isPending}
       key={`${category.category_number.toString()}-${open.toString()}`}
       open={open}
       submitText="Update"
@@ -128,26 +114,22 @@ export function DeleteCategoryDialog({
 }) {
   const deleteMutation = useDeleteCategory();
 
-  const handleDelete = async () => {
-    try {
-      await deleteMutation.mutateAsync(categoryId);
-      toast.success("Category deleted successfully");
-      onOpenChange(false);
-    } catch {
-      toast.error("Failed to delete category");
-    }
-  };
+  const { handleDelete, isPending } = useDeleteDialog({
+    deleteMutation,
+    successMessage: "Category deleted successfully",
+    errorMessage: "Failed to delete category",
+  });
 
   return (
     <ConfirmationDialog
       confirmButtonVariant="destructive"
       confirmText="Delete"
       description="Are you sure you want to delete this category? This action cannot be undone."
-      isPending={deleteMutation.isPending}
+      isPending={isPending}
       open={open}
       title="Delete Category"
       onConfirm={() => {
-        void handleDelete();
+        void handleDelete(categoryId, onOpenChange);
       }}
       onOpenChange={onOpenChange}
     />

@@ -5,7 +5,10 @@ interface FieldErrorProps {
 }
 
 export function FieldError({ field }: FieldErrorProps) {
-  if (!field.state.meta.errors.length) {
+  const shouldShowError =
+    field.state.meta.isTouched || field.state.meta.isDirty;
+
+  if (!shouldShowError || !field.state.meta.errors.length) {
     return null;
   }
 

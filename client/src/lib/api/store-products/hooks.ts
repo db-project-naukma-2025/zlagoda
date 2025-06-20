@@ -68,12 +68,12 @@ export const useUpdateStoreProduct = () => {
 
   return useMutation({
     mutationFn: ({
-      upc,
+      id,
       data,
     }: {
-      upc: StoreProductUPC;
+      id: StoreProductUPC;
       data: UpdateStoreProductFormData;
-    }) => storeProductsApi.updateStoreProduct(upc, data),
+    }) => storeProductsApi.updateStoreProduct(id, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: storeProductQueryKeys.all(),

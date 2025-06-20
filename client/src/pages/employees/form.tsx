@@ -3,6 +3,7 @@ import { format, parse } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 
 import { FieldError } from "@/components/common/field-error";
+import { RequiredIndicator } from "@/components/common/required-indicator";
 import { PhoneInput } from "@/components/phone-input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -37,12 +38,14 @@ export function EmployeeFormFields({
           <form.Field
             children={(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Employee ID</Label>
+                <Label htmlFor={field.name}>
+                  Employee ID <RequiredIndicator />
+                </Label>
                 <Input
                   id={field.name}
                   maxLength={10}
                   name={field.name}
-                  placeholder="Enter employee ID (10 characters)"
+                  placeholder="e.g., EMP0001234"
                   value={field.state.value as string}
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -60,12 +63,14 @@ export function EmployeeFormFields({
           <form.Field
             children={(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Surname</Label>
+                <Label htmlFor={field.name}>
+                  Surname <RequiredIndicator />
+                </Label>
                 <Input
                   id={field.name}
                   maxLength={50}
                   name={field.name}
-                  placeholder="Enter surname"
+                  placeholder="e.g., Petrenko"
                   value={field.state.value as string}
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -81,12 +86,14 @@ export function EmployeeFormFields({
           <form.Field
             children={(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Name</Label>
+                <Label htmlFor={field.name}>
+                  Name <RequiredIndicator />
+                </Label>
                 <Input
                   id={field.name}
                   maxLength={50}
                   name={field.name}
-                  placeholder="Enter name"
+                  placeholder="e.g., Oleksandr"
                   value={field.state.value as string}
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -108,7 +115,7 @@ export function EmployeeFormFields({
                 id={field.name}
                 maxLength={50}
                 name={field.name}
-                placeholder="Enter patronymic"
+                placeholder="e.g., Ivanovich (optional)"
                 value={field.state.value as string}
                 onBlur={field.handleBlur}
                 onChange={(e) => {
@@ -124,7 +131,9 @@ export function EmployeeFormFields({
         <form.Field
           children={(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Role</Label>
+              <Label htmlFor={field.name}>
+                Role <RequiredIndicator />
+              </Label>
               <Combobox
                 className="w-full"
                 emptyMessage="No roles found."
@@ -132,7 +141,7 @@ export function EmployeeFormFields({
                   { value: "cashier", label: "Cashier" },
                   { value: "manager", label: "Manager" },
                 ]}
-                placeholder="Select a role"
+                placeholder="e.g., Cashier"
                 searchPlaceholder="Search roles..."
                 value={field.state.value as string}
                 onValueChange={(value) => {
@@ -148,12 +157,14 @@ export function EmployeeFormFields({
         <form.Field
           children={(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Salary</Label>
+              <Label htmlFor={field.name}>
+                Salary <RequiredIndicator />
+              </Label>
               <Input
                 id={field.name}
                 min="0"
                 name={field.name}
-                placeholder="Enter salary"
+                placeholder="e.g., 25000.00"
                 step="0.01"
                 type="number"
                 value={String(field.state.value ?? "")}
@@ -177,7 +188,9 @@ export function EmployeeFormFields({
               : undefined;
             return (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Date of Birth</Label>
+                <Label htmlFor={field.name}>
+                  Date of Birth <RequiredIndicator />
+                </Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -219,7 +232,9 @@ export function EmployeeFormFields({
               : undefined;
             return (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Date of Start</Label>
+                <Label htmlFor={field.name}>
+                  Date of Start <RequiredIndicator />
+                </Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -257,12 +272,14 @@ export function EmployeeFormFields({
         <form.Field
           children={(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Phone Number</Label>
+              <Label htmlFor={field.name}>
+                Phone Number <RequiredIndicator />
+              </Label>
               <PhoneInput
                 id={field.name}
                 international={true}
                 name={field.name}
-                placeholder="Enter phone number"
+                placeholder="e.g., +380501234567"
                 value={field.state.value as string}
                 onBlur={field.handleBlur}
                 onChange={(value) => {
@@ -279,12 +296,14 @@ export function EmployeeFormFields({
           <form.Field
             children={(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>City</Label>
+                <Label htmlFor={field.name}>
+                  City <RequiredIndicator />
+                </Label>
                 <Input
                   id={field.name}
                   maxLength={50}
                   name={field.name}
-                  placeholder="Enter city"
+                  placeholder="e.g., Kyiv"
                   value={field.state.value as string}
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -300,12 +319,14 @@ export function EmployeeFormFields({
           <form.Field
             children={(field) => (
               <div className="space-y-2">
-                <Label htmlFor={field.name}>Street</Label>
+                <Label htmlFor={field.name}>
+                  Street <RequiredIndicator />
+                </Label>
                 <Input
                   id={field.name}
                   maxLength={50}
                   name={field.name}
-                  placeholder="Enter street"
+                  placeholder="e.g., 10 Khreshchatyk Street"
                   value={field.state.value as string}
                   onBlur={field.handleBlur}
                   onChange={(e) => {
@@ -322,12 +343,14 @@ export function EmployeeFormFields({
         <form.Field
           children={(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>ZIP Code</Label>
+              <Label htmlFor={field.name}>
+                ZIP Code <RequiredIndicator />
+              </Label>
               <Input
                 id={field.name}
                 maxLength={9}
                 name={field.name}
-                placeholder="Enter ZIP code (5-9 characters)"
+                placeholder="e.g., 01001"
                 value={field.state.value as string}
                 onBlur={field.handleBlur}
                 onChange={(e) => {

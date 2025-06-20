@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+const RequiredIndicator = () => <span className="text-red-500">*</span>;
+
 interface BaseProductFormProps {
   form: {
     Field: React.ComponentType<{
@@ -28,7 +30,9 @@ export function BaseProductForm({ form, categories }: BaseProductFormProps) {
       <form.Field
         children={(field) => (
           <div className="space-y-2">
-            <Label htmlFor={field.name}>Category</Label>
+            <Label htmlFor={field.name}>
+              Category <RequiredIndicator />
+            </Label>
             <Select
               value={
                 (field.state.value as number | undefined)?.toString() ?? ""
@@ -38,7 +42,7 @@ export function BaseProductForm({ form, categories }: BaseProductFormProps) {
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
+                <SelectValue placeholder="e.g., Dairy Products" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
@@ -60,11 +64,13 @@ export function BaseProductForm({ form, categories }: BaseProductFormProps) {
       <form.Field
         children={(field) => (
           <div className="space-y-2">
-            <Label htmlFor={field.name}>Product Name</Label>
+            <Label htmlFor={field.name}>
+              Product Name <RequiredIndicator />
+            </Label>
             <Input
               id={field.name}
               name={field.name}
-              placeholder="Enter product name"
+              placeholder="e.g., Organic Whole Milk"
               value={field.state.value as string}
               onBlur={field.handleBlur}
               onChange={(e) => {
@@ -80,11 +86,13 @@ export function BaseProductForm({ form, categories }: BaseProductFormProps) {
       <form.Field
         children={(field) => (
           <div className="space-y-2">
-            <Label htmlFor={field.name}>Characteristics</Label>
+            <Label htmlFor={field.name}>
+              Characteristics <RequiredIndicator />
+            </Label>
             <Textarea
               id={field.name}
               name={field.name}
-              placeholder="Enter product characteristics"
+              placeholder="e.g., 1L, 3.5% fat, fresh, locally sourced"
               value={field.state.value as string}
               onBlur={field.handleBlur}
               onChange={(e) => {

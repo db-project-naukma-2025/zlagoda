@@ -1,9 +1,11 @@
 import { IconPlus } from "@tabler/icons-react";
-import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import { ConfirmationDialog } from "@/components/common/confirmation-dialog";
+import {
+  useCreateDialog,
+  useDeleteDialog,
+  useEditDialog,
+} from "@/components/common/crud-dialog-hooks";
 import { FormDialog } from "@/components/common/form-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,34 +27,24 @@ export function CreateProductDialog({
 }: {
   categories: { category_number: number; category_name: string }[];
 }) {
-  const [open, setOpen] = useState(false);
   const createMutation = useCreateProduct();
 
-  const form = useForm({
+  const { form, open, setOpen, isPending } = useCreateDialog({
     defaultValues: {
       category_number: 0,
       product_name: "",
       characteristics: "",
     },
-    validators: {
-      onChange: createProductSchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        await createMutation.mutateAsync(value);
-        toast.success("Product created successfully");
-        form.reset();
-        setOpen(false);
-      } catch {
-        toast.error("Failed to create product");
-      }
-    },
+    schema: createProductSchema,
+    createMutation,
+    successMessage: "Product created successfully",
+    errorMessage: "Failed to create product",
   });
 
   return (
     <FormDialog
       description="Add a new product to your catalog."
-      isPending={createMutation.isPending}
+      isPending={isPending}
       open={open}
       submitText="Create"
       title="Create Product"
@@ -86,34 +78,28 @@ export function EditProductDialog({
 }) {
   const updateMutation = useUpdateProduct();
 
-  const form = useForm({
-    defaultValues: {
-      id_product: product.id_product,
-      category_number: product.category_number,
-      product_name: product.product_name,
-      characteristics: product.characteristics,
-    },
-    validators: {
-      onChange: updateProductSchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        await updateMutation.mutateAsync({
-          id: product.id_product,
-          data: value,
-        });
-        toast.success("Product updated successfully");
-        onOpenChange(false);
-      } catch {
-        toast.error("Failed to update product");
-      }
+  const { form, isPending } = useEditDialog({
+    item: product,
+    schema: updateProductSchema,
+    updateMutation,
+    getDefaultValues: (prod) => ({
+      id_product: prod.id_product,
+      category_number: prod.category_number,
+      product_name: prod.product_name,
+      characteristics: prod.characteristics,
+    }),
+    getId: (prod) => prod.id_product,
+    successMessage: "Product updated successfully",
+    errorMessage: "Failed to update product",
+    onSuccess: () => {
+      onOpenChange(false);
     },
   });
 
   return (
     <FormDialog
       description="Update the product information."
-      isPending={updateMutation.isPending}
+      isPending={isPending}
       key={`${product.id_product.toString()}-${open.toString()}`}
       open={open}
       submitText="Update"
@@ -140,26 +126,22 @@ export function DeleteProductDialog({
 }) {
   const deleteMutation = useDeleteProduct();
 
-  const handleDelete = async () => {
-    try {
-      await deleteMutation.mutateAsync(productId);
-      toast.success("Product deleted successfully");
-      onOpenChange(false);
-    } catch {
-      toast.error("Failed to delete product");
-    }
-  };
+  const { handleDelete, isPending } = useDeleteDialog({
+    deleteMutation,
+    successMessage: "Product deleted successfully",
+    errorMessage: "Failed to delete product",
+  });
 
   return (
     <ConfirmationDialog
       confirmButtonVariant="destructive"
       confirmText="Delete"
       description="Are you sure you want to delete this product? This action cannot be undone."
-      isPending={deleteMutation.isPending}
+      isPending={isPending}
       open={open}
       title="Delete Product"
       onConfirm={() => {
-        void handleDelete();
+        void handleDelete(productId, onOpenChange);
       }}
       onOpenChange={onOpenChange}
     />

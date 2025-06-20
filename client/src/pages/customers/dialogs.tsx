@@ -1,41 +1,28 @@
 import { IconPlus } from "@tabler/icons-react";
-import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import { ConfirmationDialog } from "@/components/common/confirmation-dialog";
+import {
+  useCreateDialog,
+  useDeleteDialog,
+  useEditDialog,
+} from "@/components/common/crud-dialog-hooks";
 import { FormDialog } from "@/components/common/form-dialog";
 import { Button } from "@/components/ui/button";
 import {
+  baseCustomerCardSchema,
+  createCustomerCardSchema,
   useCreateCustomerCard,
   useDeleteCustomerCard,
   useUpdateCustomerCard,
-} from "@/lib/api/customer-cards";
-import {
-  baseCustomerCardSchema,
-  createCustomerCardSchema,
   type CustomerCard,
-  type UpdateCustomerCardFormData,
 } from "@/lib/api/customer-cards";
 
 import { CustomerCardForm } from "./form";
 
-function transformValue<T extends UpdateCustomerCardFormData>(value: T): T {
-  return {
-    ...value,
-    cust_patronymic:
-      value.cust_patronymic?.trim() === "" ? null : value.cust_patronymic,
-    city: value.city?.trim() === "" ? null : value.city,
-    street: value.street?.trim() === "" ? null : value.street,
-    zip_code: value.zip_code?.trim() === "" ? null : value.zip_code,
-  };
-}
-
 export function CreateCustomerDialog() {
-  const [open, setOpen] = useState(false);
   const createMutation = useCreateCustomerCard();
 
-  const form = useForm({
+  const { form, open, setOpen, isPending } = useCreateDialog({
     defaultValues: {
       card_number: "",
       cust_surname: "",
@@ -47,30 +34,16 @@ export function CreateCustomerDialog() {
       zip_code: "" as string | null,
       percent: 0,
     },
-    validators: {
-      onSubmit: createCustomerCardSchema,
-    },
-    onSubmit: async ({ value }) => {
-      // Transform empty strings to null for nullable fields
-      const transformedValue = transformValue(value);
-
-      console.log(transformedValue);
-      try {
-        await createMutation.mutateAsync(transformedValue);
-        toast.success("Customer created successfully");
-        form.reset();
-        setOpen(false);
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to create customer");
-      }
-    },
+    schema: createCustomerCardSchema,
+    createMutation,
+    successMessage: "Customer created successfully",
+    errorMessage: "Failed to create customer",
   });
 
   return (
     <FormDialog
       description="Add a new customer to the system."
-      isPending={createMutation.isPending}
+      isPending={isPending}
       open={open}
       submitText="Create"
       title="Create Customer"
@@ -102,40 +75,32 @@ export function EditCustomerDialog({
 }) {
   const updateMutation = useUpdateCustomerCard();
 
-  const form = useForm({
-    defaultValues: {
-      cust_surname: customerCard.cust_surname,
-      cust_name: customerCard.cust_name,
-      cust_patronymic: customerCard.cust_patronymic,
-      phone_number: customerCard.phone_number,
-      city: customerCard.city,
-      street: customerCard.street,
-      zip_code: customerCard.zip_code,
-      percent: customerCard.percent,
-    },
-    validators: {
-      onChange: baseCustomerCardSchema,
-    },
-    onSubmit: async ({ value }) => {
-      const transformedValue = transformValue(value);
-
-      try {
-        await updateMutation.mutateAsync({
-          id: customerCard.card_number,
-          data: transformedValue,
-        });
-        toast.success("Customer updated successfully");
-        onOpenChange(false);
-      } catch {
-        toast.error("Failed to update customer");
-      }
+  const { form, isPending } = useEditDialog({
+    item: customerCard,
+    schema: baseCustomerCardSchema,
+    updateMutation,
+    getDefaultValues: (customer) => ({
+      cust_surname: customer.cust_surname,
+      cust_name: customer.cust_name,
+      cust_patronymic: customer.cust_patronymic,
+      phone_number: customer.phone_number,
+      city: customer.city,
+      street: customer.street,
+      zip_code: customer.zip_code,
+      percent: customer.percent,
+    }),
+    getId: (customer) => customer.card_number,
+    successMessage: "Customer updated successfully",
+    errorMessage: "Failed to update customer",
+    onSuccess: () => {
+      onOpenChange(false);
     },
   });
 
   return (
     <FormDialog
       description="Update the customer information."
-      isPending={updateMutation.isPending}
+      isPending={isPending}
       key={`${customerCard.card_number}-${open.toString()}`}
       open={open}
       submitText="Update"
@@ -162,26 +127,22 @@ export function DeleteCustomerDialog({
 }) {
   const deleteMutation = useDeleteCustomerCard();
 
-  const handleDelete = async () => {
-    try {
-      await deleteMutation.mutateAsync(customerCardNumber);
-      toast.success("Customer deleted successfully");
-      onOpenChange(false);
-    } catch {
-      toast.error("Failed to delete customer");
-    }
-  };
+  const { handleDelete, isPending } = useDeleteDialog({
+    deleteMutation,
+    successMessage: "Customer deleted successfully",
+    errorMessage: "Failed to delete customer",
+  });
 
   return (
     <ConfirmationDialog
       confirmButtonVariant="destructive"
       confirmText="Delete"
       description="Are you sure you want to delete this customer? This action cannot be undone."
-      isPending={deleteMutation.isPending}
+      isPending={isPending}
       open={open}
       title="Delete Customer"
       onConfirm={() => {
-        void handleDelete();
+        void handleDelete(customerCardNumber, onOpenChange);
       }}
       onOpenChange={onOpenChange}
     />

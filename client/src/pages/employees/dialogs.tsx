@@ -1,9 +1,11 @@
 import { IconPlus } from "@tabler/icons-react";
-import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import { ConfirmationDialog } from "@/components/common/confirmation-dialog";
+import {
+  useCreateDialog,
+  useDeleteDialog,
+  useEditDialog,
+} from "@/components/common/crud-dialog-hooks";
 import { FormDialog } from "@/components/common/form-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,15 +19,13 @@ import {
   type Employee,
   type EmployeeId,
 } from "@/lib/api/employees/types";
-import { getApiErrorMessage } from "@/lib/api/get-api-error-message";
 
 import { EmployeeFormFields } from "./form";
 
 export function CreateEmployeeDialog() {
-  const [open, setOpen] = useState(false);
   const createMutation = useCreateEmployee();
 
-  const form = useForm({
+  const { form, open, setOpen, isPending } = useCreateDialog({
     defaultValues: {
       id_employee: "",
       empl_surname: "",
@@ -40,30 +40,16 @@ export function CreateEmployeeDialog() {
       street: "",
       zip_code: "",
     },
-    validators: {
-      onChange: createEmployeeSchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        await createMutation.mutateAsync(value);
-        toast.success("Employee created successfully");
-        form.reset();
-        setOpen(false);
-      } catch (error) {
-        console.error("Failed to create employee:", error);
-        const errorMessage = getApiErrorMessage(
-          error,
-          "Failed to create employee",
-        );
-        toast.error(errorMessage);
-      }
-    },
+    schema: createEmployeeSchema,
+    createMutation,
+    successMessage: "Employee created successfully",
+    errorMessage: "Failed to create employee",
   });
 
   return (
     <FormDialog
       description="Add a new employee to the system."
-      isPending={createMutation.isPending}
+      isPending={isPending}
       open={open}
       submitText="Create"
       title="Create Employee"
@@ -97,46 +83,35 @@ export function EditEmployeeDialog({
 }: EditEmployeeDialogProps) {
   const updateMutation = useUpdateEmployee();
 
-  const form = useForm({
-    defaultValues: {
-      empl_surname: employee.empl_surname,
-      empl_name: employee.empl_name,
-      empl_patronymic: employee.empl_patronymic,
-      empl_role: employee.empl_role,
-      salary: employee.salary,
-      date_of_birth: employee.date_of_birth,
-      date_of_start: employee.date_of_start,
-      phone_number: employee.phone_number,
-      city: employee.city,
-      street: employee.street,
-      zip_code: employee.zip_code,
-    },
-    validators: {
-      onChange: updateEmployeeSchema,
-    },
-    onSubmit: async ({ value }) => {
-      try {
-        await updateMutation.mutateAsync({
-          id: employee.id_employee,
-          data: value,
-        });
-        toast.success("Employee updated successfully");
-        onOpenChange(false);
-      } catch (error) {
-        console.error("Failed to update employee:", error);
-        const errorMessage = getApiErrorMessage(
-          error,
-          "Failed to update employee",
-        );
-        toast.error(errorMessage);
-      }
+  const { form, isPending } = useEditDialog({
+    item: employee,
+    schema: updateEmployeeSchema,
+    updateMutation,
+    getDefaultValues: (emp) => ({
+      empl_surname: emp.empl_surname,
+      empl_name: emp.empl_name,
+      empl_patronymic: emp.empl_patronymic,
+      empl_role: emp.empl_role,
+      salary: emp.salary,
+      date_of_birth: emp.date_of_birth,
+      date_of_start: emp.date_of_start,
+      phone_number: emp.phone_number,
+      city: emp.city,
+      street: emp.street,
+      zip_code: emp.zip_code,
+    }),
+    getId: (emp) => emp.id_employee,
+    successMessage: "Employee updated successfully",
+    errorMessage: "Failed to update employee",
+    onSuccess: () => {
+      onOpenChange(false);
     },
   });
 
   return (
     <FormDialog
       description="Update the employee information."
-      isPending={updateMutation.isPending}
+      isPending={isPending}
       key={`${employee.id_employee}-${open.toString()}`}
       open={open}
       submitText="Update"
@@ -167,30 +142,23 @@ export function DeleteEmployeeDialog({
 }: DeleteEmployeeDialogProps) {
   const deleteMutation = useDeleteEmployee();
 
+  const { handleDelete, isPending } = useDeleteDialog({
+    deleteMutation,
+    successMessage: "Employee deleted successfully",
+    errorMessage: "Failed to delete employee",
+  });
+
   return (
     <ConfirmationDialog
       cancelText="Cancel"
       confirmButtonVariant="destructive"
       confirmText="Delete"
       description={`Are you sure you want to delete employee "${employeeName}" (ID: ${employeeId})? This action cannot be undone.`}
-      isPending={deleteMutation.isPending}
+      isPending={isPending}
       open={open}
       title="Delete Employee"
       onConfirm={() => {
-        void (async () => {
-          try {
-            await deleteMutation.mutateAsync(employeeId);
-            toast.success("Employee deleted successfully");
-            onOpenChange(false);
-          } catch (error) {
-            console.error("Failed to delete employee:", error);
-            const errorMessage = getApiErrorMessage(
-              error,
-              "Failed to delete employee",
-            );
-            toast.error(errorMessage);
-          }
-        })();
+        void handleDelete(employeeId, onOpenChange);
       }}
       onOpenChange={onOpenChange}
     />

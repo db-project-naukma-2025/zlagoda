@@ -1,6 +1,7 @@
 import { type AnyFieldApi } from "@tanstack/react-form";
 
 import { FieldError } from "@/components/common/field-error";
+import { RequiredIndicator } from "@/components/common/required-indicator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -19,11 +20,13 @@ export function CategoryForm({ form }: CategoryFormProps) {
       children={(field) => {
         return (
           <div className="space-y-2">
-            <Label htmlFor={field.name}>Category Name</Label>
+            <Label htmlFor={field.name}>
+              Category Name <RequiredIndicator />
+            </Label>
             <Input
               id={field.name}
               name={field.name}
-              placeholder="Enter category name"
+              placeholder="e.g., Dairy Products"
               value={field.state.value as string}
               onBlur={field.handleBlur}
               onChange={(e) => {

@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { type StoreProduct } from "@/lib/api/store-products/types";
 
+const RequiredIndicator = () => <span className="text-red-500">*</span>;
+
 interface SimpleProduct {
   id_product: number;
   product_name: string;
@@ -52,11 +54,13 @@ export function StoreProductFormFields({
         <form.Field
           children={(field) => (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>UPC</Label>
+              <Label htmlFor={field.name}>
+                UPC <RequiredIndicator />
+              </Label>
               <Input
                 id={field.name}
                 name={field.name}
-                placeholder="Enter UPC code (max 12 characters)"
+                placeholder="e.g., 123456789012"
                 value={field.state.value as string}
                 onBlur={field.handleBlur}
                 onChange={(e) => {
@@ -73,7 +77,9 @@ export function StoreProductFormFields({
       <form.Field
         children={(field) => (
           <div className="space-y-2">
-            <Label htmlFor={field.name}>Product</Label>
+            <Label htmlFor={field.name}>
+              Product <RequiredIndicator />
+            </Label>
             <Combobox
               emptyMessage="No products found."
               options={[
@@ -85,8 +91,8 @@ export function StoreProductFormFields({
                     searchText: product.product_name,
                   })),
               ]}
-              placeholder="Select a product"
-              searchPlaceholder="Search products..."
+              placeholder="e.g., Organic Whole Milk"
+              searchPlaceholder="Search for products..."
               value={
                 field.state.value && field.state.value !== 0
                   ? String(field.state.value)
@@ -104,7 +110,6 @@ export function StoreProductFormFields({
 
       <form.Field
         children={(field) => {
-          // Update watched state when field value changes (including initial load)
           const currentPrice = Number(field.state.value ?? 0);
           if (currentPrice !== watchedSellingPrice && currentPrice > 0) {
             setWatchedSellingPrice(currentPrice);
@@ -112,13 +117,15 @@ export function StoreProductFormFields({
 
           return (
             <div className="space-y-2">
-              <Label htmlFor={field.name}>Selling Price</Label>
+              <Label htmlFor={field.name}>
+                Selling Price <RequiredIndicator />
+              </Label>
               <Input
                 disabled={isPromotional}
                 id={field.name}
                 min="0"
                 name={field.name}
-                placeholder="Enter selling price"
+                placeholder="e.g., 25.50"
                 step="0.01"
                 type="number"
                 value={String(field.state.value ?? "")}
@@ -148,12 +155,14 @@ export function StoreProductFormFields({
       <form.Field
         children={(field) => (
           <div className="space-y-2">
-            <Label htmlFor={field.name}>Stock Quantity</Label>
+            <Label htmlFor={field.name}>
+              Stock Quantity <RequiredIndicator />
+            </Label>
             <Input
               id={field.name}
               min="0"
               name={field.name}
-              placeholder="Enter stock quantity"
+              placeholder="e.g., 100"
               type="number"
               value={String(field.state.value ?? "")}
               onBlur={field.handleBlur}
@@ -191,10 +200,12 @@ export function PromotionalProductFormFields({
       <form.Field
         children={(field) => (
           <div className="space-y-2">
-            <Label htmlFor={field.name}>Promotional Product UPC</Label>
+            <Label htmlFor={field.name}>
+              Promotional Product UPC <RequiredIndicator />
+            </Label>
             <Input
               id={field.name}
-              placeholder="Enter UPC for promotional product (12 characters)"
+              placeholder="e.g., 123456789013"
               value={field.state.value as string}
               onBlur={field.handleBlur}
               onChange={(e) => {
@@ -210,12 +221,14 @@ export function PromotionalProductFormFields({
       <form.Field
         children={(field) => (
           <div className="space-y-2">
-            <Label htmlFor={field.name}>Units to Convert</Label>
+            <Label htmlFor={field.name}>
+              Units to Convert <RequiredIndicator />
+            </Label>
             <Input
               id={field.name}
               max={maxUnits}
               min="1"
-              placeholder="Enter number of units"
+              placeholder="e.g., 10"
               type="number"
               value={String(field.state.value ?? "")}
               onBlur={field.handleBlur}
