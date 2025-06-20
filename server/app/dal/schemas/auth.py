@@ -7,6 +7,7 @@ class UserCreate(BaseModel):
     username: str
     password: str | SecretStr  # meant to be hashed
     is_superuser: bool = False
+    id_employee: str | None = None
 
 
 class User(UserCreate):
@@ -17,6 +18,7 @@ class UserUpdate(BaseModel):
     username: str | UnsetAnnotated = Field(default=UNSET)
     password: str | SecretStr | UnsetAnnotated = Field(default=UNSET)
     is_superuser: bool | UnsetAnnotated = Field(default=UNSET)
+    id_employee: str | None | UnsetAnnotated = Field(default=UNSET)
 
 
 class PermissionCreate(BaseModel):
