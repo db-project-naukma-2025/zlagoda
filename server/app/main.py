@@ -6,18 +6,26 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from . import settings
+from .cli.commands.assign_employee import Command as AssignEmployeeCommand
 from .cli.commands.create_permissions import CreatePermissionsCommand
 from .cli.commands.createuser import Command as CreateUserCommand
+from .cli.commands.deassign_employee import Command as DeassignEmployeeCommand
 from .cli.commands.migrate import Command as DatabaseMigrationCommand
 from .ioc_container import (
     create_db,
     database_migration_service,
+    employee_repository,
     group_permission_repository,
+    group_repository,
     model_registry,
     password_hasher,
     permission_repository,
     registration_controller,
+    user_cashier_permission_controller,
+    user_employee_permission_controller,
+    user_group_controller,
     user_group_repository,
+    user_manager_permission_controller,
     user_permission_controller,
     user_repository,
 )
@@ -172,6 +180,97 @@ def shell(interface: str):
         return
 
     raise ValueError(f"Invalid interface: {interface}")
+
+
+@cli.command(name="assign-employee")
+def assign_employee():
+    """Assign an employee to a user interactively."""
+    with create_db() as db:
+        # Create repositories
+        user_repo = user_repository(db)
+        emp_repo = employee_repository(db)
+        perm_repo = permission_repository(db)
+        user_group_repo = user_group_repository(db)
+        group_perm_repo = group_permission_repository(db)
+        group_repo = group_repository(db)
+
+        # Create controllers
+        user_perm_controller = user_permission_controller(
+            perm_repo, user_group_repo, group_perm_repo
+        )
+        group_controller = user_group_controller(
+            group_repo, user_group_repo, group_perm_repo
+        )
+
+        # Create role controllers
+        cashier_controller = user_cashier_permission_controller(
+            user_perm_controller,
+            group_controller,
+            group_repo,
+            user_group_repo,
+            group_perm_repo,
+        )
+        manager_controller = user_manager_permission_controller(
+            user_perm_controller,
+            group_controller,
+            group_repo,
+            user_group_repo,
+            group_perm_repo,
+        )
+
+        # Create employee permission controller
+        employee_controller = user_employee_permission_controller(
+            cashier_controller, manager_controller, user_repo, emp_repo
+        )
+
+        # Create and execute command
+        command = AssignEmployeeCommand(employee_controller, user_repo, emp_repo)
+        command.execute()
+
+
+@cli.command(name="deassign-employee")
+def deassign_employee():
+    """De-assign an employee from a user interactively."""
+    with create_db() as db:
+        # Create repositories
+        user_repo = user_repository(db)
+        emp_repo = employee_repository(db)
+        perm_repo = permission_repository(db)
+        user_group_repo = user_group_repository(db)
+        group_perm_repo = group_permission_repository(db)
+        group_repo = group_repository(db)
+
+        # Create controllers
+        user_perm_controller = user_permission_controller(
+            perm_repo, user_group_repo, group_perm_repo
+        )
+        group_controller = user_group_controller(
+            group_repo, user_group_repo, group_perm_repo
+        )
+
+        # Create role controllers
+        cashier_controller = user_cashier_permission_controller(
+            user_perm_controller,
+            group_controller,
+            group_repo,
+            user_group_repo,
+            group_perm_repo,
+        )
+        manager_controller = user_manager_permission_controller(
+            user_perm_controller,
+            group_controller,
+            group_repo,
+            user_group_repo,
+            group_perm_repo,
+        )
+
+        # Create employee permission controller
+        employee_controller = user_employee_permission_controller(
+            cashier_controller, manager_controller, user_repo, emp_repo
+        )
+
+        command = DeassignEmployeeCommand(employee_controller, user_repo)
+        command.execute()
 
 
 def main():

@@ -28,6 +28,7 @@
     "cli",
     "createuser",
     "cust",
-    "empl"
+    "empl",
+    "deassign"
   ]
 }
