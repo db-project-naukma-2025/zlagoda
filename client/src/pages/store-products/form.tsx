@@ -5,8 +5,7 @@ import { FieldError } from "@/components/common/field-error";
 import { Combobox } from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-import { type StoreProductWithId } from "./types";
+import { type StoreProduct } from "@/lib/api/store-products/types";
 
 interface SimpleProduct {
   id_product: number;
@@ -22,7 +21,7 @@ interface StoreProductFormFieldsProps {
     }>;
   };
   products: SimpleProduct[];
-  storeProducts?: StoreProductWithId[];
+  storeProducts?: StoreProduct[];
   isCreate?: boolean;
   currentUPC?: string;
   initialData?: {

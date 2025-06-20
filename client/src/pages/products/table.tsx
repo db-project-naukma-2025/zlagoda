@@ -12,9 +12,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { type Product } from "@/lib/api/products";
 
 import { DeleteProductDialog, EditProductDialog } from "./dialogs";
-import { type ProductWithId } from "./types";
 
 interface BaseProductTableProps {
   categories: { category_number: number; category_name: string }[];
@@ -28,7 +28,7 @@ export function createBaseProductColumns({
   categoryFilter,
   setCategoryFilter,
   resetPagination,
-}: BaseProductTableProps): ColumnDef<ProductWithId>[] {
+}: BaseProductTableProps): ColumnDef<Product>[] {
   const categoryLookup = categories.reduce<Record<number, string>>(
     (acc, category) => {
       acc[category.category_number] = category.category_name;

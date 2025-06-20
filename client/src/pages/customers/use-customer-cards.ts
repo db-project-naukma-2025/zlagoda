@@ -7,10 +7,12 @@ import {
   useBulkDeleteCustomerCards,
   useGetCustomerCards,
 } from "@/lib/api/customer-cards/hooks";
-import { type GetCustomerCardsOptions } from "@/lib/api/customer-cards/types";
+import {
+  type CustomerCard,
+  type GetCustomerCardsOptions,
+} from "@/lib/api/customer-cards/types";
 
 import { CreateCustomerDialog } from "./dialogs";
-import { type CustomerCardWithId } from "./types";
 
 export function useCustomerCards() {
   const {
@@ -48,14 +50,10 @@ export function useCustomerCards() {
   const totalPages = paginatedResponse?.total_pages ?? 0;
 
   const [selectedCustomerCards, setSelectedCustomerCards] = useState<
-    CustomerCardWithId[]
+    CustomerCard[]
   >([]);
 
-  const customerCardsWithId: CustomerCardWithId[] =
-    paginatedResponse?.data.map((customerCard) => ({
-      ...customerCard,
-      id: customerCard.card_number,
-    })) ?? [];
+  const customerCards: CustomerCard[] = paginatedResponse?.data ?? [];
 
   const { toolbar } = useTableToolbar({
     searchPlaceholder: "Search customer cards...",
@@ -86,7 +84,7 @@ export function useCustomerCards() {
     totalPages,
     selectedCustomerCards,
     setSelectedCustomerCards,
-    customerCardsWithId,
+    customerCards,
 
     // Handlers
     handleSortingChange,

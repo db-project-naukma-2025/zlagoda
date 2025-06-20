@@ -10,15 +10,15 @@ import {
   useCreateCustomerCard,
   useDeleteCustomerCard,
   useUpdateCustomerCard,
-} from "@/lib/api/customer-cards/hooks";
+} from "@/lib/api/customer-cards";
 import {
   baseCustomerCardSchema,
   createCustomerCardSchema,
+  type CustomerCard,
   type UpdateCustomerCardFormData,
-} from "@/lib/api/customer-cards/types";
+} from "@/lib/api/customer-cards";
 
 import { CustomerCardForm } from "./form";
-import { type CustomerCardWithId } from "./types";
 
 function transformValue<T extends UpdateCustomerCardFormData>(value: T): T {
   return {
@@ -96,7 +96,7 @@ export function EditCustomerDialog({
   open,
   onOpenChange,
 }: {
-  customerCard: CustomerCardWithId;
+  customerCard: CustomerCard;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {

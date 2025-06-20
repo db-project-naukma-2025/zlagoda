@@ -15,7 +15,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { schemas } from "@/generated/api";
 import { getApiErrorMessage } from "@/lib/api/get-api-error-message";
 import {
   useCreatePromotionalProduct,
@@ -24,16 +23,15 @@ import {
   useUpdateStoreProduct,
 } from "@/lib/api/store-products/hooks";
 import {
+  createPromotionalProductSchema,
   createStoreProductSchema,
   updateStoreProductSchema,
-  type CreatePromotionalProductFormData,
+  type StoreProduct,
   type StoreProductUPC,
 } from "@/lib/api/store-products/types";
 
 import { PromotionalProductFormFields, StoreProductFormFields } from "./form";
-import { type StoreProductWithId } from "./types";
 
-// Simplified product interface for the form components
 interface SimpleProduct {
   id_product: number;
   product_name: string;
@@ -42,7 +40,7 @@ interface SimpleProduct {
 
 interface CreateStoreProductDialogProps {
   products: SimpleProduct[];
-  storeProducts?: StoreProductWithId[];
+  storeProducts?: StoreProduct[];
 }
 
 export function CreateStoreProductDialog({
@@ -112,9 +110,9 @@ export function CreateStoreProductDialog({
 }
 
 interface EditStoreProductDialogProps {
-  storeProduct: StoreProductWithId;
+  storeProduct: StoreProduct;
   products: SimpleProduct[];
-  storeProducts?: StoreProductWithId[];
+  storeProducts?: StoreProduct[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -230,10 +228,10 @@ export function DeleteStoreProductDialog({
 }
 
 interface CreatePromotionalDialogProps {
+  products: SimpleProduct[];
+  sourceStoreProduct: StoreProduct;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sourceStoreProduct: StoreProductWithId;
-  products: SimpleProduct[];
 }
 
 export function CreatePromotionalDialog({
@@ -254,9 +252,9 @@ export function CreatePromotionalDialog({
     defaultValues: {
       units_to_convert: 1,
       promotional_UPC: "",
-    } as CreatePromotionalProductFormData,
+    },
     validators: {
-      onChange: schemas.CreatePromotionalProduct,
+      onChange: createPromotionalProductSchema,
     },
     onSubmit: async ({ value }) => {
       setIsSubmitting(true);

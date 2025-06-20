@@ -8,11 +8,13 @@ import {
   useBulkDeleteProducts,
   useGetProducts,
 } from "@/lib/api/products/hooks";
-import { type GetProductsOptions } from "@/lib/api/products/types";
+import {
+  type GetProductsOptions,
+  type Product,
+} from "@/lib/api/products/types";
 
 import { CreateProductDialog } from "./dialogs";
 import { createBaseProductColumns } from "./table";
-import { type ProductWithId } from "./types";
 
 export function useProducts() {
   const {
@@ -56,13 +58,9 @@ export function useProducts() {
 
   const totalPages = paginatedResponse?.total_pages ?? 0;
 
-  const [selectedProducts, setSelectedProducts] = useState<ProductWithId[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
 
-  const productsWithId: ProductWithId[] =
-    paginatedResponse?.data.map((product) => ({
-      ...product,
-      id: product.id_product,
-    })) ?? [];
+  const products: Product[] = paginatedResponse?.data ?? [];
 
   const columns = useMemo(
     () =>
@@ -105,7 +103,7 @@ export function useProducts() {
     totalPages,
     selectedProducts,
     setSelectedProducts,
-    productsWithId,
+    products,
     categories,
 
     // Handlers

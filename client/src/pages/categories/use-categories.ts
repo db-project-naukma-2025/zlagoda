@@ -7,9 +7,12 @@ import {
   useBulkDeleteCategories,
   useGetCategories,
 } from "@/lib/api/categories/hooks";
-import { type GetCategoriesOptions } from "@/lib/api/categories/types";
+import {
+  type Category,
+  type GetCategoriesOptions,
+} from "@/lib/api/categories/types";
 
-import { CreateCategoryDialog, type CategoryWithId } from "./dialogs";
+import { CreateCategoryDialog } from "./dialogs";
 
 export function useCategories() {
   const {
@@ -47,15 +50,9 @@ export function useCategories() {
 
   const totalPages = paginatedResponse?.total_pages ?? 0;
 
-  const [selectedCategories, setSelectedCategories] = useState<
-    CategoryWithId[]
-  >([]);
+  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
 
-  const categoriesWithId: CategoryWithId[] =
-    paginatedResponse?.data.map((category) => ({
-      ...category,
-      id: category.category_number,
-    })) ?? [];
+  const categories: Category[] = paginatedResponse?.data ?? [];
 
   const { toolbar } = useTableToolbar({
     searchPlaceholder: "Search categories...",
@@ -86,7 +83,7 @@ export function useCategories() {
     totalPages,
     selectedCategories,
     setSelectedCategories,
-    categoriesWithId,
+    categories,
 
     // Handlers
     handleSortingChange,

@@ -18,6 +18,7 @@ const requireAuth = () => {
   if (!token) {
     return redirect({ to: "/login" });
   }
+  return null;
 };
 
 // Redirect authenticated users away from login
@@ -26,6 +27,7 @@ const redirectIfAuthenticated = () => {
   if (token) {
     return redirect({ to: "/dashboard" });
   }
+  return null;
 };
 
 const rootRoute = createRootRoute({

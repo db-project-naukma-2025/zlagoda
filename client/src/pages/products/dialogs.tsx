@@ -14,11 +14,11 @@ import {
 import {
   createProductSchema,
   updateProductSchema,
+  type Product,
   type ProductId,
 } from "@/lib/api/products/types";
 
 import { BaseProductForm } from "./form";
-import { type ProductWithId } from "./types";
 
 export function CreateProductDialog({
   categories,
@@ -79,7 +79,7 @@ export function EditProductDialog({
   open,
   onOpenChange,
 }: {
-  product: ProductWithId;
+  product: Product;
   categories: { category_number: number; category_name: string }[];
   open: boolean;
   onOpenChange: (open: boolean) => void;

@@ -12,14 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { type Category } from "@/lib/api/categories/types";
 
-import {
-  DeleteCategoryDialog,
-  EditCategoryDialog,
-  type CategoryWithId,
-} from "./dialogs";
+import { DeleteCategoryDialog, EditCategoryDialog } from "./dialogs";
 
-export const categoryColumns: ColumnDef<CategoryWithId>[] = [
+export const categoryColumns: ColumnDef<Category>[] = [
   {
     accessorKey: "category_number",
     header: ({ column }) => (

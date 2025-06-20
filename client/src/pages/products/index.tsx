@@ -11,7 +11,7 @@ export default function ProductsPage() {
     isLoading,
     totalPages,
     setSelectedProducts,
-    productsWithId,
+    products,
     handleSortingChange,
     toolbar,
     columns,
@@ -26,11 +26,10 @@ export default function ProductsPage() {
     >
       <DataTable
         columns={columns}
-        data={productsWithId}
-        enableDragAndDrop={false}
+        data={products}
         enableRowSelection={true}
-        getRowId={(row) => row.id_product.toString()}
         isLoading={isLoading}
+        keyField="id_product"
         pagination={pagination}
         sorting={sorting}
         toolbar={toolbar}

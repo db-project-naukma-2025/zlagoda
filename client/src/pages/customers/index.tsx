@@ -11,7 +11,7 @@ export default function CustomerCardsPage() {
     isLoading,
     totalPages,
     setSelectedCustomerCards,
-    customerCardsWithId,
+    customerCards,
     handleSortingChange,
     toolbar,
   } = useCustomerCards();
@@ -29,11 +29,10 @@ export default function CustomerCardsPage() {
 
       <DataTable
         columns={customerCardColumns}
-        data={customerCardsWithId}
-        enableDragAndDrop={false}
+        data={customerCards}
         enableRowSelection={true}
-        getRowId={(row) => row.card_number}
         isLoading={isLoading}
+        keyField="card_number"
         pagination={pagination}
         sorting={sorting}
         toolbar={toolbar}

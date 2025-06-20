@@ -12,15 +12,15 @@ export default function StoreProductsPage() {
     isLoading,
     totalPages,
     setSelectedStoreProducts,
-    storeProductsWithId,
-    handleSortingChange,
-    toolbar,
-    columns,
+    storeProducts,
     promotionalFilter,
     setPromotionalFilter,
     productFilter,
     setProductFilter,
     products,
+    handleSortingChange,
+    toolbar,
+    columns,
   } = useStoreProducts();
 
   const productFilterCombobox = (
@@ -86,11 +86,10 @@ export default function StoreProductsPage() {
     >
       <DataTable
         columns={columns}
-        data={storeProductsWithId}
-        enableDragAndDrop={false}
+        data={storeProducts}
         enableRowSelection={true}
-        getRowId={(row) => row.UPC}
         isLoading={isLoading}
+        keyField="UPC"
         pagination={pagination}
         sorting={sorting}
         toolbar={toolbarWithFilters}

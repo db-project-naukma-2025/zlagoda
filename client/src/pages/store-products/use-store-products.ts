@@ -9,11 +9,13 @@ import {
   useBulkDeleteStoreProducts,
   useGetStoreProducts,
 } from "@/lib/api/store-products/hooks";
-import { type GetStoreProductsOptions } from "@/lib/api/store-products/types";
+import {
+  type GetStoreProductsOptions,
+  type StoreProduct,
+} from "@/lib/api/store-products/types";
 
 import { CreateStoreProductDialog } from "./dialogs";
 import { createStoreInventoryColumns } from "./table";
-import { type StoreProductWithId } from "./types";
 
 export function useStoreProducts() {
   const {
@@ -80,21 +82,10 @@ export function useStoreProducts() {
   const totalPages = paginatedResponse?.total_pages ?? 0;
 
   const [selectedStoreProducts, setSelectedStoreProducts] = useState<
-    StoreProductWithId[]
+    StoreProduct[]
   >([]);
 
-  const storeProductsWithId: StoreProductWithId[] =
-    paginatedResponse?.data.map((storeProduct) => ({
-      ...storeProduct,
-      id: storeProduct.UPC,
-    })) ?? [];
-
-  const allStoreProductsWithId: StoreProductWithId[] = allStoreProducts.map(
-    (storeProduct) => ({
-      ...storeProduct,
-      id: storeProduct.UPC,
-    }),
-  );
+  const storeProducts: StoreProduct[] = paginatedResponse?.data ?? [];
 
   const categoryLookup = useMemo(() => {
     return categories.reduce<Record<number, string>>((acc, category) => {
@@ -121,9 +112,9 @@ export function useStoreProducts() {
       createStoreInventoryColumns({
         productLookup,
         products,
-        allStoreProductsWithId,
+        allStoreProducts,
       }),
-    [productLookup, products, allStoreProductsWithId],
+    [productLookup, products, allStoreProducts],
   );
 
   const { toolbar } = useTableToolbar({
@@ -143,7 +134,7 @@ export function useStoreProducts() {
     isBulkDeletePending: bulkDeleteMutation.isPending,
     createButton: React.createElement(CreateStoreProductDialog, {
       products,
-      storeProducts: allStoreProductsWithId,
+      storeProducts: allStoreProducts,
     }),
   });
 
@@ -156,8 +147,8 @@ export function useStoreProducts() {
     totalPages,
     selectedStoreProducts,
     setSelectedStoreProducts,
-    storeProductsWithId,
-    allStoreProductsWithId,
+    storeProducts,
+    allStoreProducts,
     categories,
     products,
 

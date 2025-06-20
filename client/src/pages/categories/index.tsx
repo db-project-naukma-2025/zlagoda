@@ -1,4 +1,5 @@
 import { DataTable } from "@/components/data-table";
+import { PageLayout } from "@/components/layout/page-layout";
 
 import { categoryColumns } from "./table";
 import { useCategories } from "./use-categories";
@@ -11,29 +12,24 @@ export default function CategoriesPage() {
     isLoading,
     totalPages,
     setSelectedCategories,
-    categoriesWithId,
+    categories,
     handleSortingChange,
     toolbar,
   } = useCategories();
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Categories</h2>
-          <p className="text-muted-foreground">
-            Manage product categories and their information.
-          </p>
-        </div>
-      </div>
-
+    <PageLayout
+      description="Manage product categories and classifications."
+      isLoading={isLoading}
+      loadingText="Loading categories..."
+      title="Categories"
+    >
       <DataTable
         columns={categoryColumns}
-        data={categoriesWithId}
-        enableDragAndDrop={false}
+        data={categories}
         enableRowSelection={true}
-        getRowId={(row) => row.category_number.toString()}
         isLoading={isLoading}
+        keyField="category_number"
         pagination={pagination}
         sorting={sorting}
         toolbar={toolbar}
@@ -42,6 +38,6 @@ export default function CategoriesPage() {
         onSelectionChange={setSelectedCategories}
         onSortingChange={handleSortingChange}
       />
-    </div>
+    </PageLayout>
   );
 }

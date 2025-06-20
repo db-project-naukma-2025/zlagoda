@@ -13,10 +13,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { type CustomerCard } from "@/lib/api/customer-cards/types";
 import { DeleteCustomerDialog, EditCustomerDialog } from "./dialogs";
-import { type CustomerCardWithId } from "./types";
 
-export const customerCardColumns: ColumnDef<CustomerCardWithId>[] = [
+export const customerCardColumns: ColumnDef<CustomerCard>[] = [
   {
     accessorKey: "card_number",
     header: ({ column }) => (

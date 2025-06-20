@@ -53,7 +53,7 @@ export default function LoginPage() {
             <CardTitle>Login</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={(e) => void handleSubmit(e)}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-3">
                   <Label htmlFor="username">Username</Label>

@@ -17,13 +17,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { type StoreProduct } from "@/lib/api/store-products/types";
 
 import {
   CreatePromotionalDialog,
   DeleteStoreProductDialog,
   EditStoreProductDialog,
 } from "./dialogs";
-import { type StoreProductWithId } from "./types";
 
 interface SimpleProduct {
   id_product: number;
@@ -34,14 +34,14 @@ interface SimpleProduct {
 interface CreateStoreInventoryColumnsProps {
   productLookup: Record<number, { name: string; category: string }>;
   products: SimpleProduct[];
-  allStoreProductsWithId: StoreProductWithId[];
+  allStoreProducts: StoreProduct[];
 }
 
 export function createStoreInventoryColumns({
   productLookup,
   products,
-  allStoreProductsWithId,
-}: CreateStoreInventoryColumnsProps): ColumnDef<StoreProductWithId>[] {
+  allStoreProducts,
+}: CreateStoreInventoryColumnsProps): ColumnDef<StoreProduct>[] {
   return [
     {
       accessorKey: "UPC",
@@ -138,7 +138,7 @@ export function createStoreInventoryColumns({
           return <span className="text-muted-foreground text-sm">—</span>;
         }
 
-        const promoStoreProduct = allStoreProductsWithId.find(
+        const promoStoreProduct = allStoreProducts.find(
           (sp) => sp.UPC === promoUPC,
         );
         const promoProduct = promoStoreProduct
@@ -169,7 +169,7 @@ export function createStoreInventoryColumns({
         const canCreatePromotional =
           !storeProduct.promotional_product &&
           storeProduct.products_number > 0 &&
-          !allStoreProductsWithId.some(
+          !allStoreProducts.some(
             (sp) =>
               sp.id_product === storeProduct.id_product &&
               sp.promotional_product,
@@ -225,7 +225,7 @@ export function createStoreInventoryColumns({
               open={isEditOpen}
               products={products}
               storeProduct={storeProduct}
-              storeProducts={allStoreProductsWithId}
+              storeProducts={allStoreProducts}
               onOpenChange={setIsEditOpen}
             />
             {canCreatePromotional && (

@@ -14,15 +14,10 @@ import {
 import {
   createCategorySchema,
   updateCategorySchema,
+  type Category,
 } from "@/lib/api/categories/types";
 
 import { CategoryForm } from "./form";
-
-export interface CategoryWithId {
-  category_number: number;
-  category_name: string;
-  id: number;
-}
 
 export function CreateCategoryDialog() {
   const [open, setOpen] = useState(false);
@@ -76,7 +71,7 @@ export function EditCategoryDialog({
   open,
   onOpenChange,
 }: {
-  category: CategoryWithId;
+  category: Category;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
