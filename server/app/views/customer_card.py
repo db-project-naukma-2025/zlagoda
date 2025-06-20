@@ -15,8 +15,13 @@ from ..ioc_container import (
     customer_card_modification_controller,
     customer_card_query_controller,
 )
+from .auth import require_user
 
-router = APIRouter(prefix="/customer-cards", tags=["customer-cards"])
+router = APIRouter(
+    prefix="/customer-cards",
+    tags=["customer-cards"],
+    dependencies=[Depends(require_user)],
+)
 
 
 class PaginatedCustomerCards(BaseModel):
