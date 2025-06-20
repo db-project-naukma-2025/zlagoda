@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Literal
 
 import structlog
 
@@ -47,24 +47,6 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
             """,
             (card_number,),
         )
-
-    def _construct_clauses(
-        self, fields: list[str], customer_card: CustomerCardUpdate | None = None
-    ) -> tuple[list[str], list[Any]]:
-        clauses, params = [], []
-        if customer_card is not None:
-            filter_values = {}
-            for field in fields:
-                value = getattr(customer_card, field, UNSET)
-                if value is UNSET:
-                    continue
-                filter_values[field] = value
-
-            for field, value in filter_values.items():
-                clauses.append(f"{field} = %s")
-                params.append(value)
-
-        return clauses, params
 
     def update(
         self,

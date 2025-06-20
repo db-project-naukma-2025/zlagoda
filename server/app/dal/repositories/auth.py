@@ -1,7 +1,16 @@
 import structlog
 from pydantic import SecretStr
 
-from ..schemas.auth import Group, GroupPermission, Permission, User, UserGroup
+from ..schemas._base import UNSET
+from ..schemas.auth import (
+    Group,
+    GroupPermission,
+    Permission,
+    PermissionCreate,
+    PermissionUpdate,
+    User,
+    UserGroup,
+)
 from ._base import PydanticDBRepository
 
 logger = structlog.get_logger(__name__)
@@ -82,6 +91,7 @@ class UserRepository(PydanticDBRepository[User]):
 class PermissionRepository(PydanticDBRepository[Permission]):
     table_name = "auth_permission"
     model = Permission
+    pk_field = "id"
 
     def get_all(self) -> list[Permission]:
         rows = self._db.execute(
@@ -93,20 +103,17 @@ class PermissionRepository(PydanticDBRepository[Permission]):
         return [self._row_to_model(row) for row in rows]
 
     def search(
-        self, *, model_name: str | None = None, codename: str | None = None
+        self,
+        permission: PermissionUpdate | None = None,
+        /,
     ) -> list[Permission]:
-        if model_name is None and codename is None:
-            raise ValueError("Either model_name or codename must be provided")
+        clauses, params = self._construct_clauses(
+            self._fields,
+            permission,
+            exclude_fields=[self.pk_field],
+        )
 
-        where_clause = ""
-        params = []
-
-        if model_name:
-            where_clause = "WHERE model_name = %s"
-            params.append(model_name)
-        elif codename:
-            where_clause = "WHERE codename = %s"
-            params.append(codename)
+        where_clause = "WHERE " + " AND ".join(clauses) if clauses else ""
 
         rows = self._db.execute(
             f"""
@@ -118,14 +125,24 @@ class PermissionRepository(PydanticDBRepository[Permission]):
         )
         return [self._row_to_model(row) for row in rows]
 
-    def create(self, model_name: str, codename: str) -> Permission:
+    def create(self, permission: PermissionCreate) -> Permission:
+        fields = list(self._fields)
+        fields.remove(self.pk_field)
+
+        params = []
+        for field in fields:
+            value = getattr(permission, field, UNSET)
+            if value is UNSET:
+                continue
+            params.append(value)
+
         rows = self._db.execute(
             f"""
-                INSERT INTO {self.table_name} (model_name, codename)
-                VALUES (%s, %s)
+                INSERT INTO {self.table_name} ({", ".join(fields)})
+                VALUES ({", ".join(["%s" for _ in fields])})
                 RETURNING {", ".join(self._fields)}
             """,
-            (model_name, codename),
+            tuple(params),
         )
         return self._row_to_model(rows[0])
 
@@ -133,7 +150,7 @@ class PermissionRepository(PydanticDBRepository[Permission]):
         self._db.execute(
             f"""
                 DELETE FROM {self.table_name}
-                WHERE id = %s
+                WHERE {self.pk_field} = %s
             """,
             (permission_id,),
         )

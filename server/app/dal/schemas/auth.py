@@ -1,4 +1,6 @@
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel, ConfigDict, Field, SecretStr
+
+from ._base import UNSET, UnsetAnnotated
 
 
 class User(BaseModel):
@@ -8,10 +10,24 @@ class User(BaseModel):
     is_superuser: bool = False
 
 
-class Permission(BaseModel):
-    id: int
+class PermissionCreate(BaseModel):
     model_name: str
     codename: str
+
+    model_config = ConfigDict(frozen=True)
+
+
+class Permission(PermissionCreate):
+    id: int
+
+    model_config = ConfigDict(frozen=True)
+
+
+class PermissionUpdate(BaseModel):
+    model_name: str | UnsetAnnotated = Field(default=UNSET)
+    codename: str | UnsetAnnotated = Field(default=UNSET)
+
+    model_config = ConfigDict(frozen=True)
 
 
 class Group(BaseModel):
@@ -24,7 +40,11 @@ class UserGroup(BaseModel):
     user_id: int
     group_id: int
 
+    model_config = ConfigDict(frozen=True)
+
 
 class GroupPermission(BaseModel):
     group_id: int
     permission_id: int
+
+    model_config = ConfigDict(frozen=True)

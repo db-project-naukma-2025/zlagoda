@@ -8,7 +8,7 @@ from ...dal.repositories.auth import (
     PermissionRepository,
     UserGroupRepository,
 )
-from ...dal.schemas.auth import Permission, User
+from ...dal.schemas.auth import Permission, PermissionCreate, PermissionUpdate, User
 
 
 class BasicPermission(Enum):
@@ -31,15 +31,29 @@ class UserPermissionController:
         self._model_name_cache: dict[str, set[Permission]] = {}
 
     def _get_codename(self, model_name: str, perm_name: BasicPermission) -> str:
-        return f"{model_name}.can_{perm_name.value}"
+        return f"{model_name.lower()}.can_{perm_name.value}"
 
-    def _get_permissions(self, model_name: str) -> set[Permission]:
+    def create_basic_permissions(
+        self, model_name: str | type
+    ) -> tuple[set[Permission], bool]:
+        """Create basic permissions for a model.
+
+        Args:
+            model_name (str | type): The name of the model to create permissions for.
+
+        Returns:
+            tuple[set[Permission], bool]: permissions, any were created
+        """
+
+        if isinstance(model_name, type):
+            model_name = model_name.__name__
+
         if model_name in self._model_name_cache:
-            return self._model_name_cache[model_name]
+            return self._model_name_cache[model_name], False
 
         basic_permissions: set[Permission] = set()
 
-        existing = self.permission_repo.search(model_name=model_name)
+        existing = self.permission_repo.search(PermissionUpdate(model_name=model_name))
         basic_permissions.update(set(existing))
 
         existing_basic_codenames = {perm.codename for perm in existing}
@@ -50,19 +64,24 @@ class UserPermissionController:
             if self._get_codename(model_name, perm) not in existing_basic_codenames
         ]
 
+        if not missing:
+            return basic_permissions, False
+
         for perm_name in missing:
             # TODO: add check if permission already exists
             perm = self.permission_repo.create(
-                model_name=model_name,
-                codename=self._get_codename(model_name, perm_name),
+                PermissionCreate(
+                    model_name=model_name,
+                    codename=self._get_codename(model_name, perm_name),
+                )
             )
             basic_permissions.add(perm)
 
         self._model_name_cache[model_name] = basic_permissions
-        return basic_permissions
+        return basic_permissions, True
 
     def has_permission(self, user: User, permission: Permission) -> bool:
-        permissions = self._get_permissions(permission.model_name)
+        permissions, _ = self.create_basic_permissions(permission.model_name)
         if permission not in permissions:
             return False
 
@@ -84,7 +103,9 @@ class UserPermissionController:
         if isinstance(name, BasicPermission):
             name = self._get_codename(model.__name__, name)
 
-        perm = self.permission_repo.search(model_name=model.__name__, codename=name)
+        perm = self.permission_repo.search(
+            PermissionUpdate(model_name=model.__name__, codename=name)
+        )
         if not perm:
             return False
 
