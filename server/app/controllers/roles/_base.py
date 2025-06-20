@@ -62,8 +62,8 @@ class UserRoleController(ABC):
         group = self.get_or_create_role()
         try:
             self.user_group_repo.create(user.id, group.id)
-        except UserGroupRepository.AlreadyExists as e:
-            raise ValueError from e
+        except UserGroupRepository.AlreadyExists:
+            pass
 
     def remove_from_user(self, user: User) -> None:
         group = self.get_or_create_role()
