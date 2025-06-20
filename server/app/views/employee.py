@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
+from ..controllers.roles.employee import UserEmployeePermissionController
 from ..dal.repositories.employee import EmployeeRepository
 from ..dal.schemas.employee import CreateEmployee, Employee, UpdateEmployee
-from ..ioc_container import employee_repository
+from ..ioc_container import employee_repository, user_employee_permission_controller
 from .auth import BasicPermission, PermissionCheck, require_permission, require_user
 
 router = APIRouter(
@@ -102,10 +103,15 @@ class EmployeeViewSet:
         id_employee: str,
         request: UpdateEmployee,
         has_permission: PermissionCheck = Depends(require_permission),
+        permission_controller: UserEmployeePermissionController = Depends(
+            user_employee_permission_controller
+        ),
     ):
         has_permission((Employee, BasicPermission.UPDATE))
 
-        return self.repo.update(id_employee, request)
+        employee = self.repo.update(id_employee, request)
+        permission_controller.update_related_roles(employee)
+        return employee
 
     @router.delete("/{id_employee}", operation_id="deleteEmployee")
     async def delete_employee(
