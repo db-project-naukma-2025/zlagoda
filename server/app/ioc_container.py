@@ -16,6 +16,7 @@ from .dal.repositories.auth import (
     UserRepository,
 )
 from .dal.repositories.category import CategoryRepository
+from .dal.repositories.employee import EmployeeRepository
 from .dal.repositories.product import ProductRepository
 from .dal.repositories.store_product import StoreProductRepository
 from .db.connection._base import IDatabase
@@ -53,6 +54,10 @@ def database_migration_service(
 
 def category_repository(db: IDatabase = Depends(get_db)) -> CategoryRepository:
     return CategoryRepository(db)
+
+
+def employee_repository(db: IDatabase = Depends(get_db)) -> EmployeeRepository:
+    return EmployeeRepository(db)
 
 
 def product_repository(db: IDatabase = Depends(get_db)) -> ProductRepository:
