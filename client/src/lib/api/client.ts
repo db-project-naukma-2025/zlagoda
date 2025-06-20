@@ -34,19 +34,6 @@ baseApiClient.use({
     }
     return Promise.resolve(newConfig);
   },
-  response: (_, __, response) => {
-    // Handle 401 Unauthorized responses
-    if (response.status === 401) {
-      // Clear token from storage
-      localStorage.removeItem("auth_token");
-
-      // Redirect to login page if not already there
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
-      }
-    }
-    return Promise.resolve(response);
-  },
 });
 
 export const apiClient = baseApiClient;
