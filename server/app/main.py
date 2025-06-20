@@ -15,7 +15,7 @@ from .ioc_container import (
     registration_controller,
     user_repository,
 )
-from .views import auth, category
+from .views import auth, category, employee, product, store_product
 
 logger = structlog.get_logger(__name__)
 
@@ -58,6 +58,9 @@ def runserver():
     )
 
     app.include_router(category.router)
+    app.include_router(product.router)
+    app.include_router(store_product.router)
+    app.include_router(employee.router)
     app.include_router(auth.router)
 
     click.echo(

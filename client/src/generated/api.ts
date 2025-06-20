@@ -33,6 +33,171 @@ const UpdateCategoryRequest = z
 const app__views__category__BulkDeleteRequest = z
   .object({ category_numbers: z.array(z.number().int()) })
   .passthrough();
+const category_number = z.union([z.number(), z.null()]).optional();
+const Product = z
+  .object({
+    category_number: z.number().int(),
+    product_name: z.string(),
+    characteristics: z.string(),
+    id_product: z.number().int(),
+  })
+  .passthrough();
+const PaginatedProducts = z
+  .object({
+    data: z.array(Product),
+    total: z.number().int(),
+    page: z.number().int(),
+    page_size: z.number().int(),
+    total_pages: z.number().int(),
+  })
+  .passthrough();
+const CreateProduct = z
+  .object({
+    category_number: z.number().int(),
+    product_name: z.string(),
+    characteristics: z.string(),
+  })
+  .passthrough();
+const UpdateProduct = z
+  .object({
+    category_number: z.number().int(),
+    product_name: z.string(),
+    characteristics: z.string(),
+    id_product: z.number().int(),
+  })
+  .passthrough();
+const app__views__product__BulkDeleteRequest = z
+  .object({ product_ids: z.array(z.number().int()) })
+  .passthrough();
+const promotional_only = z.union([z.boolean(), z.null()]).optional();
+const StoreProduct = z
+  .object({
+    UPC_prom: z.union([z.string(), z.null()]),
+    id_product: z.number().int(),
+    selling_price: z.number().gte(0),
+    products_number: z.number().int().gte(0),
+    promotional_product: z.boolean(),
+    UPC: z.string().min(12).max(12),
+  })
+  .passthrough();
+const PaginatedStoreProducts = z
+  .object({
+    data: z.array(StoreProduct),
+    total: z.number().int(),
+    page: z.number().int(),
+    page_size: z.number().int(),
+    total_pages: z.number().int(),
+  })
+  .passthrough();
+const CreateStoreProduct = z
+  .object({
+    UPC_prom: z.union([z.string(), z.null()]),
+    id_product: z.number().int(),
+    selling_price: z.number().gte(0),
+    products_number: z.number().int().gte(0),
+    promotional_product: z.boolean(),
+    UPC: z.string().min(12).max(12),
+  })
+  .passthrough();
+const UpdateStoreProduct = z
+  .object({
+    UPC_prom: z.union([z.string(), z.null()]),
+    id_product: z.number().int(),
+    selling_price: z.number().gte(0),
+    products_number: z.number().int().gte(0),
+    promotional_product: z.boolean(),
+  })
+  .passthrough();
+const CreatePromotionalProduct = z
+  .object({
+    promotional_UPC: z.string().min(12).max(12),
+    units_to_convert: z.number().int().gte(1),
+  })
+  .passthrough();
+const app__views__store_product__BulkDeleteRequest = z
+  .object({ upcs: z.array(z.string()) })
+  .passthrough();
+const search = z.union([z.string(), z.null()]).optional();
+const Employee = z
+  .object({
+    empl_surname: z.string().max(50),
+    empl_name: z.string().max(50),
+    empl_patronymic: z.union([z.string(), z.null()]).optional(),
+    empl_role: z.enum(["cashier", "manager"]),
+    salary: z.number().gte(0),
+    date_of_birth: z.string(),
+    date_of_start: z.string(),
+    phone_number: z.string().min(13).max(13),
+    city: z.string().max(50),
+    street: z.string().max(50),
+    zip_code: z.string().min(5).max(9),
+    id_employee: z.string().min(10).max(10),
+  })
+  .passthrough();
+const PaginatedEmployees = z
+  .object({
+    data: z.array(Employee),
+    total: z.number().int(),
+    page: z.number().int(),
+    page_size: z.number().int(),
+    total_pages: z.number().int(),
+  })
+  .passthrough();
+const CreateEmployee = z
+  .object({
+    empl_surname: z.string().max(50),
+    empl_name: z.string().max(50),
+    empl_patronymic: z.union([z.string(), z.null()]).optional(),
+    empl_role: z.enum(["cashier", "manager"]),
+    salary: z.number().gte(0),
+    date_of_birth: z.string(),
+    date_of_start: z.string(),
+    phone_number: z.string().min(13).max(13),
+    city: z.string().max(50),
+    street: z.string().max(50),
+    zip_code: z.string().min(5).max(9),
+    id_employee: z.string().min(10).max(10),
+  })
+  .passthrough();
+const UpdateEmployee = z
+  .object({
+    empl_surname: z.string().max(50),
+    empl_name: z.string().max(50),
+    empl_patronymic: z.union([z.string(), z.null()]).optional(),
+    empl_role: z.enum(["cashier", "manager"]),
+    salary: z.number().gte(0),
+    date_of_birth: z.string(),
+    date_of_start: z.string(),
+    phone_number: z.string().min(13).max(13),
+    city: z.string().max(50),
+    street: z.string().max(50),
+    zip_code: z.string().min(5).max(9),
+  })
+  .passthrough();
+const app__views__employee__BulkDeleteRequest = z
+  .object({ employee_ids: z.array(z.string()) })
+  .passthrough();
+const Body_login = z
+  .object({
+    grant_type: z.union([z.string(), z.null()]).optional(),
+    username: z.string(),
+    password: z.string(),
+    scope: z.string().optional().default(""),
+    client_id: z.union([z.string(), z.null()]).optional(),
+    client_secret: z.union([z.string(), z.null()]).optional(),
+  })
+  .passthrough();
+const TokenResponse = z
+  .object({ access_token: z.string(), token_type: z.string() })
+  .passthrough();
+const User = z
+  .object({
+    id: z.number().int(),
+    username: z.string(),
+    password: z.string(),
+    is_superuser: z.boolean().optional().default(false),
+  })
+  .passthrough();
 
 export const schemas = {
   Category,
@@ -41,7 +206,29 @@ export const schemas = {
   HTTPValidationError,
   CreateCategoryRequest,
   UpdateCategoryRequest,
-  BulkDeleteRequest,
+  app__views__category__BulkDeleteRequest,
+  category_number,
+  Product,
+  PaginatedProducts,
+  CreateProduct,
+  UpdateProduct,
+  app__views__product__BulkDeleteRequest,
+  promotional_only,
+  StoreProduct,
+  PaginatedStoreProducts,
+  CreateStoreProduct,
+  UpdateStoreProduct,
+  CreatePromotionalProduct,
+  app__views__store_product__BulkDeleteRequest,
+  search,
+  Employee,
+  PaginatedEmployees,
+  CreateEmployee,
+  UpdateEmployee,
+  app__views__employee__BulkDeleteRequest,
+  Body_login,
+  TokenResponse,
+  User,
 };
 
 const endpoints = makeApi([
@@ -216,6 +403,165 @@ const endpoints = makeApi([
         name: "body",
         type: "Body",
         schema: app__views__category__BulkDeleteRequest,
+      },
+    ],
+    response: z.unknown(),
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "get",
+    path: "/employees/",
+    alias: "getEmployees",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "skip",
+        type: "Query",
+        schema: z.number().int().gte(0).optional().default(0),
+      },
+      {
+        name: "limit",
+        type: "Query",
+        schema: z.number().int().gte(1).lte(1000).optional().default(10),
+      },
+      {
+        name: "search",
+        type: "Query",
+        schema: search,
+      },
+      {
+        name: "role_filter",
+        type: "Query",
+        schema: search,
+      },
+      {
+        name: "sort_by",
+        type: "Query",
+        schema: z
+          .enum(["empl_surname", "empl_role"])
+          .optional()
+          .default("empl_surname"),
+      },
+      {
+        name: "sort_order",
+        type: "Query",
+        schema: z.enum(["asc", "desc"]).optional().default("asc"),
+      },
+    ],
+    response: PaginatedEmployees,
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "post",
+    path: "/employees/",
+    alias: "createEmployee",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "body",
+        type: "Body",
+        schema: CreateEmployee,
+      },
+    ],
+    response: Employee,
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "get",
+    path: "/employees/:id_employee",
+    alias: "getEmployee",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "id_employee",
+        type: "Path",
+        schema: z.string(),
+      },
+    ],
+    response: Employee,
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "put",
+    path: "/employees/:id_employee",
+    alias: "updateEmployee",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "body",
+        type: "Body",
+        schema: UpdateEmployee,
+      },
+      {
+        name: "id_employee",
+        type: "Path",
+        schema: z.string(),
+      },
+    ],
+    response: Employee,
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "delete",
+    path: "/employees/:id_employee",
+    alias: "deleteEmployee",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "id_employee",
+        type: "Path",
+        schema: z.string(),
+      },
+    ],
+    response: z.unknown(),
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "post",
+    path: "/employees/bulk-delete",
+    alias: "bulkDeleteEmployees",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "body",
+        type: "Body",
+        schema: app__views__employee__BulkDeleteRequest,
       },
     ],
     response: z.unknown(),
