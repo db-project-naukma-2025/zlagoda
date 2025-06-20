@@ -7,12 +7,15 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from . import settings
 from .cli.commands.assign_employee import Command as AssignEmployeeCommand
+from .cli.commands.clear_all_checks import ClearAllChecksCommand
 from .cli.commands.create_permissions import CreatePermissionsCommand
 from .cli.commands.createuser import Command as CreateUserCommand
 from .cli.commands.deassign_employee import Command as DeassignEmployeeCommand
 from .cli.commands.migrate import Command as DatabaseMigrationCommand
 from .ioc_container import (
+    check_repository,
     create_db,
+    customer_card_repository,
     database_migration_service,
     employee_repository,
     group_permission_repository,
@@ -21,6 +24,8 @@ from .ioc_container import (
     password_hasher,
     permission_repository,
     registration_controller,
+    sale_repository,
+    store_product_repository,
     user_cashier_permission_controller,
     user_employee_permission_controller,
     user_group_controller,
@@ -29,7 +34,15 @@ from .ioc_container import (
     user_permission_controller,
     user_repository,
 )
-from .views import auth, category, customer_card, employee, product, store_product
+from .views import (
+    auth,
+    category,
+    check,
+    customer_card,
+    employee,
+    product,
+    store_product,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -67,6 +80,24 @@ def migrate(number: int | None = None):
         dmc.execute(number=number)
 
 
+@cli.command(name="clear-all-checks")
+def clear_all_checks():
+    """Clear all checks with confirmation."""
+    with create_db() as db:
+        from .controllers.check import CheckCleanupController
+
+        check_repo = check_repository(db)
+        customer_card_repo = customer_card_repository(db)
+        store_product_repo = store_product_repository(db)
+        sale_repo = sale_repository(db)
+        cleanup_controller = CheckCleanupController(
+            check_repo, customer_card_repo, store_product_repo, sale_repo
+        )
+
+        command = ClearAllChecksCommand(cleanup_controller)
+        command.execute()
+
+
 @cli.command()
 def runserver():
     """Run the application."""
@@ -92,6 +123,7 @@ def runserver():
     app.include_router(customer_card.router)
     app.include_router(product.router)
     app.include_router(store_product.router)
+    app.include_router(check.router)
     app.include_router(employee.router)
     app.include_router(auth.router)
 

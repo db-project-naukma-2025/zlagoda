@@ -242,3 +242,13 @@ class StoreProductRepository(PydanticDBRepository[StoreProduct]):
         rows = self._db.execute(query, tuple(params))
         count = rows[0][0] if rows else 0
         return count > 0
+
+    def reduce_inventory(self, upc: str, quantity: int) -> None:
+        self._db.execute(
+            f"""
+                UPDATE {self.table_name}
+                SET products_number = products_number - %s
+                WHERE UPC = %s
+            """,
+            (quantity, upc),
+        )

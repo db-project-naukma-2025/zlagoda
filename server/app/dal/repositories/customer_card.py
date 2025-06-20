@@ -135,4 +135,6 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
             """,
             (card_number,),
         )
+        if not rows:
+            raise ValueError(f"Customer card with card_number {card_number} not found")
         return self._row_to_model(rows[0])

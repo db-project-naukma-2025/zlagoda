@@ -9,6 +9,11 @@ from .controllers.auth.hasher import IHasher, SHA256Hasher
 from .controllers.auth.login import LoginController
 from .controllers.auth.registration import RegistrationController
 from .controllers.auth.token_generator import ITokenGenerator, JWTTokenGenerator
+from .controllers.check import (
+    CheckCleanupController,
+    CheckModificationController,
+    CheckQueryController,
+)
 from .controllers.customer_card import (
     CustomerCardModificationController,
     CustomerCardQueryController,
@@ -26,11 +31,20 @@ from .dal.repositories.auth import (
     UserRepository,
 )
 from .dal.repositories.category import CategoryRepository
+from .dal.repositories.check import CheckRepository
 from .dal.repositories.customer_card import CustomerCardRepository
 from .dal.repositories.employee import EmployeeRepository
 from .dal.repositories.product import ProductRepository
+from .dal.repositories.sale import SaleRepository
 from .dal.repositories.store_product import StoreProductRepository
-from .dal.schemas import Category, CustomerCard, Employee, Product, StoreProduct
+from .dal.schemas import (
+    Category,
+    CustomerCard,
+    Employee,
+    Product,
+    RelationalCheck,
+    StoreProduct,
+)
 from .db.connection._base import IDatabase
 from .db.migrations import DatabaseMigrationService
 
@@ -65,7 +79,7 @@ def database_migration_service(
 
 
 def model_registry() -> set[Type[BaseModel]]:
-    return {Category, Product, StoreProduct, Employee, CustomerCard}
+    return {Category, Product, StoreProduct, Employee, CustomerCard, RelationalCheck}
 
 
 def category_repository(db: IDatabase = Depends(get_db)) -> CategoryRepository:
@@ -82,6 +96,10 @@ def product_repository(db: IDatabase = Depends(get_db)) -> ProductRepository:
 
 def store_product_repository(db: IDatabase = Depends(get_db)) -> StoreProductRepository:
     return StoreProductRepository(db)
+
+
+def check_repository(db: IDatabase = Depends(get_db)) -> CheckRepository:
+    return CheckRepository(db)
 
 
 def user_repository(db: IDatabase = Depends(get_db)) -> UserRepository:
@@ -112,6 +130,10 @@ def group_repository(db: IDatabase = Depends(get_db)) -> GroupRepository:
 
 def customer_card_repository(db: IDatabase = Depends(get_db)) -> CustomerCardRepository:
     return CustomerCardRepository(db)
+
+
+def sale_repository(db: IDatabase = Depends(get_db)) -> SaleRepository:
+    return SaleRepository(db)
 
 
 # Controllers setup
@@ -222,4 +244,37 @@ def user_employee_permission_controller(
 ) -> UserEmployeePermissionController:
     return UserEmployeePermissionController(
         cashier_controller, manager_controller, user_repo, employee_repo
+    )
+
+
+def check_query_controller(
+    check_repo: CheckRepository = Depends(check_repository),
+    customer_card_repo: CustomerCardRepository = Depends(customer_card_repository),
+    store_product_repo: StoreProductRepository = Depends(store_product_repository),
+    sale_repo: SaleRepository = Depends(sale_repository),
+) -> CheckQueryController:
+    return CheckQueryController(
+        check_repo, customer_card_repo, store_product_repo, sale_repo
+    )
+
+
+def check_modification_controller(
+    check_repo: CheckRepository = Depends(check_repository),
+    customer_card_repo: CustomerCardRepository = Depends(customer_card_repository),
+    store_product_repo: StoreProductRepository = Depends(store_product_repository),
+    sale_repo: SaleRepository = Depends(sale_repository),
+) -> CheckModificationController:
+    return CheckModificationController(
+        check_repo, customer_card_repo, store_product_repo, sale_repo
+    )
+
+
+def check_cleanup_controller(
+    check_repo: CheckRepository = Depends(check_repository),
+    customer_card_repo: CustomerCardRepository = Depends(customer_card_repository),
+    store_product_repo: StoreProductRepository = Depends(store_product_repository),
+    sale_repo: SaleRepository = Depends(sale_repository),
+) -> CheckCleanupController:
+    return CheckCleanupController(
+        check_repo, customer_card_repo, store_product_repo, sale_repo
     )

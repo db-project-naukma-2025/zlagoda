@@ -1,6 +1,7 @@
 # ruff: noqa: F403
 from .auth import Group, GroupPermission, Permission, User, UserGroup
 from .category import Category
+from .check import RelationalCheck
 from .customer_card import CustomerCard
 from .employee import Employee
 from .product import Product
@@ -13,6 +14,7 @@ __all__ = [
     "UserGroup",
     "GroupPermission",
     "Category",
+    "RelationalCheck",
     "CustomerCard",
     "Employee",
     "Product",
