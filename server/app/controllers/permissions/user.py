@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Type
+from typing import Generator, Type
 
 from pydantic import BaseModel
 
@@ -32,6 +32,9 @@ class UserPermissionController:
 
     def _get_codename(self, model_name: str, perm_name: BasicPermission) -> str:
         return f"{model_name.lower()}.can_{perm_name.value}"
+
+    def _has_all_permissions(self, user: User) -> bool:
+        return user.is_superuser
 
     def create_basic_permissions(
         self, model_name: str | type
@@ -81,6 +84,9 @@ class UserPermissionController:
         return basic_permissions, True
 
     def has_permission(self, user: User, permission: Permission) -> bool:
+        if self._has_all_permissions(user):
+            return True
+
         permissions, _ = self.create_basic_permissions(permission.model_name)
         if permission not in permissions:
             return False
@@ -100,6 +106,9 @@ class UserPermissionController:
     def has_model_permission(
         self, user: User, model: Type[BaseModel], name: str | BasicPermission
     ) -> bool:
+        if self._has_all_permissions(user):
+            return True
+
         if isinstance(name, BasicPermission):
             name = self._get_codename(model.__name__, name)
 
@@ -134,3 +143,17 @@ class UserPermissionController:
         return self.permission_repo.create(
             PermissionCreate(model_name=model_name, codename=name)
         )
+
+    def get_all_permissions(self, user: User) -> Generator[Permission, None, None]:
+        if self._has_all_permissions(user):
+            yield from self.permission_repo.get_all()
+            return
+
+        user_groups = self.user_group_repo.get_user_groups(user.id)
+        for group in user_groups:
+            group_permissions = self.group_permission_repo.get_group_permissions(
+                group.group_id
+            )
+            for group_perm in group_permissions:
+                perm = self.permission_repo.get(group_perm.permission_id)
+                yield perm

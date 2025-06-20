@@ -153,6 +153,17 @@ class PermissionRepository(PydanticDBRepository[Permission]):
         )
         return [self._row_to_model(row) for row in rows]
 
+    def get(self, permission_id: int) -> Permission:
+        rows = self._db.execute(
+            f"""
+                SELECT {", ".join(self._fields)}
+                FROM {self.table_name}
+                WHERE {self.pk_field} = %s
+            """,
+            (permission_id,),
+        )
+        return self._row_to_model(rows[0])
+
     def search(
         self,
         permission: PermissionUpdate | None = None,

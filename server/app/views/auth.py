@@ -6,7 +6,7 @@ from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
 from ..controllers.auth.exceptions import AuthenticationError
-from ..controllers.auth.login import LoginController
+from ..controllers.auth.login import InvalidCredentialsError, LoginController
 from ..controllers.permissions.user import (
     BasicPermission,
     UserPermissionController,
@@ -45,11 +45,8 @@ def require_permission(permission: tuple[type, str] | tuple[type, BasicPermissio
             user_permission_controller
         ),
     ) -> User:
-        if not (
-            current_user.is_superuser
-            or user_permission_controller.has_model_permission(
-                current_user, model, perm
-            )
+        if not user_permission_controller.has_model_permission(
+            current_user, model, perm
         ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -58,6 +55,10 @@ def require_permission(permission: tuple[type, str] | tuple[type, BasicPermissio
         return current_user
 
     return permission_check
+
+
+class ErrorResponse(BaseModel):
+    detail: str
 
 
 class TokenResponse(BaseModel):
@@ -69,16 +70,40 @@ class TokenResponse(BaseModel):
 class AuthViewSet:
     login_controller: LoginController = Depends(login_controller)
 
-    @router.post("/token", response_model=TokenResponse, operation_id="login")
+    @router.post(
+        "/token",
+        response_model=TokenResponse,
+        operation_id="login",
+        responses={
+            401: {"model": ErrorResponse, "description": "Invalid credentials"},
+        },
+    )
     async def login(
         self,
         form_data: OAuth2PasswordRequestForm = Depends(),
     ) -> TokenResponse:
         username, password = form_data.username, form_data.password
 
-        response = self.login_controller.login(username, password)
+        try:
+            response = self.login_controller.login(username, password)
+        except InvalidCredentialsError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
         return TokenResponse(access_token=response.access_token, token_type="bearer")
 
     @router.get("/me", response_model=User, operation_id="me")
     async def me(self, user: User = Depends(require_user)) -> User:
         return user
+
+    @router.get("/me/scopes", response_model=list[str], operation_id="meScopes")
+    async def me_scopes(
+        self,
+        user: User = Depends(require_user),
+        perm_controller: UserPermissionController = Depends(user_permission_controller),
+    ) -> list[str]:
+        permissions = list(perm_controller.get_all_permissions(user))
+        return [perm.codename for perm in permissions]
