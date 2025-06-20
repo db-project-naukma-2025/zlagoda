@@ -15,7 +15,7 @@ from ..ioc_container import (
     customer_card_modification_controller,
     customer_card_query_controller,
 )
-from .auth import require_user
+from .auth import BasicPermission, PermissionCheck, require_permission, require_user
 
 router = APIRouter(
     prefix="/customer-cards",
@@ -54,7 +54,10 @@ class CustomerCardViewSet:
         limit: int = Query(
             10, ge=1, le=1000, description="Maximum number of records to return"
         ),
+        has_permission: PermissionCheck = Depends(require_permission),
     ):
+        has_permission((CustomerCard, BasicPermission.VIEW))
+
         customer_cards, total = self.query_controller.get_all(
             limit=limit,
             offset=skip,
@@ -72,24 +75,55 @@ class CustomerCardViewSet:
     @router.get(
         "/{card_number}", response_model=CustomerCard, operation_id="getCustomerCard"
     )
-    async def get_customer_card(self, card_number: str):
+    async def get_customer_card(
+        self,
+        card_number: str,
+        has_permission: PermissionCheck = Depends(require_permission),
+    ):
+        has_permission((CustomerCard, BasicPermission.VIEW))
+
         return self.query_controller.get_customer_card(card_number)
 
     @router.post("/", response_model=CustomerCard, operation_id="createCustomerCard")
-    async def create_customer_card(self, request: CustomerCardCreate):
+    async def create_customer_card(
+        self,
+        request: CustomerCardCreate,
+        has_permission: PermissionCheck = Depends(require_permission),
+    ):
+        has_permission((CustomerCard, BasicPermission.CREATE))
+
         return self.modification_controller.create(request)
 
     @router.put(
         "/{card_number}", response_model=CustomerCard, operation_id="updateCustomerCard"
     )
-    async def update_customer_card(self, card_number: str, request: CustomerCardUpdate):
+    async def update_customer_card(
+        self,
+        card_number: str,
+        request: CustomerCardUpdate,
+        has_permission: PermissionCheck = Depends(require_permission),
+    ):
+        has_permission((CustomerCard, BasicPermission.UPDATE))
+
         return self.modification_controller.update(card_number, request)
 
     @router.delete("/{card_number}", operation_id="deleteCustomerCard")
-    async def delete_customer_card(self, card_number: str):
+    async def delete_customer_card(
+        self,
+        card_number: str,
+        has_permission: PermissionCheck = Depends(require_permission),
+    ):
+        has_permission((CustomerCard, BasicPermission.DELETE))
+
         return self.modification_controller.delete(card_number)
 
     @router.post("/bulk-delete", operation_id="bulkDeleteCustomerCards")
-    async def bulk_delete_customer_cards(self, request: BulkDeleteCustomerCardRequest):
+    async def bulk_delete_customer_cards(
+        self,
+        request: BulkDeleteCustomerCardRequest,
+        has_permission: PermissionCheck = Depends(require_permission),
+    ):
+        has_permission((CustomerCard, BasicPermission.DELETE))
+
         for card_number in request.card_numbers:
             self.modification_controller.delete(card_number)

@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Callable, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -7,8 +7,12 @@ from pydantic import BaseModel
 
 from ..controllers.auth.exceptions import AuthenticationError
 from ..controllers.auth.login import LoginController
+from ..controllers.permissions.user import (
+    BasicPermission,
+    UserPermissionController,
+)
 from ..dal.schemas.auth import User
-from ..ioc_container import login_controller
+from ..ioc_container import login_controller, user_permission_controller
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -30,6 +34,33 @@ async def require_user(
         )
 
     return user
+
+
+PermissionCheck = Callable[[tuple[type, str] | tuple[type, BasicPermission]], User]
+
+
+async def require_permission(
+    current_user: User = Depends(require_user),
+    user_permission_controller: UserPermissionController = Depends(
+        user_permission_controller
+    ),
+) -> PermissionCheck:
+    def permission_check(permission: tuple[type, str] | tuple[type, BasicPermission]):
+        model, perm = permission
+
+        if not (
+            current_user.is_superuser
+            or user_permission_controller.has_model_permission(
+                current_user, model, perm
+            )
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not authorized to perform this action",
+            )
+        return current_user
+
+    return permission_check
 
 
 class TokenResponse(BaseModel):

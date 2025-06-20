@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from ..dal.repositories.employee import EmployeeRepository
 from ..dal.schemas.employee import CreateEmployee, Employee, UpdateEmployee
 from ..ioc_container import employee_repository
-from .auth import require_user
+from .auth import BasicPermission, PermissionCheck, require_permission, require_user
 
 router = APIRouter(
     prefix="/employees",
@@ -48,7 +48,10 @@ class EmployeeViewSet:
             "date_of_start",
         ] = Query("empl_surname"),
         sort_order: Literal["asc", "desc"] = Query("asc"),
+        has_permission: PermissionCheck = Depends(require_permission),
     ):
+        has_permission((Employee, BasicPermission.VIEW))
+
         employees = self.repo.get_all(
             skip=skip,
             limit=limit,
@@ -69,26 +72,57 @@ class EmployeeViewSet:
         )
 
     @router.get("/{id_employee}", response_model=Employee, operation_id="getEmployee")
-    async def get_employee(self, id_employee: str):
+    async def get_employee(
+        self,
+        id_employee: str,
+        has_permission: PermissionCheck = Depends(require_permission),
+    ):
+        has_permission((Employee, BasicPermission.VIEW))
+
         employee = self.repo.get_by_id(id_employee)
         if not employee:
             raise HTTPException(status_code=404, detail="Employee not found")
         return employee
 
     @router.post("/", response_model=Employee, operation_id="createEmployee")
-    async def create_employee(self, request: CreateEmployee):
+    async def create_employee(
+        self,
+        request: CreateEmployee,
+        has_permission: PermissionCheck = Depends(require_permission),
+    ):
+        has_permission((Employee, BasicPermission.CREATE))
+
         return self.repo.create(request)
 
     @router.put(
         "/{id_employee}", response_model=Employee, operation_id="updateEmployee"
     )
-    async def update_employee(self, id_employee: str, request: UpdateEmployee):
+    async def update_employee(
+        self,
+        id_employee: str,
+        request: UpdateEmployee,
+        has_permission: PermissionCheck = Depends(require_permission),
+    ):
+        has_permission((Employee, BasicPermission.UPDATE))
+
         return self.repo.update(id_employee, request)
 
     @router.delete("/{id_employee}", operation_id="deleteEmployee")
-    async def delete_employee(self, id_employee: str):
+    async def delete_employee(
+        self,
+        id_employee: str,
+        has_permission: PermissionCheck = Depends(require_permission),
+    ):
+        has_permission((Employee, BasicPermission.DELETE))
+
         self.repo.delete(id_employee)
 
     @router.post("/bulk-delete", operation_id="bulkDeleteEmployees")
-    async def bulk_delete_employees(self, request: BulkDeleteRequest):
+    async def bulk_delete_employees(
+        self,
+        request: BulkDeleteRequest,
+        has_permission: PermissionCheck = Depends(require_permission),
+    ):
+        has_permission((Employee, BasicPermission.DELETE))
+
         return self.repo.delete_multiple(request.employee_ids)

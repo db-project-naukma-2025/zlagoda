@@ -13,7 +13,7 @@ from ..dal.schemas.store_product import (
 )
 from ..db.connection import transaction
 from ..ioc_container import store_product_repository
-from .auth import require_user
+from .auth import BasicPermission, PermissionCheck, require_permission, require_user
 
 router = APIRouter(
     prefix="/store-products",
@@ -57,7 +57,10 @@ class StoreProductViewSet:
         ),
         id_product: Optional[int] = Query(None, description="Filter by product ID"),
         repo: StoreProductRepository = Depends(store_product_repository),
+        has_permission: PermissionCheck = Depends(require_permission),
     ):
+        has_permission((StoreProduct, BasicPermission.VIEW))
+
         store_products = repo.get_all(
             skip=skip,
             limit=limit,
@@ -82,8 +85,13 @@ class StoreProductViewSet:
 
     @router.get("/{upc}", response_model=StoreProduct, operation_id="getStoreProduct")
     async def get_store_product(
-        self, upc: str, repo: StoreProductRepository = Depends(store_product_repository)
+        self,
+        upc: str,
+        repo: StoreProductRepository = Depends(store_product_repository),
+        has_permission: PermissionCheck = Depends(require_permission),
     ):
+        has_permission((StoreProduct, BasicPermission.VIEW))
+
         return repo.get_by_upc(upc)
 
     @router.post("/", response_model=StoreProduct, operation_id="createStoreProduct")
@@ -91,7 +99,10 @@ class StoreProductViewSet:
         self,
         request: CreateStoreProduct,
         repo: StoreProductRepository = Depends(store_product_repository),
+        has_permission: PermissionCheck = Depends(require_permission),
     ):
+        has_permission((StoreProduct, BasicPermission.CREATE))
+
         await self._validate_product_upc_uniqueness(request.UPC, repo)
         await self._validate_promotional_product_uniqueness(
             request.id_product, request.promotional_product, repo
@@ -123,7 +134,10 @@ class StoreProductViewSet:
         source_upc: str,
         request: CreatePromotionalProduct,
         repo: StoreProductRepository = Depends(store_product_repository),
+        has_permission: PermissionCheck = Depends(require_permission),
     ):
+        has_permission((StoreProduct, BasicPermission.CREATE))
+
         # Get the source store product
         source_product = repo.get_by_upc(source_upc)
         if not source_product:
@@ -196,7 +210,10 @@ class StoreProductViewSet:
         upc: str,
         request: UpdateStoreProduct,
         repo: StoreProductRepository = Depends(store_product_repository),
+        has_permission: PermissionCheck = Depends(require_permission),
     ):
+        has_permission((StoreProduct, BasicPermission.UPDATE))
+
         # Get the current store product
         current_product = repo.get_by_upc(upc)
         if not current_product:
@@ -242,8 +259,13 @@ class StoreProductViewSet:
 
     @router.delete("/{upc}", operation_id="deleteStoreProduct")
     async def delete_store_product(
-        self, upc: str, repo: StoreProductRepository = Depends(store_product_repository)
+        self,
+        upc: str,
+        repo: StoreProductRepository = Depends(store_product_repository),
+        has_permission: PermissionCheck = Depends(require_permission),
     ):
+        has_permission((StoreProduct, BasicPermission.DELETE))
+
         # Get the current store product
         current_product = repo.get_by_upc(upc)
         if not current_product:
@@ -267,7 +289,10 @@ class StoreProductViewSet:
         self,
         request: BulkDeleteRequest,
         repo: StoreProductRepository = Depends(store_product_repository),
+        has_permission: PermissionCheck = Depends(require_permission),
     ):
+        has_permission((StoreProduct, BasicPermission.DELETE))
+
         # Check each UPC for promotional dependencies
         for upc in request.upcs:
             current_product = repo.get_by_upc(upc)
