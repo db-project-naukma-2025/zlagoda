@@ -15,7 +15,7 @@ from .ioc_container import (
     registration_controller,
     user_repository,
 )
-from .views import auth, category, employee, product, store_product
+from .views import auth, category, customer_card, employee, product, store_product
 
 logger = structlog.get_logger(__name__)
 
@@ -58,6 +58,7 @@ def runserver():
     )
 
     app.include_router(category.router)
+    app.include_router(customer_card.router)
     app.include_router(product.router)
     app.include_router(store_product.router)
     app.include_router(employee.router)
@@ -66,6 +67,22 @@ def runserver():
     click.echo(
         click.style(f"Starting server on {settings.API_HOST}:{settings.API_PORT}...")
     )
+
+    with create_db() as db:
+        dms = database_migration_service(db)
+        executed = dms.get_executed_migrations()
+        available = dms.get_available_migrations()
+
+    if executed != available:
+        click.echo(
+            click.style(
+                f"You have {len(available) - len(executed)} unapplied migration(s). "
+                "Your project may not work properly until you apply the migrations.\n"
+                "Run 'python manage.py migrate' to apply them.",
+                fg="red",
+            )
+        )
+
     uvicorn.run(
         app,
         host=settings.API_HOST,

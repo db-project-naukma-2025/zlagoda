@@ -4,7 +4,7 @@ import { useApiQuery } from "@/hooks/use-api-query";
 
 import { categoriesApi, categoryQueryKeys } from "./service";
 import {
-  type BulkDeleteRequest,
+  type BulkDeleteCategoryRequest,
   type CategoryNumber,
   type CreateCategoryFormData,
   type GetCategoriesOptions,
@@ -71,7 +71,7 @@ export const useBulkDeleteCategories = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (request: BulkDeleteRequest) =>
+    mutationFn: (request: BulkDeleteCategoryRequest) =>
       categoriesApi.bulkDeleteCategories(request),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: categoryQueryKeys.all() });

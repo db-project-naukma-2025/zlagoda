@@ -20,11 +20,10 @@ class PostgresDatabase(IDatabase):
         logger.debug("connecting")
         try:
             self._conn = psycopg2.connect(self.connection_string)
-            logger.info("connected")
         except psycopg2.Error as e:
             logger.error("connection.failed")
             raise DatabaseError("Failed to connect to PostgreSQL database") from e
-        logger.debug("connected")
+        logger.debug("connected", connection_string=self.connection_string)
 
     @implements
     def is_connected(self) -> bool:
@@ -69,17 +68,17 @@ class PostgresDatabase(IDatabase):
         logger.debug("disconnect.start")
 
         if self._conn is None:
-            logger.warning("disconnect.no_connection")
+            logger.debug("disconnect.no_connection")
             return
 
         try:
             self._conn.close()
-            logger.info("disconnect.success")
         except psycopg2.Error as e:
             logger.error("disconnect.failed")
             raise DatabaseError("Failed to disconnect from PostgreSQL database") from e
         finally:
             self._conn = None
+        logger.debug("disconnect.success")
 
     @implements
     def start_transaction(self):

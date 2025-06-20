@@ -30,7 +30,7 @@ class UpdateCategoryRequest(BaseModel):
     category_name: str
 
 
-class BulkDeleteRequest(BaseModel):
+class BulkDeleteCategoryRequest(BaseModel):
     category_numbers: list[int]
 
 
@@ -92,5 +92,5 @@ class CategoryViewSet:
         return self.repo.delete(category_number)
 
     @router.post("/bulk-delete", operation_id="bulkDeleteCategories")
-    async def bulk_delete_categories(self, request: BulkDeleteRequest):
+    async def bulk_delete_categories(self, request: BulkDeleteCategoryRequest):
         return self.repo.delete_multiple(request.category_numbers)

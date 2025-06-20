@@ -13,7 +13,7 @@ import { type RouteComponent } from "@tanstack/react-router";
 
 import CategoriesPage from "../pages/categories";
 import ChecksSalesPage from "../pages/checks-sales-page";
-import CustomersPage from "../pages/customers-page";
+import CustomersPage from "../pages/customers";
 import DashboardPage from "../pages/dashboard-page";
 import EmployeesPage from "../pages/employees-page";
 import ProductsPage from "../pages/products";
