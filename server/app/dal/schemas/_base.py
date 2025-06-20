@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 from typing import Annotated, Any, Self
 
 from pydantic import (
@@ -73,12 +74,7 @@ class _UnsetPydanticAnnotation:
             return PydanticOmit
         return nxt(value)
 
-    @classmethod
-    def __get_pydantic_json_schema__(
-        cls, _core_schema: core_schema.CoreSchema, handler: GetJsonSchemaHandler
-    ) -> JsonSchemaValue:
-        # For JSON schema, we want to indicate this field is optional and can be omitted
-        return {"type": "null", "description": "Unset sentinel value - omit this field"}
+    # * __get_pydantic_json_schema__ is intentionally omitted, as it adds `undefined` to the JSON schema
 
 
 UnsetAnnotated = Annotated[Unset, _UnsetPydanticAnnotation]
