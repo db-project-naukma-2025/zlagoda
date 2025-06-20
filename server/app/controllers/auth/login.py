@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from ...dal.repositories.auth import UserRepository
-from ...dal.schemas.auth import User
+from ...dal.schemas.auth import User, UserUpdate
 from .exceptions import InvalidCredentialsError, UserNotFoundError
 from .hasher import IHasher
 from .token_generator import ITokenGenerator
@@ -27,9 +27,11 @@ class LoginController:
         self.token_generator = token_generator
 
     def login(self, username: str, password: str) -> LoginResponse:
-        user = self.user_repo.get_by_username(username)
-        if user is None:
+        users = self.user_repo.search(UserUpdate(username=username))
+        if not users:
             raise UserNotFoundError("User not found")
+
+        user = users[0]
 
         if not self.password_hasher.verify(password, user.password):
             raise InvalidCredentialsError("Invalid password")
@@ -42,7 +44,10 @@ class LoginController:
 
     def get_user(self, access_token: str) -> User:
         username = self.token_generator.retrieve_username(access_token)
-        user = self.user_repo.get_by_username(username)
-        if user is None:
+        users = self.user_repo.search(UserUpdate(username=username))
+        if not users:
             raise UserNotFoundError("User not found")
+
+        user = users[0]
+
         return user

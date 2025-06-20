@@ -3,11 +3,20 @@ from pydantic import BaseModel, ConfigDict, Field, SecretStr
 from ._base import UNSET, UnsetAnnotated
 
 
-class User(BaseModel):
-    id: int
+class UserCreate(BaseModel):
     username: str
-    password: SecretStr  # meant to be hashed
+    password: str | SecretStr  # meant to be hashed
     is_superuser: bool = False
+
+
+class User(UserCreate):
+    id: int
+
+
+class UserUpdate(BaseModel):
+    username: str | UnsetAnnotated = Field(default=UNSET)
+    password: str | SecretStr | UnsetAnnotated = Field(default=UNSET)
+    is_superuser: bool | UnsetAnnotated = Field(default=UNSET)
 
 
 class PermissionCreate(BaseModel):

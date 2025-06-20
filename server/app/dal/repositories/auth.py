@@ -1,6 +1,9 @@
+from typing import overload
+
 import structlog
 from pydantic import SecretStr
 
+from ...db.connection import DatabaseError, DataError, IntegrityError
 from ..schemas._base import UNSET
 from ..schemas.auth import (
     Group,
@@ -9,7 +12,9 @@ from ..schemas.auth import (
     PermissionCreate,
     PermissionUpdate,
     User,
+    UserCreate,
     UserGroup,
+    UserUpdate,
 )
 from ._base import PydanticDBRepository
 
@@ -19,64 +24,107 @@ logger = structlog.get_logger(__name__)
 class UserRepository(PydanticDBRepository[User]):
     table_name = "auth_user"
     model = User
+    pk_field = "id"
 
-    def create(self, username: str, password: SecretStr, is_superuser: bool) -> User:
-        rows = self._db.execute(
-            f"""
-                INSERT INTO {self.table_name} (username, password, is_superuser)
-                VALUES (%s, %s, %s)
+    class DoesNotExist(DatabaseError):
+        pass
+
+    class AlreadyExists(DatabaseError):
+        pass
+
+    @overload
+    def _preprocess_user(self, user: UserCreate) -> UserCreate: ...
+
+    @overload
+    def _preprocess_user(self, user: UserUpdate) -> UserUpdate: ...
+
+    def _preprocess_user(
+        self, user: UserCreate | UserUpdate
+    ) -> UserCreate | UserUpdate:
+        if user.password is not UNSET and isinstance(user.password, SecretStr):
+            user.password = user.password.get_secret_value()
+        return user
+
+    def create(self, user: UserCreate) -> User:
+        user = self._preprocess_user(user)
+        fields = list(self._fields)
+        fields.remove(self.pk_field)
+
+        params = []
+        for field in fields:
+            value = getattr(user, field, UNSET)
+            if value is UNSET:
+                continue
+            params.append(value)
+
+        try:
+            rows = self._db.execute(
+                f"""
+                INSERT INTO {self.table_name} ({", ".join(fields)})
+                VALUES ({", ".join(["%s" for _ in fields])})
                 RETURNING {", ".join(self._fields)}
-            """,
-            (username, password.get_secret_value(), is_superuser),
-        )
+                """,
+                tuple(params),
+            )
+        except IntegrityError as e:
+            raise self.AlreadyExists from e
+        except DataError as e:
+            raise ValueError("invalid data") from e
+        except DatabaseError as e:
+            raise ValueError("database error") from e
         return self._row_to_model(rows[0])
 
     def update(
         self,
         user_id: int,
-        username: str | None,
-        password: str | None,
-        is_superuser: bool | None,
+        user: UserUpdate,
     ) -> User:
-        if username is None and password is None and is_superuser is None:
+        user = self._preprocess_user(user)
+        clauses, params = self._construct_clauses(
+            self._fields,
+            user,
+            exclude_fields=[self.pk_field],
+        )
+
+        if not clauses:
             raise ValueError("At least one field must be provided")
-
-        set_clauses = []
-        params = []
-
-        if username is not None:
-            set_clauses.append("username = %s")
-            params.append(username)
-        if password is not None:
-            set_clauses.append("password = %s")
-            params.append(password)
-        if is_superuser is not None:
-            set_clauses.append("is_superuser = %s")
-            params.append(is_superuser)
-
-        set_clause = ", ".join(set_clauses)
 
         rows = self._db.execute(
             f"""
                 UPDATE {self.table_name}
-                SET {set_clause}
-                WHERE id = %s
+                SET {", ".join(clauses)}
+                WHERE {self.pk_field} = %s
                 RETURNING {", ".join(self._fields)}
             """,
-            (*params, user_id),
+            tuple(params) + (user_id,),
         )
         return self._row_to_model(rows[0])
 
-    def get_by_username(self, username: str) -> User | None:
+    def search(
+        self,
+        user: UserUpdate | None = None,
+        /,
+    ) -> list[User]:
+        if user is not None:
+            user = self._preprocess_user(user)
+
+        clauses, params = self._construct_clauses(
+            self._fields,
+            user,
+            exclude_fields=[self.pk_field],
+        )
+
+        where_clause = "WHERE " + " AND ".join(clauses) if clauses else ""
+
         rows = self._db.execute(
             f"""
                 SELECT {", ".join(self._fields)}
                 FROM {self.table_name}
-                WHERE username = %s
+                {where_clause}
             """,
-            (username,),
+            tuple(params),
         )
-        return self._row_to_model(rows[0]) if rows else None
+        return [self._row_to_model(row) for row in rows]
 
     def delete(self, user_id: int) -> None:
         self._db.execute(
@@ -92,6 +140,9 @@ class PermissionRepository(PydanticDBRepository[Permission]):
     table_name = "auth_permission"
     model = Permission
     pk_field = "id"
+
+    class AlreadyExists(DatabaseError):
+        pass
 
     def get_all(self) -> list[Permission]:
         rows = self._db.execute(
@@ -136,15 +187,22 @@ class PermissionRepository(PydanticDBRepository[Permission]):
                 continue
             params.append(value)
 
-        rows = self._db.execute(
-            f"""
+        try:
+            rows = self._db.execute(
+                f"""
                 INSERT INTO {self.table_name} ({", ".join(fields)})
                 VALUES ({", ".join(["%s" for _ in fields])})
                 RETURNING {", ".join(self._fields)}
             """,
-            tuple(params),
-        )
-        return self._row_to_model(rows[0])
+                tuple(params),
+            )
+            return self._row_to_model(rows[0])
+        except IntegrityError as e:
+            raise self.AlreadyExists from e
+        except DataError as e:
+            raise ValueError("invalid data") from e
+        except DatabaseError as e:
+            raise ValueError("database error") from e
 
     def delete(self, permission_id: int) -> None:
         self._db.execute(
@@ -159,6 +217,9 @@ class PermissionRepository(PydanticDBRepository[Permission]):
 class GroupRepository(PydanticDBRepository[Group]):
     table_name = "auth_group"
     model = Group
+
+    class AlreadyExists(DatabaseError):
+        pass
 
     def get_all(self) -> list[Group]:
         rows = self._db.execute(
@@ -181,15 +242,22 @@ class GroupRepository(PydanticDBRepository[Group]):
         return self._row_to_model(rows[0]) if rows else None
 
     def create(self, name: str) -> Group:
-        rows = self._db.execute(
-            f"""
+        try:
+            rows = self._db.execute(
+                f"""
                 INSERT INTO {self.table_name} (name)
                 VALUES (%s)
                 RETURNING {", ".join(self._fields)}
             """,
-            (name,),
-        )
-        return self._row_to_model(rows[0])
+                (name,),
+            )
+            return self._row_to_model(rows[0])
+        except IntegrityError as e:
+            raise self.AlreadyExists from e
+        except DataError as e:
+            raise ValueError("invalid data") from e
+        except DatabaseError as e:
+            raise ValueError("database error") from e
 
     def delete(self, group_id: int) -> None:
         self._db.execute(
@@ -205,6 +273,9 @@ class UserGroupRepository(PydanticDBRepository[UserGroup]):
     table_name = "auth_user_groups"
     model = UserGroup
 
+    class AlreadyExists(DatabaseError):
+        pass
+
     def get_all(self) -> list[UserGroup]:
         rows = self._db.execute(
             f"""
@@ -215,15 +286,22 @@ class UserGroupRepository(PydanticDBRepository[UserGroup]):
         return [self._row_to_model(row) for row in rows]
 
     def create(self, user_id: int, group_id: int) -> UserGroup:
-        rows = self._db.execute(
-            f"""
+        try:
+            rows = self._db.execute(
+                f"""
                 INSERT INTO {self.table_name} (user_id, group_id)
                 VALUES (%s, %s)
                 RETURNING {", ".join(self._fields)}
             """,
-            (user_id, group_id),
-        )
-        return self._row_to_model(rows[0])
+                (user_id, group_id),
+            )
+            return self._row_to_model(rows[0])
+        except IntegrityError as e:
+            raise self.AlreadyExists from e
+        except DataError as e:
+            raise ValueError("invalid data") from e
+        except DatabaseError as e:
+            raise ValueError("database error") from e
 
     def delete(self, user_id: int, group_id: int) -> None:
         self._db.execute(
@@ -261,6 +339,9 @@ class GroupPermissionRepository(PydanticDBRepository[GroupPermission]):
     table_name = "auth_group_permissions"
     model = GroupPermission
 
+    class AlreadyExists(DatabaseError):
+        pass
+
     def get_all(self) -> list[GroupPermission]:
         rows = self._db.execute(
             f"""
@@ -271,15 +352,22 @@ class GroupPermissionRepository(PydanticDBRepository[GroupPermission]):
         return [self._row_to_model(row) for row in rows]
 
     def create(self, group_id: int, permission_id: int) -> GroupPermission:
-        rows = self._db.execute(
-            f"""
+        try:
+            rows = self._db.execute(
+                f"""
                 INSERT INTO {self.table_name} (group_id, permission_id)
                 VALUES (%s, %s)
                 RETURNING {", ".join(self._fields)}
             """,
-            (group_id, permission_id),
-        )
-        return self._row_to_model(rows[0])
+                (group_id, permission_id),
+            )
+            return self._row_to_model(rows[0])
+        except IntegrityError as e:
+            raise self.AlreadyExists from e
+        except DataError as e:
+            raise ValueError("invalid data") from e
+        except DatabaseError as e:
+            raise ValueError("database error") from e
 
     def delete(self, group_id: int, permission_id: int) -> None:
         self._db.execute(

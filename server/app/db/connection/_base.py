@@ -27,12 +27,6 @@ class IDatabase(IQueryExecutable, Protocol):
         self.disconnect()
 
 
-class DatabaseError(Exception):
-    """Base class for database-related errors."""
-
-    pass
-
-
 @contextmanager
 def transaction(database: IDatabase):
     database.start_transaction()

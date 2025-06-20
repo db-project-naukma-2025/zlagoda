@@ -4,7 +4,8 @@ import psycopg2
 import structlog
 
 from ...decorators import implements
-from . import DatabaseError, IDatabase
+from . import IDatabase
+from .exceptions import DatabaseError, DataError, IntegrityError
 
 logger = structlog.getLogger(__name__)
 
@@ -59,9 +60,13 @@ class PostgresDatabase(IDatabase):
                 else:
                     logger.debug("execute_query.success", rows=0)
                     return []
+        except psycopg2.IntegrityError as e:
+            raise IntegrityError(e.pgerror) from e
+        except psycopg2.DataError as e:
+            raise DataError(e.pgerror) from e
         except psycopg2.Error as e:
             logger.error("execute_query.failed", error=e)
-            raise DatabaseError("Failed to execute query") from e
+            raise DatabaseError(f"Failed to execute query: {e}") from e
 
     @implements
     def disconnect(self):

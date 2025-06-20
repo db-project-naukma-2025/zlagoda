@@ -27,11 +27,7 @@ from .dal.repositories.customer_card import CustomerCardRepository
 from .dal.repositories.employee import EmployeeRepository
 from .dal.repositories.product import ProductRepository
 from .dal.repositories.store_product import StoreProductRepository
-from .dal.schemas.category import Category
-from .dal.schemas.customer_card import CustomerCard
-from .dal.schemas.employee import Employee
-from .dal.schemas.product import Product
-from .dal.schemas.store_product import StoreProduct
+from .dal.schemas import Category, CustomerCard, Employee, Product, StoreProduct
 from .db.connection._base import IDatabase
 from .db.migrations import DatabaseMigrationService
 
