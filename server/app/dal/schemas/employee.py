@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Literal, Optional
+from typing import Literal, Optional, Self
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -18,7 +18,7 @@ class BaseEmployee(BaseModel):
     zip_code: str = Field(min_length=5, max_length=9, examples=["123456789"])
 
     @model_validator(mode="after")
-    def validate_age_at_start(self) -> "BaseEmployee":
+    def validate_age_at_start(self) -> Self:
         min_birth_date = self.date_of_start.replace(year=self.date_of_start.year - 18)
         if self.date_of_birth > min_birth_date:
             raise ValueError(
