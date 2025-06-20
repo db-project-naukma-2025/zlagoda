@@ -78,14 +78,14 @@ const CustomerCardCreate = z
   .passthrough();
 const CustomerCardUpdate = z
   .object({
-    cust_surname: z.union([z.string(), z.null()]),
-    cust_name: z.union([z.string(), z.null()]),
-    cust_patronymic: z.union([z.union([z.string(), z.null()]), z.null()]),
-    phone_number: z.union([z.string(), z.null()]),
-    city: z.union([z.union([z.string(), z.null()]), z.null()]),
-    street: z.union([z.union([z.string(), z.null()]), z.null()]),
-    zip_code: z.union([z.union([z.string(), z.null()]), z.null()]),
-    percent: z.union([z.number(), z.null()]),
+    cust_surname: z.string().min(1).max(50),
+    cust_name: z.string().min(1).max(50),
+    cust_patronymic: z.union([z.string(), z.null()]),
+    phone_number: z.string().min(1).max(13),
+    city: z.union([z.string(), z.null()]),
+    street: z.union([z.string(), z.null()]),
+    zip_code: z.union([z.string(), z.null()]),
+    percent: z.number().int(),
   })
   .partial()
   .passthrough();

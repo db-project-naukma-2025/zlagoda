@@ -48,12 +48,12 @@ export const useUpdateCustomerCard = () => {
 
   return useMutation({
     mutationFn: ({
-      number,
+      id,
       data,
     }: {
-      number: CustomerCardNumber;
+      id: CustomerCardNumber;
       data: UpdateCustomerCardFormData;
-    }) => customerCardsApi.updateCustomerCard(number, data),
+    }) => customerCardsApi.updateCustomerCard(id, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: customerCardQueryKeys.all(),
