@@ -15,7 +15,7 @@ import CategoriesPage from "../pages/categories";
 import ChecksSalesPage from "../pages/checks-sales-page";
 import CustomersPage from "../pages/customers";
 import DashboardPage from "../pages/dashboard-page";
-import EmployeesPage from "../pages/employees-page";
+import EmployeesPage from "../pages/employees";
 import ProductsPage from "../pages/products";
 import ReportsPage from "../pages/reports-page";
 import StoreProductsPage from "../pages/store-products";

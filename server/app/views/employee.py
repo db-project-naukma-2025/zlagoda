@@ -39,7 +39,14 @@ class EmployeeViewSet:
         limit: int = Query(10, ge=1, le=1000),
         search: Optional[str] = Query(None, description="Search by surname"),
         role_filter: Optional[str] = Query(None, description="Filter by role"),
-        sort_by: Literal["empl_surname", "empl_role"] = Query("empl_surname"),
+        sort_by: Literal[
+            "empl_surname",
+            "empl_role",
+            "id_employee",
+            "salary",
+            "date_of_birth",
+            "date_of_start",
+        ] = Query("empl_surname"),
         sort_order: Literal["asc", "desc"] = Query("asc"),
     ):
         employees = self.repo.get_all(

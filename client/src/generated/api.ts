@@ -181,7 +181,7 @@ const Employee = z
   .object({
     empl_surname: z.string().max(50),
     empl_name: z.string().max(50),
-    empl_patronymic: z.union([z.string(), z.null()]).optional(),
+    empl_patronymic: z.union([z.string(), z.null()]),
     empl_role: z.enum(["cashier", "manager"]),
     salary: z.number().gte(0),
     date_of_birth: z.string(),
@@ -206,7 +206,7 @@ const CreateEmployee = z
   .object({
     empl_surname: z.string().max(50),
     empl_name: z.string().max(50),
-    empl_patronymic: z.union([z.string(), z.null()]).optional(),
+    empl_patronymic: z.union([z.string(), z.null()]),
     empl_role: z.enum(["cashier", "manager"]),
     salary: z.number().gte(0),
     date_of_birth: z.string(),
@@ -222,7 +222,7 @@ const UpdateEmployee = z
   .object({
     empl_surname: z.string().max(50),
     empl_name: z.string().max(50),
-    empl_patronymic: z.union([z.string(), z.null()]).optional(),
+    empl_patronymic: z.union([z.string(), z.null()]),
     empl_role: z.enum(["cashier", "manager"]),
     salary: z.number().gte(0),
     date_of_birth: z.string(),
@@ -644,7 +644,18 @@ const endpoints = makeApi([
         name: "sort_by",
         type: "Query",
         schema: z
-          .enum(["empl_surname", "empl_role"])
+          .enum([
+            "empl_surname",
+            "empl_role",
+            "id_employee",
+            "salary",
+            "phone_number",
+            "city",
+            "street",
+            "zip_code",
+            "date_of_birth",
+            "date_of_start",
+          ])
           .optional()
           .default("empl_surname"),
       },

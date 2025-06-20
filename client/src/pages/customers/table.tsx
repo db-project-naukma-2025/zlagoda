@@ -12,8 +12,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 import { type CustomerCard } from "@/lib/api/customer-cards/types";
+
 import { DeleteCustomerDialog, EditCustomerDialog } from "./dialogs";
 
 export const customerCardColumns: ColumnDef<CustomerCard>[] = [

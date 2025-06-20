@@ -18,7 +18,14 @@ class EmployeeRepository(PydanticDBRepository[Employee]):
         limit: int = 10,
         search: Optional[str] = None,
         role_filter: Optional[str] = None,
-        sort_by: Literal["empl_surname", "empl_role"] = "empl_surname",
+        sort_by: Literal[
+            "empl_surname",
+            "empl_role",
+            "id_employee",
+            "salary",
+            "date_of_birth",
+            "date_of_start",
+        ] = "empl_surname",
         sort_order: Literal["asc", "desc"] = "asc",
     ) -> list[Employee]:
         where_clauses = []

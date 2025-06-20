@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 class BaseEmployee(BaseModel):
     empl_surname: str = Field(max_length=50)
     empl_name: str = Field(max_length=50)
-    empl_patronymic: Optional[str] = Field(None, max_length=50)
+    empl_patronymic: Optional[str] = Field(max_length=50)
     empl_role: Literal["cashier", "manager"] = Field(max_length=10)
     salary: float = Field(ge=0)
     date_of_birth: date = Field(examples=["2005-05-15"])
