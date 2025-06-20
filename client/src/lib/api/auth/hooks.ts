@@ -40,10 +40,14 @@ export const useGetMe = () => {
 
 export const useLogin = () => {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: LoginFormData) => authApi.login(data),
     onSuccess: async (response) => {
+      // Clear all existing queries to prevent stale data
+      queryClient.clear();
+
       // Store the token - this will trigger the token listener
       tokenStorage.set(response.access_token);
 
