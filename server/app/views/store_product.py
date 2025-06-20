@@ -13,8 +13,13 @@ from ..dal.schemas.store_product import (
 )
 from ..db.connection import transaction
 from ..ioc_container import store_product_repository
+from .auth import require_user
 
-router = APIRouter(prefix="/store-products", tags=["store-products"])
+router = APIRouter(
+    prefix="/store-products",
+    tags=["store-products"],
+    dependencies=[Depends(require_user)],
+)
 
 
 class PaginatedStoreProducts(BaseModel):

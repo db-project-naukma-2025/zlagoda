@@ -7,8 +7,13 @@ from pydantic import BaseModel
 from ..dal.repositories.employee import EmployeeRepository
 from ..dal.schemas.employee import CreateEmployee, Employee, UpdateEmployee
 from ..ioc_container import employee_repository
+from .auth import require_user
 
-router = APIRouter(prefix="/employees", tags=["employees"])
+router = APIRouter(
+    prefix="/employees",
+    tags=["employees"],
+    dependencies=[Depends(require_user)],
+)
 
 
 class PaginatedEmployees(BaseModel):
@@ -17,6 +22,7 @@ class PaginatedEmployees(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
 
 class BulkDeleteRequest(BaseModel):
     employee_ids: list[str]
