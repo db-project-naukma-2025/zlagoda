@@ -44,7 +44,6 @@ class PermissionUpdate(BaseModel):
 class Group(BaseModel):
     id: int
     name: str
-    permissions: list[Permission]
 
 
 class UserGroup(BaseModel):

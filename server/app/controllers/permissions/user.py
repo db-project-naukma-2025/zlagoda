@@ -115,3 +115,22 @@ class UserPermissionController:
             )
 
         return self.has_permission(user, perm[0])
+
+    def get_or_create_perm(
+        self, model_name: str | Type[BaseModel], name: str | BasicPermission
+    ) -> Permission:
+        if isinstance(model_name, type):
+            model_name = model_name.__name__
+
+        if isinstance(name, BasicPermission):
+            name = self._get_codename(model_name, name)
+
+        perms = self.permission_repo.search(
+            PermissionUpdate(model_name=model_name, codename=name)
+        )
+        if perms:
+            return perms[0]
+
+        return self.permission_repo.create(
+            PermissionCreate(model_name=model_name, codename=name)
+        )

@@ -15,6 +15,9 @@ from .controllers.customer_card import (
 )
 from .controllers.permissions.group import UserGroupController
 from .controllers.permissions.user import UserPermissionController
+from .controllers.roles.cashier import UserCashierPermissionController
+from .controllers.roles.employee import UserEmployeePermissionController
+from .controllers.roles.manager import UserManagerPermissionController
 from .dal.repositories.auth import (
     GroupPermissionRepository,
     GroupRepository,
@@ -169,3 +172,54 @@ def customer_card_modification_controller(
     customer_card_repo: CustomerCardRepository = Depends(customer_card_repository),
 ) -> CustomerCardModificationController:
     return CustomerCardModificationController(customer_card_repo)
+
+
+def user_cashier_permission_controller(
+    user_perm_controller: UserPermissionController = Depends(
+        user_permission_controller
+    ),
+    user_group_controller: UserGroupController = Depends(user_group_controller),
+    group_repo: GroupRepository = Depends(group_repository),
+    user_group_repo: UserGroupRepository = Depends(user_group_repository),
+    group_perm_repo: GroupPermissionRepository = Depends(group_permission_repository),
+) -> UserCashierPermissionController:
+    return UserCashierPermissionController(
+        user_perm_controller,
+        user_group_controller,
+        group_repo,
+        user_group_repo,
+        group_perm_repo,
+    )
+
+
+def user_manager_permission_controller(
+    user_perm_controller: UserPermissionController = Depends(
+        user_permission_controller
+    ),
+    user_group_controller: UserGroupController = Depends(user_group_controller),
+    group_repo: GroupRepository = Depends(group_repository),
+    user_group_repo: UserGroupRepository = Depends(user_group_repository),
+    group_perm_repo: GroupPermissionRepository = Depends(group_permission_repository),
+) -> UserManagerPermissionController:
+    return UserManagerPermissionController(
+        user_perm_controller,
+        user_group_controller,
+        group_repo,
+        user_group_repo,
+        group_perm_repo,
+    )
+
+
+def user_employee_permission_controller(
+    cashier_controller: UserCashierPermissionController = Depends(
+        user_cashier_permission_controller
+    ),
+    manager_controller: UserManagerPermissionController = Depends(
+        user_manager_permission_controller
+    ),
+    user_repo: UserRepository = Depends(user_repository),
+    employee_repo: EmployeeRepository = Depends(employee_repository),
+) -> UserEmployeePermissionController:
+    return UserEmployeePermissionController(
+        cashier_controller, manager_controller, user_repo, employee_repo
+    )

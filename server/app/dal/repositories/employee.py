@@ -15,7 +15,7 @@ class EmployeeRepository(PydanticDBRepository[Employee]):
     def get_all(
         self,
         skip: int = 0,
-        limit: int = 10,
+        limit: Optional[int] = 10,
         search: Optional[str] = None,
         role_filter: Optional[str] = None,
         sort_by: Literal[
@@ -39,15 +39,19 @@ class EmployeeRepository(PydanticDBRepository[Employee]):
             params.append(role_filter)
 
         where_clause = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+        limit_clause = "LIMIT %s" if limit else ""
 
         query = f"""
             SELECT {", ".join(self._fields)}
             FROM {self.table_name}
             {where_clause}
             ORDER BY {sort_by} {sort_order}
-            LIMIT %s OFFSET %s
+            {limit_clause}
+            OFFSET %s
         """
-        params.extend([limit, skip])
+        params.extend([limit, skip] if limit else [skip])
+        logger.debug(f"Executing query: {query}")
+        logger.debug(f"Parameters: {params}")
         rows = self._db.execute(query, tuple(params))
         return [self._row_to_model(row) for row in rows]
 

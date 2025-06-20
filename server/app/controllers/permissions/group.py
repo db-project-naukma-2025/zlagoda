@@ -17,9 +17,6 @@ class UserGroupController:
         self.user_group_repo = user_group_repo
         self.group_permission_repo = group_permission_repo
 
-    def create_group(self, name: str) -> Group:
-        return self.group_repo.create(name)
-
     def add_user_to_group(self, user: User, group: Group) -> None:
         user_group = self.user_group_repo.get_user_groups(user.id)
         if any(ug.group_id == group.id for ug in user_group):
