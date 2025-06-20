@@ -26,6 +26,23 @@ from .views import auth, category, customer_card, employee, product, store_produ
 logger = structlog.get_logger(__name__)
 
 
+def basic_checks():
+    with create_db() as db:
+        dms = database_migration_service(db)
+        executed = dms.get_executed_migrations()
+        available = dms.get_available_migrations()
+
+    if executed != available:
+        click.echo(
+            click.style(
+                f"You have {len(available) - len(executed)} unapplied migration(s). "
+                "Your project may not work properly until you apply the migrations.\n"
+                "Run 'python manage.py migrate' to apply them.",
+                fg="red",
+            )
+        )
+
+
 @click.group()
 def cli():
     """Zlagoda CLI management commands."""
@@ -74,21 +91,7 @@ def runserver():
         click.style(f"Starting server on {settings.API_HOST}:{settings.API_PORT}...")
     )
 
-    with create_db() as db:
-        dms = database_migration_service(db)
-        executed = dms.get_executed_migrations()
-        available = dms.get_available_migrations()
-
-    if executed != available:
-        click.echo(
-            click.style(
-                f"You have {len(available) - len(executed)} unapplied migration(s). "
-                "Your project may not work properly until you apply the migrations.\n"
-                "Run 'python manage.py migrate' to apply them.",
-                fg="red",
-            )
-        )
-
+    basic_checks()
     create_permissions(to_stdout=False)
 
     uvicorn.run(
@@ -131,6 +134,44 @@ def create_permissions_cli():
     Note: only models registered in the model registry will be processed.
     """
     create_permissions(to_stdout=True)
+
+
+@cli.command()
+@click.option(
+    "-i", "--interface", type=click.Choice(["ipython", "python"]), default="ipython"
+)
+def shell(interface: str):
+    """
+    Start an interactive shell with the application context.
+    """
+    basic_checks()
+
+    if interface == "ipython":
+        try:
+            from IPython import start_ipython  # type: ignore
+            from IPython.terminal.ipapp import load_default_config  # type: ignore
+        except ImportError:
+            interface = "python"
+        else:
+            config = load_default_config()
+            start_ipython(argv=[], config=config, user_ns=globals())
+            return
+
+    if interface == "python":
+        import code
+
+        try:
+            import readline  # type: ignore
+            import rlcompleter  # type: ignore
+
+            readline.set_completer(rlcompleter.Completer(globals()).complete)
+        except ImportError:
+            pass
+
+        code.interact(local=globals())
+        return
+
+    raise ValueError(f"Invalid interface: {interface}")
 
 
 def main():
