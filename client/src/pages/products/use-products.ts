@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useSearch } from "@/hooks/use-search";
 import { useTableState } from "@/hooks/use-table-state";
-import { useTableToolbar } from "@/hooks/use-table-toolbar";
 import { useGetCategories } from "@/lib/api/categories/hooks";
 import {
   useBulkDeleteProducts,
@@ -13,7 +12,6 @@ import {
   type Product,
 } from "@/lib/api/products/types";
 
-import { CreateProductDialog } from "./dialogs";
 import { createBaseProductColumns } from "./table";
 
 export function useProducts() {
@@ -73,26 +71,11 @@ export function useProducts() {
     [categories, categoryFilter, setCategoryFilter, resetPagination],
   );
 
-  const { toolbar } = useTableToolbar({
-    searchPlaceholder: "Search products...",
-    inputValue,
-    onInputChange: handleInputChange,
-    onClearSearch: clearSearch,
-    selectedItems: selectedProducts,
-    onBulkDelete: async (items) => {
-      const productIds = items.map((item) => item.id_product);
-      await bulkDeleteMutation.mutateAsync({ product_ids: productIds });
-    },
-    onBulkDeleteSuccess: () => {
-      setSelectedProducts([]);
-    },
-    bulkDeleteItemName: "products",
-    isBulkDeletePending: bulkDeleteMutation.isPending,
-    additionalFilters: [],
-    createButton: React.createElement(CreateProductDialog, {
-      categories: categories?.data ?? [],
-    }),
-  });
+  // Bulk delete handler for DataTable
+  const handleBulkDelete = async (items: Product[]) => {
+    const productIds = items.map((item) => item.id_product);
+    await bulkDeleteMutation.mutateAsync({ product_ids: productIds });
+  };
 
   return {
     // State
@@ -111,9 +94,11 @@ export function useProducts() {
     categoryFilter,
     setCategoryFilter,
     resetPagination,
-
-    // UI
-    toolbar,
+    handleBulkDelete,
+    bulkDeleteMutation,
+    searchTerm: inputValue,
+    setSearchTerm: handleInputChange,
+    clearSearch,
     columns,
   };
 }

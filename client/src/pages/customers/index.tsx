@@ -1,5 +1,7 @@
 import { DataTable } from "@/components/data-table";
+import { TableToolbar } from "@/components/table-toolbar";
 
+import { CreateCustomerDialog } from "./dialogs";
 import { customerCardColumns } from "./table";
 import { useCustomerCards } from "./use-customer-cards";
 
@@ -11,10 +13,17 @@ export default function CustomerCardsPage() {
     isLoading,
     totalPages,
     setSelectedCustomerCards,
+    selectedCustomerCards,
     customerCards,
     handleSortingChange,
-    toolbar,
+    handleBulkDelete,
+    bulkDeleteMutation,
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
   } = useCustomerCards();
+
+  const createButton = <CreateCustomerDialog />;
 
   return (
     <div className="flex flex-col gap-4">
@@ -26,7 +35,16 @@ export default function CustomerCardsPage() {
           </p>
         </div>
       </div>
-
+      <TableToolbar
+        bulkDeleteItemName="customer cards"
+        createButton={createButton}
+        isBulkDeletePending={bulkDeleteMutation.isPending}
+        searchValue={searchTerm}
+        selectedItems={selectedCustomerCards}
+        onBulkDelete={handleBulkDelete}
+        onClearSearch={clearSearch}
+        onSearch={setSearchTerm}
+      />
       <DataTable
         columns={customerCardColumns}
         data={customerCards}
@@ -35,7 +53,6 @@ export default function CustomerCardsPage() {
         keyField="card_number"
         pagination={pagination}
         sorting={sorting}
-        toolbar={toolbar}
         totalPages={totalPages}
         onPaginationChange={setPagination}
         onSelectionChange={setSelectedCustomerCards}

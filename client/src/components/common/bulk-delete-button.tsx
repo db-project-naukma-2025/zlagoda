@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 interface BulkDeleteButtonProps<T> {
   selectedItems: T[];
   onDelete: (items: T[]) => Promise<void>;
-  onSuccess: () => void;
   isPending: boolean;
   itemName: string;
 }
@@ -15,7 +14,6 @@ interface BulkDeleteButtonProps<T> {
 export function BulkDeleteButton<T>({
   selectedItems,
   onDelete,
-  onSuccess,
   isPending,
   itemName,
 }: BulkDeleteButtonProps<T>) {
@@ -27,7 +25,6 @@ export function BulkDeleteButton<T>({
       toast.success(
         `${selectedItems.length.toString()} ${itemName} deleted successfully`,
       );
-      onSuccess();
     } catch {
       toast.error(`Failed to delete ${itemName}`);
     }

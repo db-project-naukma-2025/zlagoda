@@ -1,6 +1,8 @@
 import { DataTable } from "@/components/data-table";
 import { PageLayout } from "@/components/layout/page-layout";
+import { TableToolbar } from "@/components/table-toolbar";
 
+import { CreateCategoryDialog } from "./dialogs";
 import { categoryColumns } from "./table";
 import { useCategories } from "./use-categories";
 
@@ -12,18 +14,33 @@ export default function CategoriesPage() {
     isLoading,
     totalPages,
     setSelectedCategories,
+    selectedCategories,
     categories,
     handleSortingChange,
-    toolbar,
+    handleBulkDelete,
+    bulkDeleteMutation,
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
   } = useCategories();
+
+  const createButton = <CreateCategoryDialog />;
 
   return (
     <PageLayout
       description="Manage product categories and classifications."
-      isLoading={isLoading}
-      loadingText="Loading categories..."
       title="Categories"
     >
+      <TableToolbar
+        bulkDeleteItemName="categories"
+        createButton={createButton}
+        isBulkDeletePending={bulkDeleteMutation.isPending}
+        searchValue={searchTerm}
+        selectedItems={selectedCategories}
+        onBulkDelete={handleBulkDelete}
+        onClearSearch={clearSearch}
+        onSearch={setSearchTerm}
+      />
       <DataTable
         columns={categoryColumns}
         data={categories}
@@ -32,7 +49,6 @@ export default function CategoriesPage() {
         keyField="category_number"
         pagination={pagination}
         sorting={sorting}
-        toolbar={toolbar}
         totalPages={totalPages}
         onPaginationChange={setPagination}
         onSelectionChange={setSelectedCategories}

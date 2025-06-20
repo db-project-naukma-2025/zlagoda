@@ -1,6 +1,8 @@
 import { DataTable } from "@/components/data-table";
 import { PageLayout } from "@/components/layout/page-layout";
+import { TableToolbar } from "@/components/table-toolbar";
 
+import { CreateProductDialog } from "./dialogs";
 import { useProducts } from "./use-products";
 
 export default function ProductsPage() {
@@ -11,19 +13,37 @@ export default function ProductsPage() {
     isLoading,
     totalPages,
     setSelectedProducts,
+    selectedProducts,
     products,
     handleSortingChange,
-    toolbar,
+    handleBulkDelete,
+    bulkDeleteMutation,
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
     columns,
+    categories,
   } = useProducts();
+
+  const createButton = (
+    <CreateProductDialog categories={categories?.data ?? []} />
+  );
 
   return (
     <PageLayout
       description="Manage base product catalog and product definitions."
-      isLoading={isLoading}
-      loadingText="Loading products..."
       title="Base Products"
     >
+      <TableToolbar
+        bulkDeleteItemName="products"
+        createButton={createButton}
+        isBulkDeletePending={bulkDeleteMutation.isPending}
+        searchValue={searchTerm}
+        selectedItems={selectedProducts}
+        onBulkDelete={handleBulkDelete}
+        onClearSearch={clearSearch}
+        onSearch={setSearchTerm}
+      />
       <DataTable
         columns={columns}
         data={products}
@@ -32,7 +52,6 @@ export default function ProductsPage() {
         keyField="id_product"
         pagination={pagination}
         sorting={sorting}
-        toolbar={toolbar}
         totalPages={totalPages}
         onPaginationChange={setPagination}
         onSelectionChange={setSelectedProducts}

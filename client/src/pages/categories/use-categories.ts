@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useSearch } from "@/hooks/use-search";
 import { useTableState } from "@/hooks/use-table-state";
-import { useTableToolbar } from "@/hooks/use-table-toolbar";
 import {
   useBulkDeleteCategories,
   useGetCategories,
@@ -11,8 +10,6 @@ import {
   type Category,
   type GetCategoriesOptions,
 } from "@/lib/api/categories/types";
-
-import { CreateCategoryDialog } from "./dialogs";
 
 export function useCategories() {
   const {
@@ -54,25 +51,11 @@ export function useCategories() {
 
   const categories: Category[] = paginatedResponse?.data ?? [];
 
-  const { toolbar } = useTableToolbar({
-    searchPlaceholder: "Search categories...",
-    inputValue,
-    onInputChange: handleInputChange,
-    onClearSearch: clearSearch,
-    selectedItems: selectedCategories,
-    onBulkDelete: async (items) => {
-      const categoryIds = items.map((item) => item.category_number);
-      await bulkDeleteMutation.mutateAsync({
-        category_numbers: categoryIds,
-      });
-    },
-    onBulkDeleteSuccess: () => {
-      setSelectedCategories([]);
-    },
-    bulkDeleteItemName: "categories",
-    isBulkDeletePending: bulkDeleteMutation.isPending,
-    createButton: React.createElement(CreateCategoryDialog),
-  });
+  // Bulk delete handler for DataTable
+  const handleBulkDelete = async (items: Category[]) => {
+    const categoryIds = items.map((item) => item.category_number);
+    await bulkDeleteMutation.mutateAsync({ category_numbers: categoryIds });
+  };
 
   return {
     // State
@@ -87,8 +70,10 @@ export function useCategories() {
 
     // Handlers
     handleSortingChange,
-
-    // UI
-    toolbar,
+    handleBulkDelete,
+    bulkDeleteMutation,
+    searchTerm: inputValue,
+    setSearchTerm: handleInputChange,
+    clearSearch,
   };
 }

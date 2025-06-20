@@ -8,7 +8,6 @@ import {
   type Column,
   type ColumnDef,
   type ColumnFiltersState,
-  flexRender,
   getCoreRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
@@ -29,18 +28,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
+import { DataTableCore } from "./data-table-core";
 import { DataTablePagination } from "./data-table-pagination";
-import { DataTableToolbar } from "./data-table-toolbar";
 
 export interface FilterConfig {
   options: ComboboxOption[];
@@ -138,7 +129,6 @@ export interface DataTableProps<T, K extends keyof T> {
   columns: ColumnDef<T>[];
   keyField: K;
   enableRowSelection?: boolean;
-  toolbar?: React.ReactNode;
   onSelectionChange?: (selectedRows: T[]) => void;
   pagination: {
     pageIndex: number;
@@ -161,11 +151,10 @@ export interface DataTableProps<T, K extends keyof T> {
 }
 
 export function DataTable<T, K extends keyof T>({
-  data: initialData,
+  data,
   columns: providedColumns,
   keyField,
   enableRowSelection = true,
-  toolbar,
   onSelectionChange,
   pagination,
   onPaginationChange,
@@ -174,14 +163,9 @@ export function DataTable<T, K extends keyof T>({
   onSortingChange,
   isLoading = false,
 }: DataTableProps<T, K>) {
-  const [data, setData] = useState(() => initialData);
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-
-  useEffect(() => {
-    setData(initialData);
-  }, [initialData]);
 
   const handlePaginationChange = useCallback(
     (updaterOrValue: Updater<PaginationState>) => {
@@ -301,69 +285,7 @@ export function DataTable<T, K extends keyof T>({
 
   return (
     <div className="flex flex-col gap-4">
-      <DataTableToolbar table={table} toolbar={toolbar} />
-
-      {/* Table */}
-      <div className="overflow-hidden rounded-lg border">
-        <Table>
-          <TableHeader className="bg-muted sticky top-0 z-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead colSpan={header.colSpan} key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell
-                  className="h-24 text-center text-muted-foreground"
-                  colSpan={columns.length}
-                >
-                  Loading...
-                </TableCell>
-              </TableRow>
-            ) : table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  data-state={row.getIsSelected() && "selected"}
-                  key={row.id}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  className="h-24 text-center"
-                  colSpan={columns.length}
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
+      <DataTableCore columns={columns} isLoading={isLoading} table={table} />
       <DataTablePagination table={table} totalPages={totalPages} />
     </div>
   );

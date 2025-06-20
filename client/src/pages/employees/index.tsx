@@ -1,7 +1,7 @@
 import { DataTable } from "@/components/data-table";
-import { PageLayout } from "@/components/layout/page-layout";
-import { Combobox } from "@/components/ui/combobox";
+import { TableToolbar } from "@/components/table-toolbar";
 
+import { CreateEmployeeDialog } from "./dialogs";
 import { useEmployees } from "./use-employees";
 
 export default function EmployeesPage() {
@@ -12,45 +12,39 @@ export default function EmployeesPage() {
     isLoading,
     totalPages,
     setSelectedEmployees,
+    selectedEmployees,
     employees,
     handleSortingChange,
-    toolbar,
+    handleBulkDelete,
+    bulkDeleteMutation,
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
     columns,
-    roleFilter,
-    setRoleFilter,
   } = useEmployees();
 
-  const roleFilterCombobox = (
-    <Combobox
-      className="w-40"
-      emptyMessage="No roles found."
-      options={[
-        { value: "all", label: "All Roles" },
-        { value: "manager", label: "Manager" },
-        { value: "cashier", label: "Cashier" },
-      ]}
-      placeholder="Filter by role"
-      searchPlaceholder="Search roles..."
-      value={roleFilter ?? "all"}
-      onValueChange={(value) => {
-        setRoleFilter(value === "all" ? undefined : value);
-        setPagination((prev) => ({ ...prev, pageIndex: 0 }));
-      }}
-    />
-  );
-
-  const toolbarWithFilters = {
-    ...toolbar,
-    additionalFilters: [roleFilterCombobox],
-  };
+  const createButton = <CreateEmployeeDialog />;
 
   return (
-    <PageLayout
-      description="Manage employee information and roles."
-      isLoading={isLoading}
-      loadingText="Loading employees..."
-      title="Employees"
-    >
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Employees</h2>
+          <p className="text-muted-foreground">
+            Manage employees and their information.
+          </p>
+        </div>
+      </div>
+      <TableToolbar
+        bulkDeleteItemName="employees"
+        createButton={createButton}
+        isBulkDeletePending={bulkDeleteMutation.isPending}
+        searchValue={searchTerm}
+        selectedItems={selectedEmployees}
+        onBulkDelete={handleBulkDelete}
+        onClearSearch={clearSearch}
+        onSearch={setSearchTerm}
+      />
       <DataTable
         columns={columns}
         data={employees}
@@ -59,12 +53,11 @@ export default function EmployeesPage() {
         keyField="id_employee"
         pagination={pagination}
         sorting={sorting}
-        toolbar={toolbarWithFilters}
         totalPages={totalPages}
         onPaginationChange={setPagination}
         onSelectionChange={setSelectedEmployees}
         onSortingChange={handleSortingChange}
       />
-    </PageLayout>
+    </div>
   );
 }

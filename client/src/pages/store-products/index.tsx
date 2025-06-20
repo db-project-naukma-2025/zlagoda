@@ -1,7 +1,9 @@
 import { DataTable } from "@/components/data-table";
 import { PageLayout } from "@/components/layout/page-layout";
+import { TableToolbar } from "@/components/table-toolbar";
 import { Combobox } from "@/components/ui/combobox";
 
+import { CreateStoreProductDialog } from "./dialogs";
 import { useStoreProducts } from "./use-store-products";
 
 export default function StoreProductsPage() {
@@ -12,6 +14,7 @@ export default function StoreProductsPage() {
     isLoading,
     totalPages,
     setSelectedStoreProducts,
+    selectedStoreProducts,
     storeProducts,
     promotionalFilter,
     setPromotionalFilter,
@@ -19,7 +22,11 @@ export default function StoreProductsPage() {
     setProductFilter,
     products,
     handleSortingChange,
-    toolbar,
+    handleBulkDelete,
+    bulkDeleteMutation,
+    searchTerm,
+    setSearchTerm,
+    clearSearch,
     columns,
   } = useStoreProducts();
 
@@ -72,10 +79,14 @@ export default function StoreProductsPage() {
     />
   );
 
-  const toolbarWithFilters = {
-    ...toolbar,
-    additionalFilters: [productFilterCombobox, promotionalFilterCombobox],
-  };
+  const additionalFilters = [productFilterCombobox, promotionalFilterCombobox];
+
+  const createButton = (
+    <CreateStoreProductDialog
+      products={products}
+      storeProducts={storeProducts}
+    />
+  );
 
   return (
     <PageLayout
@@ -84,6 +95,17 @@ export default function StoreProductsPage() {
       loadingText="Loading inventory..."
       title="Store Inventory"
     >
+      <TableToolbar
+        additionalFilters={additionalFilters}
+        bulkDeleteItemName="store products"
+        createButton={createButton}
+        isBulkDeletePending={bulkDeleteMutation.isPending}
+        searchValue={searchTerm}
+        selectedItems={selectedStoreProducts}
+        onBulkDelete={handleBulkDelete}
+        onClearSearch={clearSearch}
+        onSearch={setSearchTerm}
+      />
       <DataTable
         columns={columns}
         data={storeProducts}
@@ -92,7 +114,6 @@ export default function StoreProductsPage() {
         keyField="UPC"
         pagination={pagination}
         sorting={sorting}
-        toolbar={toolbarWithFilters}
         totalPages={totalPages}
         onPaginationChange={setPagination}
         onSelectionChange={setSelectedStoreProducts}

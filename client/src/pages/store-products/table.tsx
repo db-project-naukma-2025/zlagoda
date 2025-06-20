@@ -74,6 +74,7 @@ export function createStoreInventoryColumns({
           </div>
         );
       },
+      enableSorting: false,
     },
     {
       accessorKey: "selling_price",

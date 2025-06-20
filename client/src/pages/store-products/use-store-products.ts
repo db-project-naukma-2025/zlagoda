@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useSearch } from "@/hooks/use-search";
 import { useTableState } from "@/hooks/use-table-state";
-import { useTableToolbar } from "@/hooks/use-table-toolbar";
 import { useGetCategories } from "@/lib/api/categories/hooks";
 import { useGetProducts } from "@/lib/api/products/hooks";
 import {
@@ -14,7 +13,6 @@ import {
   type StoreProduct,
 } from "@/lib/api/store-products/types";
 
-import { CreateStoreProductDialog } from "./dialogs";
 import { createStoreInventoryColumns } from "./table";
 
 export function useStoreProducts() {
@@ -53,7 +51,7 @@ export function useStoreProducts() {
     () => categoriesResponse?.data ?? [],
     [categoriesResponse?.data],
   );
-  const products = useMemo(
+  const productList = useMemo(
     () => productsResponse?.data ?? [],
     [productsResponse?.data],
   );
@@ -85,7 +83,7 @@ export function useStoreProducts() {
     StoreProduct[]
   >([]);
 
-  const storeProducts: StoreProduct[] = paginatedResponse?.data ?? [];
+  const storeProductsData: StoreProduct[] = paginatedResponse?.data ?? [];
 
   const categoryLookup = useMemo(() => {
     return categories.reduce<Record<number, string>>((acc, category) => {
@@ -95,48 +93,32 @@ export function useStoreProducts() {
   }, [categories]);
 
   const productLookup = useMemo(() => {
-    return products.reduce<Record<number, { name: string; category: string }>>(
-      (acc, product) => {
-        acc[product.id_product] = {
-          name: product.product_name,
-          category: categoryLookup[product.category_number] ?? "Unknown",
-        };
-        return acc;
-      },
-      {},
-    );
-  }, [products, categoryLookup]);
+    return productList.reduce<
+      Record<number, { name: string; category: string }>
+    >((acc, product) => {
+      acc[product.id_product] = {
+        name: product.product_name,
+        category: categoryLookup[product.category_number] ?? "Unknown",
+      };
+      return acc;
+    }, {});
+  }, [productList, categoryLookup]);
 
   const columns = useMemo(
     () =>
       createStoreInventoryColumns({
         productLookup,
-        products,
+        products: productList,
         allStoreProducts,
       }),
-    [productLookup, products, allStoreProducts],
+    [productLookup, productList, allStoreProducts],
   );
 
-  const { toolbar } = useTableToolbar({
-    searchPlaceholder: "Search store products...",
-    inputValue,
-    onInputChange: handleInputChange,
-    onClearSearch: clearSearch,
-    selectedItems: selectedStoreProducts,
-    onBulkDelete: async (items) => {
-      const upcs = items.map((item) => item.UPC);
-      await bulkDeleteMutation.mutateAsync({ upcs });
-    },
-    onBulkDeleteSuccess: () => {
-      setSelectedStoreProducts([]);
-    },
-    bulkDeleteItemName: "store products",
-    isBulkDeletePending: bulkDeleteMutation.isPending,
-    createButton: React.createElement(CreateStoreProductDialog, {
-      products,
-      storeProducts: allStoreProducts,
-    }),
-  });
+  // Bulk delete handler for DataTable
+  const handleBulkDelete = async (items: StoreProduct[]) => {
+    const upcs = items.map((item) => item.UPC);
+    await bulkDeleteMutation.mutateAsync({ upcs });
+  };
 
   return {
     // State
@@ -147,10 +129,10 @@ export function useStoreProducts() {
     totalPages,
     selectedStoreProducts,
     setSelectedStoreProducts,
-    storeProducts,
+    storeProducts: storeProductsData,
     allStoreProducts,
     categories,
-    products,
+    products: productList,
 
     // Filters
     promotionalFilter,
@@ -161,9 +143,12 @@ export function useStoreProducts() {
     // Handlers
     handleSortingChange,
     resetPagination,
-
-    // UI
-    toolbar,
+    handleBulkDelete,
+    bulkDeleteMutation,
+    searchPlaceholder: "Search store products...",
+    searchTerm: inputValue,
+    setSearchTerm: handleInputChange,
+    clearSearch,
     columns,
   };
 }

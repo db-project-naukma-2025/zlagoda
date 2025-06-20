@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useSearch } from "@/hooks/use-search";
 import { useTableState } from "@/hooks/use-table-state";
-import { useTableToolbar } from "@/hooks/use-table-toolbar";
 import {
   useBulkDeleteCustomerCards,
   useGetCustomerCards,
@@ -11,8 +10,6 @@ import {
   type CustomerCard,
   type GetCustomerCardsOptions,
 } from "@/lib/api/customer-cards/types";
-
-import { CreateCustomerDialog } from "./dialogs";
 
 export function useCustomerCards() {
   const {
@@ -55,25 +52,13 @@ export function useCustomerCards() {
 
   const customerCards: CustomerCard[] = paginatedResponse?.data ?? [];
 
-  const { toolbar } = useTableToolbar({
-    searchPlaceholder: "Search customer cards...",
-    inputValue,
-    onInputChange: handleInputChange,
-    onClearSearch: clearSearch,
-    selectedItems: selectedCustomerCards,
-    onBulkDelete: async (items) => {
-      const customerCardNumbers = items.map((item) => item.card_number);
-      await bulkDeleteMutation.mutateAsync({
-        card_numbers: customerCardNumbers,
-      });
-    },
-    onBulkDeleteSuccess: () => {
-      setSelectedCustomerCards([]);
-    },
-    bulkDeleteItemName: "customer cards",
-    isBulkDeletePending: bulkDeleteMutation.isPending,
-    createButton: React.createElement(CreateCustomerDialog),
-  });
+  // Bulk delete handler for DataTable
+  const handleBulkDelete = async (items: CustomerCard[]) => {
+    const customerCardNumbers = items.map((item) => item.card_number);
+    await bulkDeleteMutation.mutateAsync({
+      card_numbers: customerCardNumbers,
+    });
+  };
 
   return {
     // State
@@ -88,8 +73,10 @@ export function useCustomerCards() {
 
     // Handlers
     handleSortingChange,
-
-    // UI
-    toolbar,
+    handleBulkDelete,
+    bulkDeleteMutation,
+    searchTerm: inputValue,
+    setSearchTerm: handleInputChange,
+    clearSearch,
   };
 }

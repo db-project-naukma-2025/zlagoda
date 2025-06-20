@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { useSearch } from "@/hooks/use-search";
 import { useTableState } from "@/hooks/use-table-state";
-import { useTableToolbar } from "@/hooks/use-table-toolbar";
 import {
   useBulkDeleteEmployees,
   useGetEmployees,
@@ -12,7 +11,6 @@ import {
   type GetEmployeesOptions,
 } from "@/lib/api/employees/types";
 
-import { CreateEmployeeDialog } from "./dialogs";
 import { createEmployeeColumns } from "./table";
 
 export function useEmployees() {
@@ -60,23 +58,11 @@ export function useEmployees() {
 
   const columns = useMemo(() => createEmployeeColumns(), []);
 
-  const { toolbar } = useTableToolbar({
-    searchPlaceholder: "Search employees...",
-    inputValue,
-    onInputChange: handleInputChange,
-    onClearSearch: clearSearch,
-    selectedItems: selectedEmployees,
-    onBulkDelete: async (items) => {
-      const employeeIds = items.map((item) => item.id_employee);
-      await bulkDeleteMutation.mutateAsync({ employee_ids: employeeIds });
-    },
-    onBulkDeleteSuccess: () => {
-      setSelectedEmployees([]);
-    },
-    bulkDeleteItemName: "employees",
-    isBulkDeletePending: bulkDeleteMutation.isPending,
-    createButton: React.createElement(CreateEmployeeDialog),
-  });
+  // Bulk delete handler for DataTable
+  const handleBulkDelete = async (items: Employee[]) => {
+    const employeeIds = items.map((item) => item.id_employee);
+    await bulkDeleteMutation.mutateAsync({ employee_ids: employeeIds });
+  };
 
   return {
     // State
@@ -96,9 +82,11 @@ export function useEmployees() {
     // Handlers
     handleSortingChange,
     resetPagination,
-
-    // UI
-    toolbar,
+    handleBulkDelete,
+    bulkDeleteMutation,
+    searchTerm: inputValue,
+    setSearchTerm: handleInputChange,
+    clearSearch,
     columns,
   };
 }
