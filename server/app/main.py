@@ -38,7 +38,11 @@ def migrate(number: int | None = None):
 
 @cli.command()
 def runserver():
-    """Run the application."""
+    """
+    Starts the FastAPI web server with configured middleware and API routers.
+    
+    Initializes the application, sets up session and CORS middleware, and includes routers for all API endpoints. Before starting the server, checks for unapplied database migrations and warns the user if any are found. Runs the server on the configured host and port.
+    """
     app = FastAPI(title="Zlagoda API", version="0.1.0")
 
     app.add_middleware(

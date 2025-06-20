@@ -12,6 +12,13 @@ import { type GetCustomerCardsOptions } from "@/lib/api/customer-cards/types";
 import { CreateCustomerDialog } from "./dialogs";
 import { type CustomerCardWithId } from "./types";
 
+/**
+ * Provides state and handlers for managing a paginated, searchable, and sortable list of customer cards in a table UI.
+ *
+ * Integrates data fetching, selection, bulk deletion, and a toolbar with search and create actions. Returns table state, data, and UI components for use in customer card management views.
+ *
+ * @returns An object containing pagination, sorting, loading state, total pages, selected items, customer card data with IDs, handlers for sorting and selection, and a configured toolbar UI component.
+ */
 export function useCustomerCards() {
   const {
     pagination,

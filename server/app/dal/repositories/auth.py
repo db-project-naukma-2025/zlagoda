@@ -12,6 +12,17 @@ class UserRepository(PydanticDBRepository[User]):
     model = User
 
     def create(self, username: str, password: SecretStr, is_superuser: bool) -> User:
+        """
+        Create a new user with the specified username, password, and superuser status.
+        
+        Parameters:
+        	username (str): The username for the new user.
+        	password (SecretStr): The password for the new user.
+        	is_superuser (bool): Whether the user has superuser privileges.
+        
+        Returns:
+        	User: The created user instance.
+        """
         rows = self._db.execute(
             f"""
                 INSERT INTO {self.table_name} (username, password, is_superuser)
@@ -29,6 +40,20 @@ class UserRepository(PydanticDBRepository[User]):
         password: str | None,
         is_superuser: bool | None,
     ) -> User:
+        """
+        Update one or more fields of a user identified by user ID.
+        
+        At least one of `username`, `password`, or `is_superuser` must be provided; otherwise, a `ValueError` is raised.
+        
+        Parameters:
+            user_id (int): The ID of the user to update.
+            username (str | None): The new username, or None to leave unchanged.
+            password (str | None): The new password, or None to leave unchanged.
+            is_superuser (bool | None): The new superuser status, or None to leave unchanged.
+        
+        Returns:
+            User: The updated user instance.
+        """
         if username is None and password is None and is_superuser is None:
             raise ValueError("At least one field must be provided")
 
@@ -59,6 +84,12 @@ class UserRepository(PydanticDBRepository[User]):
         return self._row_to_model(rows[0])
 
     def get_by_username(self, username: str) -> User | None:
+        """
+        Retrieve a user by their username.
+        
+        Returns:
+            User instance if a user with the specified username exists, otherwise None.
+        """
         rows = self._db.execute(
             f"""
                 SELECT {", ".join(self._fields)}

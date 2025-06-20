@@ -17,6 +17,11 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
         self,
         customer_card: CustomerCardCreate,
     ) -> CustomerCard:
+        """
+        Create a new customer card record in the database using the provided data.
+        
+        Only fields set in the `customer_card` object are included in the insert operation. Returns the created `CustomerCard` instance.
+        """
         fields = list(self._fields)
 
         params = []
@@ -40,6 +45,12 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
         self,
         card_number: str,
     ) -> None:
+        """
+        Delete a customer card record identified by its card number.
+        
+        Parameters:
+            card_number (str): The unique card number of the customer card to delete.
+        """
         self._db.execute(
             f"""
                 DELETE FROM {self.table_name}
@@ -51,6 +62,16 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
     def _construct_clauses(
         self, fields: list[str], customer_card: CustomerCardUpdate | None = None
     ) -> tuple[list[str], list[Any]]:
+        """
+        Builds SQL clause strings and parameter values from the non-unset fields of a CustomerCardUpdate object.
+        
+        Parameters:
+            fields (list[str]): List of field names to consider for clause construction.
+            customer_card (CustomerCardUpdate | None): Update object containing potential filter or update values.
+        
+        Returns:
+            tuple[list[str], list[Any]]: A tuple containing the list of SQL clause strings and their corresponding parameter values.
+        """
         clauses, params = [], []
         if customer_card is not None:
             filter_values = {}
@@ -71,6 +92,19 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
         card_number: str,
         customer_card: CustomerCardUpdate,
     ) -> CustomerCard:
+        """
+        Update fields of a customer card identified by its card number and return the updated record.
+        
+        Parameters:
+            card_number (str): The unique card number of the customer card to update.
+            customer_card (CustomerCardUpdate): An object containing the fields to update.
+        
+        Returns:
+            CustomerCard: The updated customer card record.
+        
+        Raises:
+            ValueError: If no fields are provided to update.
+        """
         fields = list(self._fields)
 
         set_clauses, params = self._construct_clauses(fields, customer_card)
@@ -90,6 +124,15 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
         return self._row_to_model(rows[0])
 
     def get_total_count(self, customer_card: CustomerCardUpdate | None = None) -> int:
+        """
+        Return the total number of customer card records matching the specified filter criteria.
+        
+        Parameters:
+        	customer_card (CustomerCardUpdate, optional): An object specifying fields to filter the count query. Only set fields are used as filters.
+        
+        Returns:
+        	int: The count of customer card records that match the provided filters.
+        """
         fields = list(self._fields)
 
         where_clauses, params = self._construct_clauses(fields, customer_card)
@@ -113,6 +156,19 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
         limit: int | None = None,
         offset: int | None = None,
     ) -> list[CustomerCard]:
+        """
+        Retrieve a list of customer cards matching optional filter criteria, with support for sorting, pagination, and field-based ordering.
+        
+        Parameters:
+            customer_card (CustomerCardUpdate, optional): Filter criteria; only set fields are used for filtering.
+            order_by (str, optional): Field name to order results by. Must be a valid model field.
+            sort_order (Literal["asc", "desc"], optional): Sort direction for ordering. Defaults to "desc".
+            limit (int, optional): Maximum number of records to return.
+            offset (int, optional): Number of records to skip before returning results.
+        
+        Returns:
+            list[CustomerCard]: List of customer cards matching the specified criteria.
+        """
         fields = list(self._fields)
         if order_by is not None and order_by not in fields:
             raise ValueError(f"Invalid order_by: {order_by}")
@@ -145,6 +201,15 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
         self,
         card_number: str,
     ) -> CustomerCard:
+        """
+        Retrieve a customer card record by its card number.
+        
+        Parameters:
+        	card_number (str): The unique card number identifying the customer card.
+        
+        Returns:
+        	CustomerCard: The customer card record matching the provided card number.
+        """
         rows = self._db.execute(
             f"""
                 SELECT {", ".join(self._fields)}

@@ -17,6 +17,12 @@ class PostgresDatabase(IDatabase):
 
     @implements
     def connect(self):
+        """
+        Establishes a connection to the PostgreSQL database using the provided connection string.
+        
+        Raises:
+            DatabaseError: If the connection attempt fails.
+        """
         logger.debug("connecting")
         try:
             self._conn = psycopg2.connect(self.connection_string)
@@ -27,6 +33,12 @@ class PostgresDatabase(IDatabase):
 
     @implements
     def is_connected(self) -> bool:
+        """
+        Check if the database connection is currently established and open.
+        
+        Returns:
+            bool: True if a connection exists and is open; otherwise, False.
+        """
         return self._conn is not None and not self._conn.closed
 
     @property
@@ -65,6 +77,11 @@ class PostgresDatabase(IDatabase):
 
     @implements
     def disconnect(self):
+        """
+        Closes the connection to the PostgreSQL database if it exists.
+        
+        If no connection is active, the method returns immediately. On failure to close the connection, raises a DatabaseError.
+        """
         logger.debug("disconnect.start")
 
         if self._conn is None:
@@ -82,6 +99,9 @@ class PostgresDatabase(IDatabase):
 
     @implements
     def start_transaction(self):
+        """
+        Begin a database transaction by disabling auto-commit mode.
+        """
         self.__commit_mode = False
 
     @implements

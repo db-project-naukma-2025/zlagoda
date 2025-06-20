@@ -20,6 +20,14 @@ import {
 import { CustomerCardForm } from "./form";
 import { type CustomerCardWithId } from "./types";
 
+/**
+ * Converts empty string fields in customer card form data to `null` for nullable fields.
+ *
+ * Fields affected are `cust_patronymic`, `city`, `street`, and `zip_code`. Trims whitespace before checking for emptiness.
+ *
+ * @param value - The customer card form data to transform
+ * @returns The transformed form data with empty strings replaced by `null` in nullable fields
+ */
 function transformValue<T extends UpdateCustomerCardFormData>(value: T): T {
   return {
     ...value,
@@ -31,6 +39,11 @@ function transformValue<T extends UpdateCustomerCardFormData>(value: T): T {
   };
 }
 
+/**
+ * Displays a dialog for creating a new customer card with form validation and submission.
+ *
+ * Opens a modal form for entering customer details, validates input, transforms empty string fields to null where appropriate, and submits the data to create a new customer card. Shows success or error notifications and resets the form on successful creation.
+ */
 export function CreateCustomerDialog() {
   const [open, setOpen] = useState(false);
   const createMutation = useCreateCustomerCard();
@@ -91,6 +104,15 @@ export function CreateCustomerDialog() {
   );
 }
 
+/**
+ * Displays a dialog for editing an existing customer card.
+ *
+ * Opens a form pre-filled with the provided customer card's data, validates input, and submits updates via an API mutation. Shows success or error notifications and closes the dialog on successful update.
+ *
+ * @param customerCard - The customer card data to edit
+ * @param open - Whether the dialog is open
+ * @param onOpenChange - Callback to control the dialog's open state
+ */
 export function EditCustomerDialog({
   customerCard,
   open,
@@ -151,6 +173,15 @@ export function EditCustomerDialog({
   );
 }
 
+/**
+ * Displays a confirmation dialog for deleting a customer card.
+ *
+ * Prompts the user to confirm deletion of the specified customer card and performs the deletion upon confirmation. Shows success or error notifications based on the outcome.
+ *
+ * @param customerCardNumber - The unique identifier of the customer card to delete.
+ * @param open - Whether the dialog is currently open.
+ * @param onOpenChange - Callback to control the open state of the dialog.
+ */
 export function DeleteCustomerDialog({
   customerCardNumber,
   open,

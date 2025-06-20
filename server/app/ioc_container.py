@@ -98,10 +98,16 @@ def group_permission_repository(
 
 
 def group_repository(db: IDatabase = Depends(get_db)) -> GroupRepository:
+    """
+    Provides a GroupRepository instance initialized with the given database dependency.
+    """
     return GroupRepository(db)
 
 
 def customer_card_repository(db: IDatabase = Depends(get_db)) -> CustomerCardRepository:
+    """
+    Provides a CustomerCardRepository instance initialized with the given database dependency.
+    """
     return CustomerCardRepository(db)
 
 
@@ -150,16 +156,25 @@ def user_group_controller(
         group_permission_repository
     ),
 ) -> UserGroupController:
+    """
+    Provides a UserGroupController instance with injected group, user group, and group permission repositories.
+    """
     return UserGroupController(group_repo, user_group_repo, group_permission_repo)
 
 
 def customer_card_query_controller(
     customer_card_repo: CustomerCardRepository = Depends(customer_card_repository),
 ) -> CustomerCardQueryController:
+    """
+    Provides a CustomerCardQueryController instance with the required customer card repository dependency.
+    """
     return CustomerCardQueryController(customer_card_repo)
 
 
 def customer_card_modification_controller(
     customer_card_repo: CustomerCardRepository = Depends(customer_card_repository),
 ) -> CustomerCardModificationController:
+    """
+    Provides a CustomerCardModificationController instance with injected customer card repository dependency.
+    """
     return CustomerCardModificationController(customer_card_repo)

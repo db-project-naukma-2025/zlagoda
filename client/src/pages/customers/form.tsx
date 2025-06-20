@@ -16,6 +16,13 @@ interface CustomerCardFormProps {
   isCreate?: boolean;
 }
 
+/**
+ * Renders a scrollable form for entering or editing customer card details.
+ *
+ * Displays input fields for card number (conditionally), customer surname, name, patronymic, phone number, city, street, zip code, and discount percent. Each field is connected to form state and displays validation errors as needed. The discount percent input sanitizes user input to ensure only numeric values are stored.
+ *
+ * @param isCreate - If true, includes the card number field for creating a new customer card.
+ */
 export function CustomerCardForm({
   form,
   isCreate = false,

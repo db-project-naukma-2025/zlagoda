@@ -14,8 +14,16 @@ from typing_extensions import final
 class Unset:
     """A type used as a sentinel for undefined values."""
 
-    def __copy__(self) -> Self: ...
-    def __deepcopy__(self, memo: Any) -> Self: ...
+    def __copy__(self) -> Self: """
+Return self when a shallow copy of the Unset instance is requested.
+"""
+...
+    def __deepcopy__(self, memo: Any) -> Self: """
+Return self when a deep copy of the Unset sentinel is requested.
+
+This ensures that the Unset sentinel remains a singleton even when deep-copied.
+"""
+...
 
 
 UNSET = Unset()
@@ -29,16 +37,21 @@ class _UnsetPydanticAnnotation:
         _handler: GetCoreSchemaHandler,
     ) -> core_schema.CoreSchema:
         """
-        We return a pydantic_core.CoreSchema that behaves in the following ways:
-
-        * If field is not provided in JSON/dict → set to UNSET
-        * If field is explicitly set to UNSET → keep as UNSET
-        * Any other value → validation fails
-        * Serialization: UNSET values are skipped (not serialized)
+        Constructs a Pydantic core schema for fields of type `Unset`, enforcing that only omitted fields or those explicitly set to `UNSET` are valid, and ensuring such fields are omitted from JSON serialization.
+        
+        Returns:
+            core_schema.CoreSchema: A schema that defaults missing fields to `UNSET`, validates only `Unset` instances, and skips serialization of `UNSET` values in JSON output.
         """
 
         def validate_unset(value: Any) -> Unset:
-            """Validate that the value is an Unset instance, otherwise fail."""
+            """
+            Validates that the input value is an instance of Unset.
+            
+            Raises:
+                ValueError: If the value is not an instance of Unset.
+            Returns:
+                Unset: The validated Unset instance.
+            """
             if isinstance(value, Unset):
                 return value
             # For any non-Unset value, we want validation to fail
@@ -65,7 +78,11 @@ class _UnsetPydanticAnnotation:
 
     @staticmethod
     def _serialize_unset(value: Any, _info, nxt) -> Any:
-        """Custom serializer that skips UNSET values."""
+        """
+        Serialize values for Pydantic, omitting fields set to UNSET.
+        
+        If the value is an instance of Unset, returns a marker to instruct Pydantic to skip serializing this field; otherwise, delegates serialization to the next serializer.
+        """
         if isinstance(value, Unset):
             # Return a special marker that Pydantic will recognize to skip this field
             # We can use core_schema.PydanticOmit for this purpose

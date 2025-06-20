@@ -89,8 +89,26 @@ class CategoryViewSet:
 
     @router.delete("/{category_number}", operation_id="deleteCategory")
     async def delete_category(self, category_number: int):
+        """
+        Delete a category identified by its category number.
+        
+        Parameters:
+            category_number (int): The unique identifier of the category to delete.
+        
+        Returns:
+            bool: True if the category was deleted successfully, False otherwise.
+        """
         return self.repo.delete(category_number)
 
     @router.post("/bulk-delete", operation_id="bulkDeleteCategories")
     async def bulk_delete_categories(self, request: BulkDeleteCategoryRequest):
+        """
+        Delete multiple categories specified by their category numbers.
+        
+        Parameters:
+            request (BulkDeleteCategoryRequest): Contains a list of category numbers to delete.
+        
+        Returns:
+            int: The number of categories successfully deleted.
+        """
         return self.repo.delete_multiple(request.category_numbers)
