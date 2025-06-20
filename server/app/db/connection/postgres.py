@@ -46,6 +46,8 @@ class PostgresDatabase(IDatabase):
         )
         logger.debug("execute_query.start", query=formatted_query)
         conn = self._must_conn
+        original_error = None
+        new_error = None
         try:
             with conn.cursor() as cursor:
                 cursor.execute(query, params)
@@ -61,12 +63,23 @@ class PostgresDatabase(IDatabase):
                     logger.debug("execute_query.success", rows=0)
                     return []
         except psycopg2.IntegrityError as e:
-            raise IntegrityError(e.pgerror) from e
+            original_error = e
+            new_error = IntegrityError(e.pgerror)
         except psycopg2.DataError as e:
-            raise DataError(e.pgerror) from e
+            original_error = e
+            new_error = DataError(e.pgerror)
         except psycopg2.Error as e:
-            logger.error("execute_query.failed", error=e)
-            raise DatabaseError(f"Failed to execute query: {e}") from e
+            original_error = e
+            new_error = DatabaseError(f"Failed to execute query: {e}")
+        except Exception as e:
+            original_error = e
+            new_error = DatabaseError(f"General error: {e}")
+
+        # * When executing queries, and it fails, connection comes to a faulty state,
+        # * So we need to rollback to previous stable state.
+        conn.rollback()
+        assert original_error is not None and new_error is not None
+        raise new_error from original_error
 
     @implements
     def disconnect(self):
