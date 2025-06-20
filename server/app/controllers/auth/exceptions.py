@@ -12,3 +12,7 @@ class UserNotFoundError(AuthenticationError):
 
 class UserAlreadyExistsError(AuthenticationError):
     pass
+
+
+class InvalidTokenError(AuthenticationError):
+    pass

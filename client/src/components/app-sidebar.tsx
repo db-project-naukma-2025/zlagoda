@@ -13,15 +13,21 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { navigationConfig } from "@/config/navigation";
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-  },
-};
+import { useAuth, useLogout } from "@/lib/api/auth";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth();
+  const logoutMutation = useLogout();
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+
+  // If no user is authenticated, don't render the sidebar
+  if (!user) {
+    return null;
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -43,7 +49,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navigationConfig} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser
+          user={{
+            name: user.username,
+            email: user.username, // Using username as email fallback
+          }}
+          onLogout={handleLogout}
+        />
       </SidebarFooter>
     </Sidebar>
   );

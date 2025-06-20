@@ -9,6 +9,24 @@ import {
 
 import { Layout } from "./components/layout";
 import { navigationConfig, type NavigationItem } from "./config/navigation";
+import { tokenStorage } from "./lib/api/auth";
+import LoginPage from "./pages/login-page";
+
+// Auth protection function
+const requireAuth = () => {
+  const token = tokenStorage.get();
+  if (!token) {
+    return redirect({ to: "/login" });
+  }
+};
+
+// Redirect authenticated users away from login
+const redirectIfAuthenticated = () => {
+  const token = tokenStorage.get();
+  if (token) {
+    return redirect({ to: "/dashboard" });
+  }
+};
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -16,6 +34,13 @@ const rootRoute = createRootRoute({
       <Outlet />
     </Layout>
   ),
+});
+
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/login",
+  component: LoginPage,
+  beforeLoad: redirectIfAuthenticated,
 });
 
 const indexRoute = createRoute({
@@ -36,6 +61,7 @@ function createRoutesFromConfig(items: NavigationItem[]): AnyRoute[] {
           getParentRoute: () => rootRoute,
           path: item.path,
           component: item.component,
+          beforeLoad: requireAuth, // Protect all main routes
         }),
       );
     }
@@ -50,6 +76,10 @@ function createRoutesFromConfig(items: NavigationItem[]): AnyRoute[] {
 
 const generatedRoutes = createRoutesFromConfig(navigationConfig);
 
-const routeTree = rootRoute.addChildren([indexRoute, ...generatedRoutes]);
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  loginRoute,
+  ...generatedRoutes,
+]);
 
 export const router = createRouter({ routeTree });

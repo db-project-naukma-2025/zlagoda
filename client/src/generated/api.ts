@@ -33,90 +33,6 @@ const UpdateCategoryRequest = z
 const app__views__category__BulkDeleteRequest = z
   .object({ category_numbers: z.array(z.number().int()) })
   .passthrough();
-const category_number = z.union([z.number(), z.null()]).optional();
-const Product = z
-  .object({
-    category_number: z.number().int(),
-    product_name: z.string(),
-    characteristics: z.string(),
-    id_product: z.number().int(),
-  })
-  .passthrough();
-const PaginatedProducts = z
-  .object({
-    data: z.array(Product),
-    total: z.number().int(),
-    page: z.number().int(),
-    page_size: z.number().int(),
-    total_pages: z.number().int(),
-  })
-  .passthrough();
-const CreateProduct = z
-  .object({
-    category_number: z.number().int(),
-    product_name: z.string(),
-    characteristics: z.string(),
-  })
-  .passthrough();
-const UpdateProduct = z
-  .object({
-    category_number: z.number().int(),
-    product_name: z.string(),
-    characteristics: z.string(),
-    id_product: z.number().int(),
-  })
-  .passthrough();
-const app__views__product__BulkDeleteRequest = z
-  .object({ product_ids: z.array(z.number().int()) })
-  .passthrough();
-const promotional_only = z.union([z.boolean(), z.null()]).optional();
-const StoreProduct = z
-  .object({
-    UPC_prom: z.union([z.string(), z.null()]),
-    id_product: z.number().int(),
-    selling_price: z.number().gte(0),
-    products_number: z.number().int().gte(0),
-    promotional_product: z.boolean(),
-    UPC: z.string().min(12).max(12),
-  })
-  .passthrough();
-const PaginatedStoreProducts = z
-  .object({
-    data: z.array(StoreProduct),
-    total: z.number().int(),
-    page: z.number().int(),
-    page_size: z.number().int(),
-    total_pages: z.number().int(),
-  })
-  .passthrough();
-const CreateStoreProduct = z
-  .object({
-    UPC_prom: z.union([z.string(), z.null()]),
-    id_product: z.number().int(),
-    selling_price: z.number().gte(0),
-    products_number: z.number().int().gte(0),
-    promotional_product: z.boolean(),
-    UPC: z.string().min(12).max(12),
-  })
-  .passthrough();
-const UpdateStoreProduct = z
-  .object({
-    UPC_prom: z.union([z.string(), z.null()]),
-    id_product: z.number().int(),
-    selling_price: z.number().gte(0),
-    products_number: z.number().int().gte(0),
-    promotional_product: z.boolean(),
-  })
-  .passthrough();
-const CreatePromotionalProduct = z
-  .object({
-    promotional_UPC: z.string().min(12).max(12),
-    units_to_convert: z.number().int().gte(1),
-  })
-  .passthrough();
-const app__views__store_product__BulkDeleteRequest = z
-  .object({ upcs: z.array(z.string()) })
-  .passthrough();
 
 export const schemas = {
   Category,
@@ -125,23 +41,38 @@ export const schemas = {
   HTTPValidationError,
   CreateCategoryRequest,
   UpdateCategoryRequest,
-  app__views__category__BulkDeleteRequest,
-  category_number,
-  Product,
-  PaginatedProducts,
-  CreateProduct,
-  UpdateProduct,
-  app__views__product__BulkDeleteRequest,
-  promotional_only,
-  StoreProduct,
-  PaginatedStoreProducts,
-  CreateStoreProduct,
-  UpdateStoreProduct,
-  CreatePromotionalProduct,
-  app__views__store_product__BulkDeleteRequest,
+  BulkDeleteRequest,
 };
 
 const endpoints = makeApi([
+  {
+    method: "get",
+    path: "/auth/me",
+    alias: "me",
+    requestFormat: "json",
+    response: User,
+  },
+  {
+    method: "post",
+    path: "/auth/token",
+    alias: "login",
+    requestFormat: "form-url",
+    parameters: [
+      {
+        name: "body",
+        type: "Body",
+        schema: Body_login,
+      },
+    ],
+    response: TokenResponse,
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
   {
     method: "get",
     path: "/categories/",
