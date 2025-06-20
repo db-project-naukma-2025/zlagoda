@@ -1,4 +1,4 @@
-from typing import Callable, Literal
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -36,18 +36,15 @@ async def require_user(
     return user
 
 
-PermissionCheck = Callable[[tuple[type, str] | tuple[type, BasicPermission]], User]
+def require_permission(permission: tuple[type, str] | tuple[type, BasicPermission]):
+    model, perm = permission
 
-
-async def require_permission(
-    current_user: User = Depends(require_user),
-    user_permission_controller: UserPermissionController = Depends(
-        user_permission_controller
-    ),
-) -> PermissionCheck:
-    def permission_check(permission: tuple[type, str] | tuple[type, BasicPermission]):
-        model, perm = permission
-
+    async def permission_check(
+        current_user: User = Depends(require_user),
+        user_permission_controller: UserPermissionController = Depends(
+            user_permission_controller
+        ),
+    ) -> User:
         if not (
             current_user.is_superuser
             or user_permission_controller.has_model_permission(

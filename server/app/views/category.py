@@ -1,13 +1,14 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Security
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
 from ..dal.repositories.category import CategoryRepository
+from ..dal.schemas.auth import User
 from ..dal.schemas.category import Category
 from ..ioc_container import category_repository
-from .auth import BasicPermission, PermissionCheck, require_permission, require_user
+from .auth import BasicPermission, require_permission, require_user
 
 router = APIRouter(
     prefix="/categories", tags=["categories"], dependencies=[Depends(require_user)]
@@ -50,10 +51,8 @@ class CategoryViewSet:
             "category_number", description="Field to sort by"
         ),
         sort_order: Literal["asc", "desc"] = Query("asc", description="Sort order"),
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Category, BasicPermission.VIEW))),
     ):
-        has_permission((Category, BasicPermission.VIEW))
-
         categories = self.repo.get_all(
             skip=skip,
             limit=limit,
@@ -78,20 +77,16 @@ class CategoryViewSet:
     async def get_category(
         self,
         category_number: int,
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Category, BasicPermission.VIEW))),
     ):
-        has_permission((Category, BasicPermission.VIEW))
-
         return self.repo.get_by_number(category_number)
 
     @router.post("/", response_model=Category, operation_id="createCategory")
     async def create_category(
         self,
         request: CreateCategoryRequest,
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Category, BasicPermission.CREATE))),
     ):
-        has_permission((Category, BasicPermission.CREATE))
-
         return self.repo.create(request.category_name)
 
     @router.put(
@@ -101,28 +96,22 @@ class CategoryViewSet:
         self,
         category_number: int,
         request: UpdateCategoryRequest,
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Category, BasicPermission.UPDATE))),
     ):
-        has_permission((Category, BasicPermission.UPDATE))
-
         return self.repo.update(category_number, request.category_name)
 
     @router.delete("/{category_number}", operation_id="deleteCategory")
     async def delete_category(
         self,
         category_number: int,
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Category, BasicPermission.DELETE))),
     ):
-        has_permission((Category, BasicPermission.DELETE))
-
         return self.repo.delete(category_number)
 
     @router.post("/bulk-delete", operation_id="bulkDeleteCategories")
     async def bulk_delete_categories(
         self,
         request: BulkDeleteCategoryRequest,
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Category, BasicPermission.DELETE))),
     ):
-        has_permission((Category, BasicPermission.DELETE))
-
         return self.repo.delete_multiple(request.category_numbers)

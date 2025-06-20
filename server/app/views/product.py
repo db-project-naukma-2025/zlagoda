@@ -1,13 +1,14 @@
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Security
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
 from ..dal.repositories.product import ProductRepository
+from ..dal.schemas.auth import User
 from ..dal.schemas.product import CreateProduct, Product, UpdateProduct
 from ..ioc_container import product_repository
-from .auth import BasicPermission, PermissionCheck, require_permission, require_user
+from .auth import BasicPermission, require_permission, require_user
 
 router = APIRouter(
     prefix="/products",
@@ -44,10 +45,8 @@ class ProductViewSet:
         sort_order: Literal["asc", "desc"] = Query("asc", description="Sort order"),
         category_number: Optional[int] = Query(None, description="Filter by category"),
         repo: ProductRepository = Depends(product_repository),
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Product, BasicPermission.VIEW))),
     ):
-        has_permission((Product, BasicPermission.VIEW))
-
         products = repo.get_all(
             skip=skip,
             limit=limit,
@@ -72,10 +71,8 @@ class ProductViewSet:
         self,
         id_product: int,
         repo: ProductRepository = Depends(product_repository),
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Product, BasicPermission.VIEW))),
     ):
-        has_permission((Product, BasicPermission.VIEW))
-
         return repo.get_by_id(id_product)
 
     @router.post("/", response_model=Product, operation_id="createProduct")
@@ -83,10 +80,8 @@ class ProductViewSet:
         self,
         request: CreateProduct,
         repo: ProductRepository = Depends(product_repository),
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Product, BasicPermission.CREATE))),
     ):
-        has_permission((Product, BasicPermission.CREATE))
-
         return repo.create(request)
 
     @router.put("/{id_product}", response_model=Product, operation_id="updateProduct")
@@ -95,10 +90,8 @@ class ProductViewSet:
         id_product: int,
         request: UpdateProduct,
         repo: ProductRepository = Depends(product_repository),
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Product, BasicPermission.UPDATE))),
     ):
-        has_permission((Product, BasicPermission.UPDATE))
-
         return repo.update(id_product, request)
 
     @router.delete("/{id_product}", operation_id="deleteProduct")
@@ -106,10 +99,8 @@ class ProductViewSet:
         self,
         id_product: int,
         repo: ProductRepository = Depends(product_repository),
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Product, BasicPermission.DELETE))),
     ):
-        has_permission((Product, BasicPermission.DELETE))
-
         return repo.delete(id_product)
 
     @router.post("/bulk-delete", operation_id="bulkDeleteProducts")
@@ -117,8 +108,6 @@ class ProductViewSet:
         self,
         request: BulkDeleteRequest,
         repo: ProductRepository = Depends(product_repository),
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Product, BasicPermission.DELETE))),
     ):
-        has_permission((Product, BasicPermission.DELETE))
-
         return repo.delete_multiple(request.product_ids)

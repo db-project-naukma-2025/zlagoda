@@ -1,14 +1,15 @@
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
 from ..controllers.roles.employee import UserEmployeePermissionController
 from ..dal.repositories.employee import EmployeeRepository
+from ..dal.schemas.auth import User
 from ..dal.schemas.employee import CreateEmployee, Employee, UpdateEmployee
 from ..ioc_container import employee_repository, user_employee_permission_controller
-from .auth import BasicPermission, PermissionCheck, require_permission, require_user
+from .auth import BasicPermission, require_permission, require_user
 
 router = APIRouter(
     prefix="/employees",
@@ -49,10 +50,8 @@ class EmployeeViewSet:
             "date_of_start",
         ] = Query("empl_surname"),
         sort_order: Literal["asc", "desc"] = Query("asc"),
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Employee, BasicPermission.VIEW))),
     ):
-        has_permission((Employee, BasicPermission.VIEW))
-
         employees = self.repo.get_all(
             skip=skip,
             limit=limit,
@@ -76,10 +75,8 @@ class EmployeeViewSet:
     async def get_employee(
         self,
         id_employee: str,
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Employee, BasicPermission.VIEW))),
     ):
-        has_permission((Employee, BasicPermission.VIEW))
-
         employee = self.repo.get_by_id(id_employee)
         if not employee:
             raise HTTPException(status_code=404, detail="Employee not found")
@@ -89,10 +86,8 @@ class EmployeeViewSet:
     async def create_employee(
         self,
         request: CreateEmployee,
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Employee, BasicPermission.CREATE))),
     ):
-        has_permission((Employee, BasicPermission.CREATE))
-
         return self.repo.create(request)
 
     @router.put(
@@ -102,13 +97,11 @@ class EmployeeViewSet:
         self,
         id_employee: str,
         request: UpdateEmployee,
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Employee, BasicPermission.UPDATE))),
         permission_controller: UserEmployeePermissionController = Depends(
             user_employee_permission_controller
         ),
     ):
-        has_permission((Employee, BasicPermission.UPDATE))
-
         employee = self.repo.update(id_employee, request)
         permission_controller.update_related_roles(employee)
         return employee
@@ -117,18 +110,14 @@ class EmployeeViewSet:
     async def delete_employee(
         self,
         id_employee: str,
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Employee, BasicPermission.DELETE))),
     ):
-        has_permission((Employee, BasicPermission.DELETE))
-
         self.repo.delete(id_employee)
 
     @router.post("/bulk-delete", operation_id="bulkDeleteEmployees")
     async def bulk_delete_employees(
         self,
         request: BulkDeleteRequest,
-        has_permission: PermissionCheck = Depends(require_permission),
+        _: User = Security(require_permission((Employee, BasicPermission.DELETE))),
     ):
-        has_permission((Employee, BasicPermission.DELETE))
-
         return self.repo.delete_multiple(request.employee_ids)
