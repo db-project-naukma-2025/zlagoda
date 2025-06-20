@@ -20,6 +20,9 @@ class UserEmployeePermissionController:
         self.employee_repo = employee_repo
 
     def _update_user_role(self, user: User, employee: Employee) -> None:
+        self.cashier_controller.remove_from_user(user)
+        self.manager_controller.remove_from_user(user)
+
         if employee.empl_role == "cashier":
             self.cashier_controller.assign_to_user(user)
         elif employee.empl_role == "manager":
@@ -28,9 +31,6 @@ class UserEmployeePermissionController:
             raise ValueError(f"Invalid employee role: {employee.empl_role}")
 
     def assign_employee(self, user: User, employee: Employee) -> None:
-        self.cashier_controller.remove_from_user(user)
-        self.manager_controller.remove_from_user(user)
-
         self.user_repo.update(user.id, UserUpdate(id_employee=employee.id_employee))
 
         self._update_user_role(user, employee)
