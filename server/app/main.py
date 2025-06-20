@@ -6,13 +6,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from . import settings
+from .cli.commands.create_permissions import CreatePermissionsCommand
 from .cli.commands.createuser import Command as CreateUserCommand
 from .cli.commands.migrate import Command as DatabaseMigrationCommand
 from .ioc_container import (
     create_db,
     database_migration_service,
+    group_permission_repository,
+    model_registry,
     password_hasher,
+    permission_repository,
     registration_controller,
+    user_group_repository,
+    user_permission_controller,
     user_repository,
 )
 from .views import auth, category, customer_card, employee, product, store_product
@@ -22,7 +28,7 @@ logger = structlog.get_logger(__name__)
 
 @click.group()
 def cli():
-    """Database management commands."""
+    """Zlagoda CLI management commands."""
     pass
 
 
@@ -83,6 +89,8 @@ def runserver():
             )
         )
 
+    create_permissions(to_stdout=False)
+
     uvicorn.run(
         app,
         host=settings.API_HOST,
@@ -100,6 +108,29 @@ def createuser(superuser: bool = False):
         controller = registration_controller(repo, password_hasher())
         command = CreateUserCommand(controller)
         command.execute(superuser=superuser)
+
+
+def create_permissions(to_stdout: bool = True):
+    with create_db() as db:
+        perm_repo = permission_repository(db)
+        user_group_repo = user_group_repository(db)
+        group_perm_repo = group_permission_repository(db)
+        user_perm_controller = user_permission_controller(
+            perm_repo, user_group_repo, group_perm_repo
+        )
+
+        command = CreatePermissionsCommand(user_perm_controller, model_registry())
+        command.execute(to_stdout=to_stdout)
+
+
+@cli.command(name="create-permissions")
+def create_permissions_cli():
+    """
+    Create basic permissions for all models.
+
+    Note: only models registered in the model registry will be processed.
+    """
+    create_permissions(to_stdout=True)
 
 
 def main():

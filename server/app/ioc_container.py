@@ -1,7 +1,8 @@
 from datetime import timedelta
-from typing import Generator
+from typing import Generator, Type
 
 from fastapi import Depends
+from pydantic import BaseModel
 
 from . import settings
 from .controllers.auth.hasher import IHasher, SHA256Hasher
@@ -13,7 +14,7 @@ from .controllers.customer_card import (
     CustomerCardQueryController,
 )
 from .controllers.permissions.group import UserGroupController
-from .controllers.permissions.permissions import UserPermissionController
+from .controllers.permissions.user import UserPermissionController
 from .dal.repositories.auth import (
     GroupPermissionRepository,
     GroupRepository,
@@ -26,6 +27,11 @@ from .dal.repositories.customer_card import CustomerCardRepository
 from .dal.repositories.employee import EmployeeRepository
 from .dal.repositories.product import ProductRepository
 from .dal.repositories.store_product import StoreProductRepository
+from .dal.schemas.category import Category
+from .dal.schemas.customer_card import CustomerCard
+from .dal.schemas.employee import Employee
+from .dal.schemas.product import Product
+from .dal.schemas.store_product import StoreProduct
 from .db.connection._base import IDatabase
 from .db.migrations import DatabaseMigrationService
 
@@ -57,6 +63,10 @@ def database_migration_service(
 
 
 # DAL setup
+
+
+def model_registry() -> set[Type[BaseModel]]:
+    return {Category, Product, StoreProduct, Employee, CustomerCard}
 
 
 def category_repository(db: IDatabase = Depends(get_db)) -> CategoryRepository:
