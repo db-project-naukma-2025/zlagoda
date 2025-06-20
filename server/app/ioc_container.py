@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Generator
 
 from fastapi import Depends
@@ -6,6 +7,7 @@ from . import settings
 from .controllers.auth.hasher import IHasher, SHA256Hasher
 from .controllers.auth.login import LoginController
 from .controllers.auth.registration import RegistrationController
+from .controllers.auth.token_generator import ITokenGenerator, JWTTokenGenerator
 from .controllers.customer_card import (
     CustomerCardModificationController,
     CustomerCardQueryController,
@@ -21,6 +23,7 @@ from .dal.repositories.auth import (
 )
 from .dal.repositories.category import CategoryRepository
 from .dal.repositories.customer_card import CustomerCardRepository
+from .dal.repositories.employee import EmployeeRepository
 from .dal.repositories.product import ProductRepository
 from .dal.repositories.store_product import StoreProductRepository
 from .db.connection._base import IDatabase
@@ -58,6 +61,10 @@ def database_migration_service(
 
 def category_repository(db: IDatabase = Depends(get_db)) -> CategoryRepository:
     return CategoryRepository(db)
+
+
+def employee_repository(db: IDatabase = Depends(get_db)) -> EmployeeRepository:
+    return EmployeeRepository(db)
 
 
 def product_repository(db: IDatabase = Depends(get_db)) -> ProductRepository:
@@ -105,11 +112,16 @@ def password_hasher() -> IHasher:
     return SHA256Hasher()
 
 
+def token_generator() -> ITokenGenerator:
+    return JWTTokenGenerator(settings.SECRET_KEY, "HS256", timedelta(minutes=120))
+
+
 def login_controller(
     user_repo: UserRepository = Depends(user_repository),
     password_hasher: IHasher = Depends(password_hasher),
+    token_generator: ITokenGenerator = Depends(token_generator),
 ) -> LoginController:
-    return LoginController(user_repo, password_hasher)
+    return LoginController(user_repo, password_hasher, token_generator)
 
 
 def registration_controller(

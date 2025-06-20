@@ -1,3 +1,5 @@
+import { useLocation } from "@tanstack/react-router";
+
 import AppErrorBoundary from "@/components/app-error-boundary";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -9,6 +11,20 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
+  const location = useLocation();
+  const isLoginPage = location.pathname === "/login";
+
+  // For login page, render without sidebar
+  if (isLoginPage) {
+    return (
+      <>
+        <AppErrorBoundary>{children}</AppErrorBoundary>
+        <Toaster />
+      </>
+    );
+  }
+
+  // For other pages, render with sidebar
   return (
     <SidebarProvider
       style={

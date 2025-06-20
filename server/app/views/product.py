@@ -7,8 +7,13 @@ from pydantic import BaseModel
 from ..dal.repositories.product import ProductRepository
 from ..dal.schemas.product import CreateProduct, Product, UpdateProduct
 from ..ioc_container import product_repository
+from .auth import require_user
 
-router = APIRouter(prefix="/products", tags=["products"])
+router = APIRouter(
+    prefix="/products",
+    tags=["products"],
+    dependencies=[Depends(require_user)],
+)
 
 
 class PaginatedProducts(BaseModel):

@@ -1,3 +1,5 @@
+from pydantic import SecretStr
+
 from ...dal.repositories.auth import UserRepository
 from ...dal.schemas.auth import User
 from .exceptions import UserAlreadyExistsError
@@ -20,7 +22,7 @@ class RegistrationController:
 
         user = self.user_repo.create(
             username=username,
-            password=self.password_hasher.get_hash(password),
+            password=SecretStr(self.password_hasher.get_hash(password)),
             is_superuser=is_superuser,
         )
         return user

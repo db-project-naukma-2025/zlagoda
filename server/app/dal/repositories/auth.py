@@ -1,4 +1,5 @@
 import structlog
+from pydantic import SecretStr
 
 from ..schemas.auth import Group, GroupPermission, Permission, User, UserGroup
 from ._base import PydanticDBRepository
@@ -10,14 +11,14 @@ class UserRepository(PydanticDBRepository[User]):
     table_name = "auth_user"
     model = User
 
-    def create(self, username: str, password: str, is_superuser: bool) -> User:
+    def create(self, username: str, password: SecretStr, is_superuser: bool) -> User:
         rows = self._db.execute(
             f"""
                 INSERT INTO {self.table_name} (username, password, is_superuser)
                 VALUES (%s, %s, %s)
                 RETURNING {", ".join(self._fields)}
             """,
-            (username, password, is_superuser),
+            (username, password.get_secret_value(), is_superuser),
         )
         return self._row_to_model(rows[0])
 
@@ -103,8 +104,7 @@ class PermissionRepository(PydanticDBRepository[Permission]):
         if model_name:
             where_clause = "WHERE model_name = %s"
             params.append(model_name)
-
-        if codename:
+        elif codename:
             where_clause = "WHERE codename = %s"
             params.append(codename)
 
