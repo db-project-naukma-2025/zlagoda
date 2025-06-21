@@ -42,7 +42,6 @@ export default function CategoriesPage() {
   });
 
   const { user } = useAuth();
-  const canView = user?.scopes.includes(scopes.category.can_view) ?? false;
   const canAdd = user?.scopes.includes(scopes.category.can_create) ?? false;
   const canDelete = user?.scopes.includes(scopes.category.can_delete) ?? false;
   const canEdit = user?.scopes.includes(scopes.category.can_update) ?? false;
