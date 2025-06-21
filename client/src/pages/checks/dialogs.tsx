@@ -4,11 +4,12 @@ import { format } from "date-fns";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import { FormDialog } from "@/components/common/form-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -302,30 +303,63 @@ export function CreateCheckDialog() {
   const isPending = createMutation.isPending;
 
   return (
-    <FormDialog
-      description="Create a new sales receipt with multiple items."
-      isPending={isPending}
-      open={open}
-      submitText="Create Check"
-      title="Create Sales Check"
-      trigger={
-        <Button size="sm">
-          <IconPlus className="mr-2 h-4 w-4" />
-          New Check
-        </Button>
-      }
-      onOpenChange={handleOpenChange}
-      onSubmit={(e) => {
-        e.preventDefault();
-        void form.handleSubmit();
-      }}
-    >
-      <CheckFormFields
-        customerCards={customerCards}
-        form={form}
-        products={products}
-        storeProducts={storeProducts}
-      />
-    </FormDialog>
+    <>
+      <Button
+        size="sm"
+        onClick={() => {
+          setOpen(true);
+        }}
+      >
+        <IconPlus className="mr-2 h-4 w-4" />
+        New Check
+      </Button>
+
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle>Create Sales Check</DialogTitle>
+            <DialogDescription>
+              Create a new sales receipt with multiple items.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            className="flex flex-col flex-1 min-h-0"
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              void form.handleSubmit();
+            }}
+          >
+            <ScrollArea className="flex-1 overflow-auto">
+              <div className="space-y-4 pr-4">
+                <CheckFormFields
+                  customerCards={customerCards}
+                  form={form}
+                  products={products}
+                  storeProducts={storeProducts}
+                />
+              </div>
+            </ScrollArea>
+
+            <DialogFooter className="flex-shrink-0 mt-6">
+              <Button
+                disabled={isPending}
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  handleOpenChange(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button disabled={isPending} type="submit">
+                {isPending ? "Creating..." : "Create Check"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
