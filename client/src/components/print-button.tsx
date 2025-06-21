@@ -3,6 +3,7 @@ import { Printer } from "lucide-react";
 import { useRef, useState } from "react";
 import { useReactToPrint } from "react-to-print";
 
+import { PrintableChecksTable } from "@/components/printable-checks-table";
 import { PrintableTable } from "@/components/printable-table";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,10 +14,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { type Check } from "@/lib/api/checks/types";
 
-interface PrintButtonProps<TData> {
-  data: TData[];
-  columns: ColumnDef<TData>[];
+interface BasePrintButtonProps {
   title: string;
   filterContext?: Record<string, string> | undefined;
   variant?:
@@ -27,15 +27,36 @@ interface PrintButtonProps<TData> {
     | "link"
     | "destructive";
   size?: "default" | "sm" | "lg" | "icon";
+  description?: string;
+  buttonTitle?: string;
 }
 
-export function PrintButton<TData>({
-  data,
-  columns,
-  title,
-  filterContext,
-  variant = "outline",
-}: PrintButtonProps<TData>) {
+interface StandardTableProps<TData> extends BasePrintButtonProps {
+  tableType: "standard";
+  data: TData[];
+  columns: ColumnDef<TData>[];
+}
+
+interface ChecksTableProps extends BasePrintButtonProps {
+  tableType: "checks";
+  data: Check[];
+  employeeLookup: Record<string, string>;
+  productLookup: Record<string, string>;
+}
+
+type PrintButtonProps<TData = unknown> =
+  | StandardTableProps<TData>
+  | ChecksTableProps;
+
+export function PrintButton<TData = unknown>(props: PrintButtonProps<TData>) {
+  const {
+    title,
+    filterContext,
+    variant = "outline",
+    description,
+    buttonTitle,
+  } = props;
+
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -51,13 +72,46 @@ export function PrintButton<TData>({
     setIsPreviewOpen(true);
   };
 
+  const defaultDescription =
+    props.tableType === "checks"
+      ? "Review the detailed checks report before printing. This report shows each check with all its sales items listed below."
+      : "Review the report before printing. Use the Print button to open your browser's print dialog.";
+
+  const defaultButtonTitle =
+    props.tableType === "checks"
+      ? "Print Detailed Checks Report"
+      : "Print Report";
+
+  const renderTable = () => {
+    if (props.tableType === "checks") {
+      return (
+        <PrintableChecksTable
+          data={props.data}
+          employeeLookup={props.employeeLookup}
+          filterContext={filterContext}
+          productLookup={props.productLookup}
+          title={title}
+        />
+      );
+    } else {
+      return (
+        <PrintableTable
+          columns={props.columns}
+          data={props.data}
+          filterContext={filterContext}
+          title={title}
+        />
+      );
+    }
+  };
+
   return (
     <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
       <DialogTrigger asChild>
         <Button
           className="h-9 w-9 p-0"
           size="icon"
-          title="Print Report"
+          title={buttonTitle ?? defaultButtonTitle}
           variant={variant}
           onClick={handlePreviewAndPrint}
         >
@@ -72,8 +126,7 @@ export function PrintButton<TData>({
         <DialogHeader>
           <DialogTitle>Print Preview - {title}</DialogTitle>
           <DialogDescription>
-            Review the report before printing. Use the Print button to open your
-            browser's print dialog.
+            {description ?? defaultDescription}
           </DialogDescription>
         </DialogHeader>
 
@@ -94,12 +147,7 @@ export function PrintButton<TData>({
 
         <div className="space-y-4">
           <div className="bg-white" ref={printRef}>
-            <PrintableTable
-              columns={columns}
-              data={data}
-              filterContext={filterContext}
-              title={title}
-            />
+            {renderTable()}
           </div>
         </div>
       </DialogContent>

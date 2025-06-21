@@ -57,12 +57,13 @@ export default function CategoriesPage() {
       description="Manage product categories and classifications."
       title="Categories"
     >
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center">
         <div className="flex gap-2">
           {canPrintToPdf && (
             <PrintButton
               columns={categoryColumns}
               data={printData}
+              tableType="standard"
               title="Categories"
             />
           )}

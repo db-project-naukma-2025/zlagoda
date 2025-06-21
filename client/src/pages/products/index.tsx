@@ -69,7 +69,12 @@ export default function ProductsPage() {
     toolbar = (
       <>
         <div className="flex justify-between items-center">
-          <PrintButton columns={columns} data={printData} title="Products" />
+          <PrintButton
+            columns={columns}
+            data={printData}
+            tableType="standard"
+            title="Products"
+          />
           {tableToolbar}
         </div>
       </>

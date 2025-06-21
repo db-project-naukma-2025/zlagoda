@@ -84,6 +84,7 @@ export default function CustomerCardsPage() {
             <PrintButton
               columns={printColumns}
               data={printData}
+              tableType="standard"
               title="Customer Cards"
             />
           )}

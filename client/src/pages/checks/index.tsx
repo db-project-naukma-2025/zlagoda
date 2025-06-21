@@ -66,6 +66,14 @@ export default function ChecksPage() {
     employeeLookup,
   } = useChecks();
 
+  const productLookup = useMemo(() => {
+    const lookup: Record<string, string> = {};
+    for (const storeProduct of storeProducts) {
+      lookup[storeProduct.UPC] = storeProduct.product_name;
+    }
+    return lookup;
+  }, [storeProducts]);
+
   const { data: allChecks } = useChecks({
     printMode: true,
     employeeFilter,
@@ -203,7 +211,14 @@ export default function ChecksPage() {
     toolbar = (
       <>
         <div className="flex justify-between items-center">
-          <PrintButton columns={columns} data={allChecks} title="Checks" />
+          <PrintButton
+            data={allChecks}
+            employeeLookup={employeeLookup}
+            filterContext={filterContext}
+            productLookup={productLookup}
+            tableType="checks"
+            title="Checks Report"
+          />
           {tableToolbar}
         </div>
       </>

@@ -20,7 +20,6 @@ export function PrintableTable<TData>({
   title,
   filterContext,
 }: PrintableTableProps<TData>) {
-  // Filter out action columns for printing
   const printableColumns = React.useMemo(() => {
     return columns.filter((col) => {
       const id = typeof col.id === "string" ? col.id : "";
@@ -67,14 +66,14 @@ export function PrintableTable<TData>({
         }
         
         .print-title {
-          font-size: 24px;
+          font-size: 28px;
           font-weight: 600;
           margin: 0 0 8px 0;
           color: #000;
         }
         
         .print-filters {
-          font-size: 14px;
+          font-size: 16px;
           color: #666;
           margin-top: 8px;
           line-height: 1.4;
@@ -84,29 +83,35 @@ export function PrintableTable<TData>({
           width: 100%;
           border-collapse: collapse;
           margin: 0;
-          font-size: 12px;
-          table-layout: auto;
+          font-size: 14px;
+          table-layout: fixed;
         }
         
         .print-table th,
         .print-table td {
           border: 1px solid #ddd;
-          padding: 8px 12px;
+          padding: 12px 10px;
           text-align: left;
           vertical-align: top;
           word-wrap: break-word;
+          overflow-wrap: break-word;
+          line-height: 1.4;
         }
         
         .print-table th {
           background-color: #f8f9fa;
-          font-weight: 600;
-          font-size: 12px;
+          font-weight: 700;
+          font-size: 13px;
           color: #374151;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          padding: 14px 10px;
         }
         
         .print-table td {
-          font-size: 11px;
+          font-size: 13px;
           color: #1f2937;
+          font-weight: 500;
         }
         
         .print-table tbody tr:nth-child(even) {
@@ -118,15 +123,16 @@ export function PrintableTable<TData>({
         }
         
         .print-footer {
-          margin-top: 24px;
+          margin-top: 32px;
           padding-top: 16px;
-          border-top: 1px solid #e5e7eb;
+          border-top: 2px solid #e5e7eb;
           text-align: center;
-          font-size: 11px;
+          font-size: 14px;
           color: #6b7280;
           display: flex;
           justify-content: space-between;
           align-items: center;
+          font-weight: 600;
         }
         
         .print-footer p {
@@ -147,15 +153,15 @@ export function PrintableTable<TData>({
           }
           
           .print-title {
-            font-size: 18px;
+            font-size: 20px;
           }
           
           .print-filters {
-            font-size: 10px;
+            font-size: 12px;
           }
           
           .print-table {
-            font-size: 10px;
+            font-size: 11px;
           }
           
           .print-table th {
@@ -163,21 +169,23 @@ export function PrintableTable<TData>({
             background-color: #f5f5f5 !important;
             -webkit-print-color-adjust: exact;
             color-adjust: exact;
+            padding: 10px 8px;
           }
           
           .print-table td {
-            font-size: 9px;
+            font-size: 10px;
+            padding: 10px 8px;
           }
           
           .print-table th,
           .print-table td {
-            padding: 4px 6px;
+            padding: 10px 8px;
           }
           
           .print-footer {
-            margin-top: 16px;
+            margin-top: 24px;
             padding-top: 12px;
-            font-size: 8px;
+            font-size: 10px;
             flex-direction: column;
             gap: 4px;
           }

@@ -165,7 +165,7 @@ export default function MePage() {
               description="Revenue generated"
               icon={<IconCoins className="h-4 w-4" />}
               title="Total Sales"
-              value={`$${statistics.total_sales_amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              value={`₴${statistics.total_sales_amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             />
             <StatCard
               description="Products sold"
@@ -199,7 +199,7 @@ export default function MePage() {
                 <p className="font-semibold">Average Check</p>
               </div>
               <p className="text-2xl font-bold">
-                $
+                ₴
                 {statistics.average_check_amount.toLocaleString("en-US", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,

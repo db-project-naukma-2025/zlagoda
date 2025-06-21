@@ -53,10 +53,15 @@ export default function EmployeesPage() {
       description="Manage employees and their information."
       title="Employees"
     >
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center">
         <div className="flex gap-2">
           {canPrintToPdf && (
-            <PrintButton columns={columns} data={printData} title="Employees" />
+            <PrintButton
+              columns={columns}
+              data={printData}
+              tableType="standard"
+              title="Employees"
+            />
           )}
           <EmployeesOnlyWithPromotionalSalesReportDialog />
         </div>

@@ -135,6 +135,7 @@ export default function StoreProductsPage() {
           <PrintButton
             columns={columns}
             data={printData}
+            tableType="standard"
             title="Store Products"
           />
           {tableToolbar}

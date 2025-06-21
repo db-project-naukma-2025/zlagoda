@@ -59,7 +59,7 @@ export function ChecksMetadataDisplay({
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
-              ₴{metadata.total_vat.toFixed(2)}
+            ₴{metadata.total_vat.toFixed(2)}
             </div>
             <div className="text-xs text-muted-foreground">
               {getLabel("Total VAT")}
