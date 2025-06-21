@@ -207,7 +207,7 @@ const CreateCheck = z
   .object({
     check_number: z.string().min(10).max(10),
     id_employee: z.string().min(10).max(10),
-    card_number: z.union([z.string(), z.null()]).optional(),
+    card_number: z.union([z.string(), z.null()]),
     print_date: z.string().datetime({ offset: true }),
     sales: z.array(CreateSale),
   })
@@ -224,7 +224,7 @@ const Check = z
   .object({
     check_number: z.string().min(10).max(10),
     id_employee: z.string().min(10).max(10),
-    card_number: z.union([z.string(), z.null()]).optional(),
+    card_number: z.union([z.string(), z.null()]),
     print_date: z.string().datetime({ offset: true }),
     sum_total: z.number().gte(0),
     vat: z.number().gte(0),
@@ -232,12 +232,26 @@ const Check = z
   })
   .passthrough();
 const date_from = z.union([z.string(), z.null()]).optional();
+const sort_by = z
+  .union([z.enum(["check_number", "print_date", "sum_total"]), z.null()])
+  .optional();
+const sort_order = z.union([z.enum(["asc", "desc"]), z.null()]).optional();
+const ChecksMetadata = z
+  .object({
+    total_sum: z.number(),
+    total_vat: z.number(),
+    total_items_count: z.number().int(),
+    total_product_types: z.number().int(),
+    checks_count: z.number().int(),
+  })
+  .passthrough();
 const PaginatedChecks = z
   .object({
     data: z.array(Check),
     total: z.number().int(),
     page: z.number().int(),
     page_size: z.number().int(),
+    metadata: ChecksMetadata,
   })
   .passthrough();
 const Employee = z
@@ -359,6 +373,9 @@ export const schemas = {
   Sale,
   Check,
   date_from,
+  sort_by,
+  sort_order,
+  ChecksMetadata,
   PaginatedChecks,
   Employee,
   PaginatedEmployees,
@@ -643,6 +660,21 @@ const endpoints = makeApi([
         name: "employee_id",
         type: "Query",
         schema: date_from,
+      },
+      {
+        name: "product_upc",
+        type: "Query",
+        schema: date_from,
+      },
+      {
+        name: "sort_by",
+        type: "Query",
+        schema: sort_by,
+      },
+      {
+        name: "sort_order",
+        type: "Query",
+        schema: sort_order,
       },
     ],
     response: PaginatedChecks,

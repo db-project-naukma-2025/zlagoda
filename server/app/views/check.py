@@ -1,11 +1,15 @@
 from datetime import date
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, Query, Security
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
-from ..controllers.check import CheckModificationController, CheckQueryController
+from ..controllers.check import (
+    CheckModificationController,
+    CheckQueryController,
+    ChecksMetadata,
+)
 from ..dal.schemas.auth import User
 from ..dal.schemas.check import Check, CreateCheck, RelationalCheck
 from ..ioc_container import check_modification_controller, check_query_controller
@@ -23,6 +27,7 @@ class PaginatedChecks(BaseModel):
     total: int
     page: int
     page_size: int
+    metadata: ChecksMetadata
 
 
 @cbv(router)
@@ -62,20 +67,31 @@ class CheckViewSet:
         date_from: Optional[date] = Query(None, description="Filter by date from"),
         date_to: Optional[date] = Query(None, description="Filter by date to"),
         employee_id: Optional[str] = Query(None, description="Filter by employee ID"),
+        product_upc: Optional[str] = Query(None, description="Filter by product UPC"),
+        sort_by: Optional[Literal["check_number", "print_date", "sum_total"]] = Query(
+            None, description="Sort by field"
+        ),
+        sort_order: Optional[Literal["asc", "desc"]] = Query(
+            None, description="Sort order"
+        ),
         _: User = Security(require_permission((RelationalCheck, BasicPermission.VIEW))),
     ) -> PaginatedChecks:
-        checks = self.query_controller.get_all(
+        checks, metadata = self.query_controller.get_all(
             skip=skip,
             limit=limit,
             date_from=date_from,
             date_to=date_to,
             employee_id=employee_id,
+            product_upc=product_upc,
+            sort_by=sort_by,
+            sort_order=sort_order,
         )
 
         actual_limit = limit or 10
         return PaginatedChecks(
             data=checks,
-            total=len(checks),
+            total=metadata.checks_count,
             page=(skip // actual_limit) + 1,
             page_size=actual_limit,
+            metadata=metadata,
         )

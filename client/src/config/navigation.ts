@@ -4,7 +4,6 @@ import {
   IconDashboard,
   IconPackage,
   IconReceipt,
-  IconReport,
   IconTags,
   IconUser,
   IconUsers,
@@ -12,12 +11,11 @@ import {
 import { type RouteComponent } from "@tanstack/react-router";
 
 import CategoriesPage from "../pages/categories";
-import ChecksSalesPage from "../pages/checks-sales-page";
+import ChecksPage from "../pages/checks";
 import CustomersPage from "../pages/customers";
 import DashboardPage from "../pages/dashboard-page";
 import EmployeesPage from "../pages/employees";
 import ProductsPage from "../pages/products";
-import ReportsPage from "../pages/reports-page";
 import StoreProductsPage from "../pages/store-products";
 
 import scopes from "./scopes";
@@ -90,18 +88,12 @@ export const navigationConfig: NavigationItem[] = [
     view_scope: scopes.customer_card.can_view,
   },
   {
-    id: "checks-sales",
-    title: "Checks / Sales",
-    path: "/checks-sales",
+    id: "checks",
+    title: "Checks",
+    path: "/checks",
     icon: IconReceipt,
-    component: ChecksSalesPage,
-  },
-  {
-    id: "reports",
-    title: "Reports",
-    path: "/reports",
-    icon: IconReport,
-    component: ReportsPage,
+    component: ChecksPage,
+    view_scope: scopes.check.can_view,
   },
 ];
 

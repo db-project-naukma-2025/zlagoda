@@ -65,7 +65,9 @@ export function Combobox({
           role="combobox"
           variant="outline"
         >
-          {selectedOption ? selectedOption.label : placeholder}
+          <span className="truncate">
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -104,9 +106,9 @@ export function Combobox({
                     )}
                   />
                   <div className="flex flex-col items-start">
-                    <span>{option.label}</span>
+                    <span className="truncate max-w-full">{option.label}</span>
                     {option.subtitle && (
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-muted-foreground truncate max-w-full">
                         {option.subtitle}
                       </span>
                     )}

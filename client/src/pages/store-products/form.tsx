@@ -282,7 +282,7 @@ export function PromotionalProductFormFields({
             <p className="text-xs text-muted-foreground">
               {maxUnits === Infinity
                 ? "Enter the number of promotional units to create"
-                : `Available: ${maxUnits} units`}
+                : `Available: ${maxUnits.toLocaleString()} units`}
             </p>
             <FieldError field={field} />
           </div>

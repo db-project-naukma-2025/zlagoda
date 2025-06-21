@@ -10,9 +10,9 @@ class BaseCheck(BaseModel):
     check_number: str = Field(min_length=10, max_length=10, examples=["1010101010"])
     id_employee: str = Field(min_length=10, max_length=10, examples=["0000000001"])
     card_number: Optional[str] = Field(
-        None, min_length=1, max_length=13, examples=["1234567890123"]
+        min_length=1, max_length=13, examples=["1234567890123"]
     )
-    print_date: datetime = Field(examples=["2025-01-15T12:30:00"])
+    print_date: datetime = Field(examples=["2025-01-15T12:30:00Z"])
 
     @field_validator("print_date")
     @classmethod
@@ -20,6 +20,14 @@ class BaseCheck(BaseModel):
         if v > datetime.now():
             raise ValueError("Check date cannot be in the future")
         return v
+
+    model_config = {
+        "json_encoders": {
+            datetime: lambda v: v.isoformat() + "Z"
+            if v.tzinfo is None
+            else v.isoformat()
+        }
+    }
 
 
 class RelationalCheck(BaseCheck):

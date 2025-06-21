@@ -2,6 +2,8 @@ from abc import ABC
 from datetime import date
 from typing import Literal, Optional, TypedDict
 
+from pydantic import BaseModel
+
 from ..dal.repositories.check import CheckRepository
 from ..dal.repositories.customer_card import CustomerCardRepository
 from ..dal.repositories.sale import SaleRepository
@@ -9,6 +11,14 @@ from ..dal.repositories.store_product import StoreProductRepository
 from ..dal.schemas.check import Check, CreateCheck, RelationalCheck
 from ..dal.schemas.sale import Sale, SaleWithPrice
 from ..db.connection import transaction
+
+
+class ChecksMetadata(BaseModel):
+    total_sum: float
+    total_vat: float
+    total_items_count: int
+    total_product_types: int
+    checks_count: int
 
 
 class BaseCheckController(ABC):
@@ -27,7 +37,7 @@ class BaseCheckController(ABC):
 
 class CheckQueryController(BaseCheckController):
     class _DefaultOrdering(TypedDict):
-        sort_by: Literal["print_date", "sum_total"]
+        sort_by: Literal["check_number", "print_date", "sum_total"]
         sort_order: Literal["asc", "desc"]
 
     DEFAULT_ORDERING: _DefaultOrdering = {
@@ -51,15 +61,26 @@ class CheckQueryController(BaseCheckController):
         date_from: Optional[date] = None,
         date_to: Optional[date] = None,
         employee_id: Optional[str] = None,
-    ) -> list[Check]:
+        product_upc: Optional[str] = None,
+        sort_by: Optional[Literal["check_number", "print_date", "sum_total"]] = None,
+        sort_order: Optional[Literal["asc", "desc"]] = None,
+    ) -> tuple[list[Check], ChecksMetadata]:
         relational_checks = self.repo.get_all(
             skip=skip,
             limit=limit,
             date_from=date_from,
             date_to=date_to,
             employee_id=employee_id,
-            sort_by=self.DEFAULT_ORDERING["sort_by"],
-            sort_order=self.DEFAULT_ORDERING["sort_order"],
+            product_upc=product_upc,
+            sort_by=sort_by or self.DEFAULT_ORDERING["sort_by"],
+            sort_order=sort_order or self.DEFAULT_ORDERING["sort_order"],
+        )
+
+        metadata_stats = self.repo.get_metadata_stats(
+            date_from=date_from,
+            date_to=date_to,
+            employee_id=employee_id,
+            product_upc=product_upc,
         )
 
         checks = []
@@ -68,7 +89,15 @@ class CheckQueryController(BaseCheckController):
             check = Check(**relational_check.model_dump(), sales=sales)
             checks.append(check)
 
-        return checks
+        metadata = ChecksMetadata(
+            total_sum=metadata_stats["total_sum"],
+            total_vat=metadata_stats["total_vat"],
+            total_items_count=metadata_stats["total_items_count"],
+            total_product_types=metadata_stats["total_product_types"],
+            checks_count=metadata_stats["checks_count"],
+        )
+
+        return checks, metadata
 
 
 class CheckModificationController(BaseCheckController):
