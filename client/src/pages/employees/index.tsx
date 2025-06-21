@@ -1,10 +1,17 @@
 import { DataTable } from "@/components/data-table";
 import { TableToolbar } from "@/components/table-toolbar";
+import scopes from "@/config/scopes";
+import { useAuth } from "@/lib/api/auth";
 
 import { CreateEmployeeDialog } from "./dialogs";
 import { useEmployees } from "./use-employees";
 
 export default function EmployeesPage() {
+  const { user } = useAuth();
+  const canAdd = user?.scopes.includes(scopes.employee.can_create) ?? false;
+  const canDelete = user?.scopes.includes(scopes.employee.can_delete) ?? false;
+  const canEdit = user?.scopes.includes(scopes.employee.can_update) ?? false;
+
   const {
     pagination,
     setPagination,
@@ -21,9 +28,9 @@ export default function EmployeesPage() {
     setSearchTerm,
     clearSearch,
     columns,
-  } = useEmployees();
+  } = useEmployees(canDelete, canEdit);
 
-  const createButton = <CreateEmployeeDialog />;
+  const createButton = canAdd ? <CreateEmployeeDialog /> : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -38,6 +45,7 @@ export default function EmployeesPage() {
       <TableToolbar
         bulkDeleteItemName="employees"
         createButton={createButton}
+        enableBulkDelete={canDelete}
         isBulkDeletePending={bulkDeleteMutation.isPending}
         searchValue={searchTerm}
         selectedItems={selectedEmployees}
@@ -48,7 +56,7 @@ export default function EmployeesPage() {
       <DataTable
         columns={columns}
         data={employees}
-        enableRowSelection={true}
+        enableRowSelection={canDelete}
         isLoading={isLoading}
         keyField="id_employee"
         pagination={pagination}

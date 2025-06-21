@@ -14,7 +14,7 @@ import {
 
 import { createBaseProductColumns } from "./table";
 
-export function useProducts() {
+export function useProducts(canDelete: boolean, canEdit: boolean) {
   const {
     pagination,
     setPagination,
@@ -67,8 +67,17 @@ export function useProducts() {
         categoryFilter: categoryFilter ?? 0,
         setCategoryFilter,
         resetPagination,
+        canDelete,
+        canEdit,
       }),
-    [categories, categoryFilter, setCategoryFilter, resetPagination],
+    [
+      categories,
+      categoryFilter,
+      setCategoryFilter,
+      resetPagination,
+      canDelete,
+      canEdit,
+    ],
   );
 
   // Bulk delete handler for DataTable

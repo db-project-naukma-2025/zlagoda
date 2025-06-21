@@ -21,6 +21,8 @@ interface BaseProductTableProps {
   categoryFilter?: number;
   setCategoryFilter: (value: number | undefined) => void;
   resetPagination: () => void;
+  canDelete: boolean;
+  canEdit: boolean;
 }
 
 export function createBaseProductColumns({
@@ -28,6 +30,8 @@ export function createBaseProductColumns({
   categoryFilter,
   setCategoryFilter,
   resetPagination,
+  canDelete,
+  canEdit,
 }: BaseProductTableProps): ColumnDef<Product>[] {
   const categoryLookup = categories.reduce<Record<number, string>>(
     (acc, category) => {
@@ -53,7 +57,7 @@ export function createBaseProductColumns({
     label: "Category",
   };
 
-  return [
+  const columns: ColumnDef<Product>[] = [
     {
       accessorKey: "id_product",
       header: ({ column }) => (
@@ -100,13 +104,66 @@ export function createBaseProductColumns({
       ),
       enableSorting: false,
     },
-    {
+  ];
+
+  if (canDelete || canEdit) {
+    columns.push({
       id: "actions",
       header: () => <div className="text-right">Actions</div>,
       cell: function Cell({ row }) {
         const product = row.original;
         const [isEditOpen, setIsEditOpen] = useState(false);
         const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+        const menuItems = [];
+        const dialogs = [];
+
+        if (canEdit) {
+          menuItems.push(
+            <DropdownMenuItem
+              onSelect={() => {
+                setIsEditOpen(true);
+              }}
+            >
+              <IconEdit className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>,
+          );
+
+          dialogs.push(
+            <EditProductDialog
+              categories={categories}
+              open={isEditOpen}
+              product={product}
+              onOpenChange={setIsEditOpen}
+            />,
+          );
+        }
+
+        if (canDelete) {
+          if (menuItems.length > 0) {
+            menuItems.push(<DropdownMenuSeparator />);
+          }
+
+          menuItems.push(
+            <DropdownMenuItem
+              onSelect={() => {
+                setIsDeleteOpen(true);
+              }}
+            >
+              <IconTrash className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>,
+          );
+
+          dialogs.push(
+            <DeleteProductDialog
+              open={isDeleteOpen}
+              productId={product.id_product}
+              onOpenChange={setIsDeleteOpen}
+            />,
+          );
+        }
 
         return (
           <>
@@ -123,41 +180,17 @@ export function createBaseProductColumns({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-32">
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setIsEditOpen(true);
-                    }}
-                  >
-                    <IconEdit className="mr-2 h-4 w-4" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setIsDeleteOpen(true);
-                    }}
-                  >
-                    <IconTrash className="mr-2 h-4 w-4" />
-                    Delete
-                  </DropdownMenuItem>
+                  {menuItems}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
 
-            <EditProductDialog
-              categories={categories}
-              open={isEditOpen}
-              product={product}
-              onOpenChange={setIsEditOpen}
-            />
-            <DeleteProductDialog
-              open={isDeleteOpen}
-              productId={product.id_product}
-              onOpenChange={setIsDeleteOpen}
-            />
+            {dialogs}
           </>
         );
       },
-    },
-  ];
+    });
+  }
+
+  return columns;
 }

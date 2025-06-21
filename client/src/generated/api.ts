@@ -302,13 +302,16 @@ const Body_login = z
 const TokenResponse = z
   .object({ access_token: z.string(), token_type: z.string() })
   .passthrough();
-const User = z
+const ErrorResponse = z.object({ detail: z.string() }).passthrough();
+const UserWithScopes = z
   .object({
     username: z.string(),
     password: z.union([z.string(), z.string()]),
     is_superuser: z.boolean().optional().default(false),
     id_employee: z.union([z.string(), z.null()]).optional(),
     id: z.number().int(),
+    scopes: z.array(z.string()),
+    groups: z.array(z.string()),
   })
   .passthrough();
 
@@ -353,7 +356,8 @@ export const schemas = {
   app__views__employee__BulkDeleteRequest,
   Body_login,
   TokenResponse,
-  User,
+  ErrorResponse,
+  UserWithScopes,
 };
 
 const endpoints = makeApi([
@@ -362,7 +366,7 @@ const endpoints = makeApi([
     path: "/auth/me",
     alias: "me",
     requestFormat: "json",
-    response: User,
+    response: UserWithScopes,
   },
   {
     method: "post",
@@ -378,6 +382,11 @@ const endpoints = makeApi([
     ],
     response: TokenResponse,
     errors: [
+      {
+        status: 401,
+        description: `Invalid credentials`,
+        schema: z.object({ detail: z.string() }).passthrough(),
+      },
       {
         status: 422,
         description: `Validation Error`,

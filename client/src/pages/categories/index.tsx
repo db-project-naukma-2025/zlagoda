@@ -1,13 +1,15 @@
 import { DataTable } from "@/components/data-table";
 import { PageLayout } from "@/components/layout/page-layout";
 import { TableToolbar } from "@/components/table-toolbar";
+import scopes from "@/config/scopes";
+import { useAuth } from "@/lib/api/auth";
 
 import { CreateCategoryDialog } from "./dialogs";
 import {
   AllProductsSoldReportDialog,
   CategoryRevenueReportDialog,
 } from "./reports";
-import { categoryColumns } from "./table";
+import { createCategoryColumns } from "./table";
 import { useCategories } from "./use-categories";
 
 export default function CategoriesPage() {
@@ -27,8 +29,14 @@ export default function CategoriesPage() {
     setSearchTerm,
     clearSearch,
   } = useCategories();
+  const { user } = useAuth();
+  const canAdd = user?.scopes.includes(scopes.category.can_create) ?? false;
+  const canDelete = user?.scopes.includes(scopes.category.can_delete) ?? false;
+  const canEdit = user?.scopes.includes(scopes.category.can_update) ?? false;
 
-  const createButton = <CreateCategoryDialog />;
+  const categoryColumns = createCategoryColumns(canDelete, canEdit);
+
+  const createButton = canAdd ? <CreateCategoryDialog /> : null;
 
   return (
     <PageLayout
@@ -40,23 +48,22 @@ export default function CategoriesPage() {
           <CategoryRevenueReportDialog />
           <AllProductsSoldReportDialog />
         </div>
-        <div className="flex-1 max-w-md ml-4">
-          <TableToolbar
-            bulkDeleteItemName="categories"
-            createButton={createButton}
-            isBulkDeletePending={bulkDeleteMutation.isPending}
-            searchValue={searchTerm}
-            selectedItems={selectedCategories}
-            onBulkDelete={handleBulkDelete}
-            onClearSearch={clearSearch}
-            onSearch={setSearchTerm}
-          />
-        </div>
+        <TableToolbar
+          bulkDeleteItemName="categories"
+          createButton={createButton}
+          enableBulkDelete={canDelete}
+          isBulkDeletePending={bulkDeleteMutation.isPending}
+          searchValue={searchTerm}
+          selectedItems={selectedCategories}
+          onBulkDelete={handleBulkDelete}
+          onClearSearch={clearSearch}
+          onSearch={setSearchTerm}
+        />
       </div>
       <DataTable
         columns={categoryColumns}
         data={categories}
-        enableRowSelection={true}
+        enableRowSelection={canDelete}
         isLoading={isLoading}
         keyField="category_number"
         pagination={pagination}

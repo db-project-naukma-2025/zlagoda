@@ -20,12 +20,15 @@ import ProductsPage from "../pages/products";
 import ReportsPage from "../pages/reports-page";
 import StoreProductsPage from "../pages/store-products";
 
+import scopes from "./scopes";
+
 export interface NavigationItem {
   id: string;
   title: string;
   path: string;
   icon?: React.ComponentType<{ className?: string; size?: string | number }>;
   component?: RouteComponent;
+  view_scope?: string;
   children?: NavigationItem[];
 }
 
@@ -43,6 +46,7 @@ export const navigationConfig: NavigationItem[] = [
     path: "/employees",
     icon: IconUsers,
     component: EmployeesPage,
+    view_scope: scopes.employee.can_view,
   },
   {
     id: "products",
@@ -57,6 +61,7 @@ export const navigationConfig: NavigationItem[] = [
         path: "/products/base-products",
         icon: IconBox,
         component: ProductsPage,
+        view_scope: scopes.product.can_view,
       },
       {
         id: "store-inventory",
@@ -64,6 +69,7 @@ export const navigationConfig: NavigationItem[] = [
         path: "/products/store-inventory",
         icon: IconArchive,
         component: StoreProductsPage,
+        view_scope: scopes.store_product.can_view,
       },
     ],
   },
@@ -73,6 +79,7 @@ export const navigationConfig: NavigationItem[] = [
     path: "/categories",
     icon: IconTags,
     component: CategoriesPage,
+    view_scope: scopes.category.can_view,
   },
   {
     id: "customers",
@@ -80,6 +87,7 @@ export const navigationConfig: NavigationItem[] = [
     path: "/customers",
     icon: IconUser,
     component: CustomersPage,
+    view_scope: scopes.customer_card.can_view,
   },
   {
     id: "checks-sales",

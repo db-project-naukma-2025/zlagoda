@@ -35,14 +35,18 @@ interface CreateStoreInventoryColumnsProps {
   productLookup: Record<number, { name: string; category: string }>;
   products: SimpleProduct[];
   allStoreProducts: StoreProduct[];
+  canDelete: boolean;
+  canEdit: boolean;
 }
 
 export function createStoreInventoryColumns({
   productLookup,
   products,
   allStoreProducts,
+  canDelete,
+  canEdit,
 }: CreateStoreInventoryColumnsProps): ColumnDef<StoreProduct>[] {
-  return [
+  const columns: ColumnDef<StoreProduct>[] = [
     {
       accessorKey: "UPC",
       header: ({ column }) => (
@@ -158,93 +162,125 @@ export function createStoreInventoryColumns({
         );
       },
     },
-    {
-      id: "actions",
-      header: () => <div className="text-right">Actions</div>,
-      cell: function Cell({ row }) {
-        const storeProduct = row.original;
-        const [isEditOpen, setIsEditOpen] = useState(false);
-        const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-        const [isPromotionalOpen, setIsPromotionalOpen] = useState(false);
-
-        const canCreatePromotional =
-          !storeProduct.promotional_product &&
-          storeProduct.products_number > 0 &&
-          !allStoreProducts.some(
-            (sp) =>
-              sp.id_product === storeProduct.id_product &&
-              sp.promotional_product,
-          );
-
-        return (
-          <>
-            <div className="flex justify-end">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    className="data-[state=open]:bg-muted"
-                    size="icon"
-                    variant="ghost"
-                  >
-                    <IconDotsVertical className="h-4 w-4" />
-                    <span className="sr-only">Open menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40">
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setIsEditOpen(true);
-                    }}
-                  >
-                    <IconEdit className="mr-2 h-4 w-4" />
-                    Edit
-                  </DropdownMenuItem>
-                  {canCreatePromotional && (
-                    <DropdownMenuItem
-                      onSelect={() => {
-                        setIsPromotionalOpen(true);
-                      }}
-                    >
-                      <IconStar className="mr-2 h-4 w-4" />
-                      Create Promotional
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setIsDeleteOpen(true);
-                    }}
-                  >
-                    <IconTrash className="mr-2 h-4 w-4" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            <EditStoreProductDialog
-              open={isEditOpen}
-              products={products}
-              storeProduct={storeProduct}
-              storeProducts={allStoreProducts}
-              onOpenChange={setIsEditOpen}
-            />
-            {canCreatePromotional && (
-              <CreatePromotionalDialog
-                open={isPromotionalOpen}
-                products={products}
-                sourceStoreProduct={storeProduct}
-                onOpenChange={setIsPromotionalOpen}
-              />
-            )}
-            <DeleteStoreProductDialog
-              open={isDeleteOpen}
-              upc={storeProduct.UPC}
-              onOpenChange={setIsDeleteOpen}
-            />
-          </>
-        );
-      },
-    },
   ];
+
+  const actionColumn: ColumnDef<StoreProduct> = {
+    id: "actions",
+    header: () => <div className="text-right">Actions</div>,
+    cell: function Cell({ row }) {
+      const storeProduct = row.original;
+      const [isEditOpen, setIsEditOpen] = useState(false);
+      const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+      const [isPromotionalOpen, setIsPromotionalOpen] = useState(false);
+
+      const canCreatePromotional =
+        !storeProduct.promotional_product &&
+        storeProduct.products_number > 0 &&
+        !allStoreProducts.some(
+          (sp) =>
+            sp.id_product === storeProduct.id_product && sp.promotional_product,
+        );
+
+      const menuItems = [];
+      const dialogs = [];
+
+      if (canEdit) {
+        menuItems.push(
+          <DropdownMenuItem
+            onSelect={() => {
+              setIsEditOpen(true);
+            }}
+          >
+            <IconEdit className="mr-2 h-4 w-4" />
+            Edit
+          </DropdownMenuItem>,
+        );
+
+        dialogs.push(
+          <EditStoreProductDialog
+            open={isEditOpen}
+            products={products}
+            storeProduct={storeProduct}
+            storeProducts={allStoreProducts}
+            onOpenChange={setIsEditOpen}
+          />,
+        );
+      }
+
+      if (canCreatePromotional) {
+        menuItems.push(
+          <DropdownMenuItem
+            onSelect={() => {
+              setIsPromotionalOpen(true);
+            }}
+          >
+            <IconStar className="mr-2 h-4 w-4" />
+            Create Promotional
+          </DropdownMenuItem>,
+        );
+        dialogs.push(
+          <CreatePromotionalDialog
+            open={isPromotionalOpen}
+            products={products}
+            sourceStoreProduct={storeProduct}
+            onOpenChange={setIsPromotionalOpen}
+          />,
+        );
+      }
+
+      if (canDelete) {
+        if (menuItems.length > 0) {
+          menuItems.push(<DropdownMenuSeparator />);
+        }
+
+        menuItems.push(
+          <DropdownMenuItem
+            onSelect={() => {
+              setIsDeleteOpen(true);
+            }}
+          >
+            <IconTrash className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>,
+        );
+
+        dialogs.push(
+          <DeleteStoreProductDialog
+            open={isDeleteOpen}
+            upc={storeProduct.UPC}
+            onOpenChange={setIsDeleteOpen}
+          />,
+        );
+      }
+
+      return (
+        <>
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className="data-[state=open]:bg-muted"
+                  size="icon"
+                  variant="ghost"
+                >
+                  <IconDotsVertical className="h-4 w-4" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40">
+                {menuItems}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {dialogs}
+        </>
+      );
+    },
+  };
+
+  // TODO: add "canCreatePromotional" permission and check it here
+  columns.push(actionColumn);
+
+  return columns;
 }

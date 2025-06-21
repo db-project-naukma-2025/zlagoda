@@ -33,3 +33,9 @@ class UserGroupController:
 
     def remove_user_from_group(self, user: User, group: Group) -> None:
         self.user_group_repo.delete(user.id, group.id)
+
+    def get_user_groups(self, user: User) -> list[Group]:
+        group_ids = [
+            ug.group_id for ug in self.user_group_repo.get_user_groups(user.id)
+        ]
+        return self.group_repo.get_groups_by_ids(group_ids)

@@ -8,6 +8,7 @@ interface TableToolbarProps<T> {
   onSearch: (value: string) => void;
   onClearSearch: () => void;
   selectedItems: T[];
+  enableBulkDelete?: boolean;
   onBulkDelete?: (items: T[]) => Promise<void>;
   isBulkDeletePending?: boolean;
   bulkDeleteItemName?: string;
@@ -20,6 +21,7 @@ export function TableToolbar<T>({
   onSearch,
   onClearSearch,
   selectedItems,
+  enableBulkDelete = true,
   onBulkDelete,
   isBulkDeletePending = false,
   bulkDeleteItemName = "items",
@@ -37,7 +39,7 @@ export function TableToolbar<T>({
       {additionalFilters.map((filter, idx) => (
         <React.Fragment key={idx}>{filter}</React.Fragment>
       ))}
-      {onBulkDelete && selectedItems.length > 0 && (
+      {enableBulkDelete && onBulkDelete && selectedItems.length > 0 && (
         <BulkDeleteButton
           isPending={isBulkDeletePending}
           itemName={bulkDeleteItemName}

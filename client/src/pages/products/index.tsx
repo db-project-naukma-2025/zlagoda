@@ -1,11 +1,18 @@
 import { DataTable } from "@/components/data-table";
 import { PageLayout } from "@/components/layout/page-layout";
 import { TableToolbar } from "@/components/table-toolbar";
+import scopes from "@/config/scopes";
+import { useAuth } from "@/lib/api/auth";
 
 import { CreateProductDialog } from "./dialogs";
 import { useProducts } from "./use-products";
 
 export default function ProductsPage() {
+  const { user } = useAuth();
+  const canAdd = user?.scopes.includes(scopes.product.can_create) ?? false;
+  const canDelete = user?.scopes.includes(scopes.product.can_delete) ?? false;
+  const canEdit = user?.scopes.includes(scopes.product.can_update) ?? false;
+
   const {
     pagination,
     setPagination,
@@ -23,11 +30,11 @@ export default function ProductsPage() {
     clearSearch,
     columns,
     categories,
-  } = useProducts();
+  } = useProducts(canDelete, canEdit);
 
-  const createButton = (
+  const createButton = canAdd ? (
     <CreateProductDialog categories={categories?.data ?? []} />
-  );
+  ) : null;
 
   return (
     <PageLayout
@@ -37,6 +44,7 @@ export default function ProductsPage() {
       <TableToolbar
         bulkDeleteItemName="products"
         createButton={createButton}
+        enableBulkDelete={canDelete}
         isBulkDeletePending={bulkDeleteMutation.isPending}
         searchValue={searchTerm}
         selectedItems={selectedProducts}
@@ -47,7 +55,7 @@ export default function ProductsPage() {
       <DataTable
         columns={columns}
         data={products}
-        enableRowSelection={true}
+        enableRowSelection={canDelete}
         isLoading={isLoading}
         keyField="id_product"
         pagination={pagination}

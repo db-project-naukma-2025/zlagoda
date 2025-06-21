@@ -1,8 +1,10 @@
 import { DataTable } from "@/components/data-table";
 import { TableToolbar } from "@/components/table-toolbar";
+import scopes from "@/config/scopes";
+import { useAuth } from "@/lib/api/auth";
 
 import { CreateCustomerDialog } from "./dialogs";
-import { customerCardColumns } from "./table";
+import { createCustomerCardColumns } from "./table";
 import { useCustomerCards } from "./use-customer-cards";
 
 export default function CustomerCardsPage() {
@@ -23,7 +25,17 @@ export default function CustomerCardsPage() {
     clearSearch,
   } = useCustomerCards();
 
-  const createButton = <CreateCustomerDialog />;
+  const { user } = useAuth();
+  const canAdd =
+    user?.scopes.includes(scopes.customer_card.can_create) ?? false;
+  const canDelete =
+    user?.scopes.includes(scopes.customer_card.can_delete) ?? false;
+  const canEdit =
+    user?.scopes.includes(scopes.customer_card.can_update) ?? false;
+
+  const customerCardColumns = createCustomerCardColumns(canDelete, canEdit);
+
+  const createButton = canAdd ? <CreateCustomerDialog /> : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -38,6 +50,7 @@ export default function CustomerCardsPage() {
       <TableToolbar
         bulkDeleteItemName="customer cards"
         createButton={createButton}
+        enableBulkDelete={canDelete}
         isBulkDeletePending={bulkDeleteMutation.isPending}
         searchValue={searchTerm}
         selectedItems={selectedCustomerCards}
@@ -48,7 +61,7 @@ export default function CustomerCardsPage() {
       <DataTable
         columns={customerCardColumns}
         data={customerCards}
-        enableRowSelection={true}
+        enableRowSelection={canDelete}
         isLoading={isLoading}
         keyField="card_number"
         pagination={pagination}

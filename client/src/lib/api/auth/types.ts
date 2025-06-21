@@ -4,7 +4,7 @@ import { type apiSchemas } from "../client";
 
 export type LoginFormData = z.infer<typeof apiSchemas.Body_login>;
 
-export type User = z.infer<typeof apiSchemas.User>;
+export type User = z.infer<typeof apiSchemas.UserWithScopes>;
 
 export type UserID = User["id"];
 

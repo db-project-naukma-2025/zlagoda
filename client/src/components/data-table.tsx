@@ -289,7 +289,11 @@ export function DataTable<T, K extends keyof T>({
     <div className="flex flex-col gap-4">
       <DataTableCore columns={columns} isLoading={isLoading} table={table} />
       {!hidePagination && (
-        <DataTablePagination table={table} totalPages={totalPages} />
+        <DataTablePagination
+          enableRowSelection={enableRowSelection}
+          table={table}
+          totalPages={totalPages}
+        />
       )}
     </div>
   );

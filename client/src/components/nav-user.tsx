@@ -35,7 +35,7 @@ export function NavUser({
 }: {
   user: {
     name: string;
-    email: string;
+    groups: string[];
   };
   onLogout?: () => void;
 }) {
@@ -59,7 +59,7 @@ export function NavUser({
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-medium">{user.name}</span>
             <span className="text-muted-foreground truncate text-xs">
-              {user.email}
+              {user.groups.join(", ")}
             </span>
           </div>
           <TooltipProvider>

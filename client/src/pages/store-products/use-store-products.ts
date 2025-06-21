@@ -15,7 +15,7 @@ import {
 
 import { createStoreInventoryColumns } from "./table";
 
-export function useStoreProducts() {
+export function useStoreProducts(canDelete: boolean, canEdit: boolean) {
   const {
     pagination,
     setPagination,
@@ -110,8 +110,10 @@ export function useStoreProducts() {
         productLookup,
         products: productList,
         allStoreProducts,
+        canDelete,
+        canEdit,
       }),
-    [productLookup, productList, allStoreProducts],
+    [productLookup, productList, allStoreProducts, canDelete, canEdit],
   );
 
   // Bulk delete handler for DataTable

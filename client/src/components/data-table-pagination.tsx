@@ -19,19 +19,25 @@ import {
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
   totalPages: number;
+  enableRowSelection?: boolean;
 }
 
 export function DataTablePagination<TData>({
   table,
   totalPages,
+  enableRowSelection = true,
 }: DataTablePaginationProps<TData>) {
   const pagination = table.getState().pagination;
 
   return (
     <div className="flex items-center justify-between px-4">
       <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-        {table.getFilteredSelectedRowModel().rows.length} of many row(s)
-        selected.
+        {enableRowSelection && (
+          <>
+            {table.getFilteredSelectedRowModel().rows.length} of many row(s)
+            selected.
+          </>
+        )}
       </div>
       <div className="flex w-full items-center gap-8 lg:w-fit">
         <div className="hidden items-center gap-2 lg:flex">

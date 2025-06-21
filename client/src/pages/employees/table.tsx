@@ -16,8 +16,11 @@ import { type Employee } from "@/lib/api/employees/types";
 
 import { DeleteEmployeeDialog, EditEmployeeDialog } from "./dialogs";
 
-export function createEmployeeColumns(): ColumnDef<Employee>[] {
-  return [
+export function createEmployeeColumns(
+  canDelete: boolean,
+  canEdit: boolean,
+): ColumnDef<Employee>[] {
+  const columns: ColumnDef<Employee>[] = [
     {
       accessorKey: "id_employee",
       header: ({ column }) => (
@@ -124,7 +127,10 @@ export function createEmployeeColumns(): ColumnDef<Employee>[] {
         return <div className="text-sm">{startDate.toLocaleDateString()}</div>;
       },
     },
-    {
+  ];
+
+  if (canDelete || canEdit) {
+    columns.push({
       id: "actions",
       header: () => <div className="text-right">Actions</div>,
       cell: function Cell({ row }) {
@@ -139,6 +145,56 @@ export function createEmployeeColumns(): ColumnDef<Employee>[] {
         ]
           .filter(Boolean)
           .join(" ");
+
+        const menuItems = [];
+        const dialogs = [];
+
+        if (canEdit) {
+          menuItems.push(
+            <DropdownMenuItem
+              onSelect={() => {
+                setIsEditOpen(true);
+              }}
+            >
+              <IconEdit className="mr-2 h-4 w-4" />
+              Edit
+            </DropdownMenuItem>,
+          );
+
+          dialogs.push(
+            <EditEmployeeDialog
+              employee={employee}
+              open={isEditOpen}
+              onOpenChange={setIsEditOpen}
+            />,
+          );
+        }
+
+        if (canDelete) {
+          if (menuItems.length > 0) {
+            menuItems.push(<DropdownMenuSeparator />);
+          }
+
+          menuItems.push(
+            <DropdownMenuItem
+              onSelect={() => {
+                setIsDeleteOpen(true);
+              }}
+            >
+              <IconTrash className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>,
+          );
+
+          dialogs.push(
+            <DeleteEmployeeDialog
+              employeeId={employee.id_employee}
+              employeeName={employeeName}
+              open={isDeleteOpen}
+              onOpenChange={setIsDeleteOpen}
+            />,
+          );
+        }
 
         return (
           <>
@@ -155,41 +211,17 @@ export function createEmployeeColumns(): ColumnDef<Employee>[] {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-40">
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setIsEditOpen(true);
-                    }}
-                  >
-                    <IconEdit className="mr-2 h-4 w-4" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setIsDeleteOpen(true);
-                    }}
-                  >
-                    <IconTrash className="mr-2 h-4 w-4" />
-                    Delete
-                  </DropdownMenuItem>
+                  {menuItems}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
 
-            <EditEmployeeDialog
-              employee={employee}
-              open={isEditOpen}
-              onOpenChange={setIsEditOpen}
-            />
-            <DeleteEmployeeDialog
-              employeeId={employee.id_employee}
-              employeeName={employeeName}
-              open={isDeleteOpen}
-              onOpenChange={setIsDeleteOpen}
-            />
+            {dialogs}
           </>
         );
       },
-    },
-  ];
+    });
+  }
+
+  return columns;
 }

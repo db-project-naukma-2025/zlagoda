@@ -2,11 +2,21 @@ import { DataTable } from "@/components/data-table";
 import { PageLayout } from "@/components/layout/page-layout";
 import { TableToolbar } from "@/components/table-toolbar";
 import { Combobox } from "@/components/ui/combobox";
+import scopes from "@/config/scopes";
+import { useAuth } from "@/lib/api/auth";
 
 import { CreateStoreProductDialog } from "./dialogs";
 import { useStoreProducts } from "./use-store-products";
 
 export default function StoreProductsPage() {
+  const { user } = useAuth();
+  const canAdd =
+    user?.scopes.includes(scopes.store_product.can_create) ?? false;
+  const canDelete =
+    user?.scopes.includes(scopes.store_product.can_delete) ?? false;
+  const canEdit =
+    user?.scopes.includes(scopes.store_product.can_update) ?? false;
+
   const {
     pagination,
     setPagination,
@@ -28,7 +38,7 @@ export default function StoreProductsPage() {
     setSearchTerm,
     clearSearch,
     columns,
-  } = useStoreProducts();
+  } = useStoreProducts(canDelete, canEdit);
 
   const productFilterCombobox = (
     <Combobox
@@ -81,12 +91,12 @@ export default function StoreProductsPage() {
 
   const additionalFilters = [productFilterCombobox, promotionalFilterCombobox];
 
-  const createButton = (
+  const createButton = canAdd ? (
     <CreateStoreProductDialog
       products={products}
       storeProducts={storeProducts}
     />
-  );
+  ) : null;
 
   return (
     <PageLayout
@@ -99,6 +109,7 @@ export default function StoreProductsPage() {
         additionalFilters={additionalFilters}
         bulkDeleteItemName="store products"
         createButton={createButton}
+        enableBulkDelete={canDelete}
         isBulkDeletePending={bulkDeleteMutation.isPending}
         searchValue={searchTerm}
         selectedItems={selectedStoreProducts}
@@ -109,7 +120,7 @@ export default function StoreProductsPage() {
       <DataTable
         columns={columns}
         data={storeProducts}
-        enableRowSelection={true}
+        enableRowSelection={canDelete}
         isLoading={isLoading}
         keyField="UPC"
         pagination={pagination}

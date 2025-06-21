@@ -7,12 +7,17 @@ from pydantic import BaseModel
 
 from ..controllers.auth.exceptions import AuthenticationError
 from ..controllers.auth.login import InvalidCredentialsError, LoginController
+from ..controllers.permissions.group import UserGroupController
 from ..controllers.permissions.user import (
     BasicPermission,
     UserPermissionController,
 )
 from ..dal.schemas.auth import User
-from ..ioc_container import login_controller, user_permission_controller
+from ..ioc_container import (
+    login_controller,
+    user_group_controller,
+    user_permission_controller,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -66,6 +71,11 @@ class TokenResponse(BaseModel):
     token_type: Literal["bearer"]
 
 
+class UserWithScopes(User):
+    scopes: list[str]
+    groups: list[str]
+
+
 @cbv(router)
 class AuthViewSet:
     login_controller: LoginController = Depends(login_controller)
@@ -95,15 +105,17 @@ class AuthViewSet:
 
         return TokenResponse(access_token=response.access_token, token_type="bearer")
 
-    @router.get("/me", response_model=User, operation_id="me")
-    async def me(self, user: User = Depends(require_user)) -> User:
-        return user
-
-    @router.get("/me/scopes", response_model=list[str], operation_id="meScopes")
-    async def me_scopes(
+    @router.get("/me", response_model=UserWithScopes, operation_id="me")
+    async def me(
         self,
         user: User = Depends(require_user),
         perm_controller: UserPermissionController = Depends(user_permission_controller),
-    ) -> list[str]:
+        group_controller: UserGroupController = Depends(user_group_controller),
+    ) -> UserWithScopes:
         permissions = list(perm_controller.get_all_permissions(user))
-        return [perm.codename for perm in permissions]
+        groups = group_controller.get_user_groups(user)
+        return UserWithScopes(
+            **user.model_dump(),
+            scopes=[perm.codename for perm in permissions],
+            groups=[group.name for group in groups],
+        )

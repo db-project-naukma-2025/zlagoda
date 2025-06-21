@@ -63,6 +63,9 @@ def basic_checks():
             )
         )
 
+    create_permissions(to_stdout=False)
+    init_roles()
+
 
 @click.group()
 def cli():
@@ -132,7 +135,6 @@ def runserver():
     )
 
     basic_checks()
-    create_permissions(to_stdout=False)
 
     uvicorn.run(
         app,
@@ -174,6 +176,50 @@ def create_permissions_cli():
     Note: only models registered in the model registry will be processed.
     """
     create_permissions(to_stdout=True)
+
+
+def init_roles():
+    with create_db() as db:
+        # Create repositories
+        perm_repo = permission_repository(db)
+        user_group_repo = user_group_repository(db)
+        group_perm_repo = group_permission_repository(db)
+        group_repo = group_repository(db)
+
+        # Create controllers
+        user_perm_controller = user_permission_controller(
+            perm_repo, user_group_repo, group_perm_repo
+        )
+        group_controller = user_group_controller(
+            group_repo, user_group_repo, group_perm_repo
+        )
+
+        # Create role controllers
+        cashier_controller = user_cashier_permission_controller(
+            user_perm_controller,
+            group_controller,
+            group_repo,
+            user_group_repo,
+            group_perm_repo,
+        )
+        manager_controller = user_manager_permission_controller(
+            user_perm_controller,
+            group_controller,
+            group_repo,
+            user_group_repo,
+            group_perm_repo,
+        )
+
+        cashier_controller.init_role()
+        manager_controller.init_role()
+
+
+@cli.command(name="init-roles")
+def init_roles_cli():
+    """
+    Initialize roles.
+    """
+    init_roles()
 
 
 @cli.command()

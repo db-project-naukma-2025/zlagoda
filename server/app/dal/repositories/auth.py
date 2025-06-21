@@ -228,6 +228,7 @@ class PermissionRepository(PydanticDBRepository[Permission]):
 class GroupRepository(PydanticDBRepository[Group]):
     table_name = "auth_group"
     model = Group
+    pk_field = "id"
 
     class AlreadyExists(DatabaseError):
         pass
@@ -238,6 +239,20 @@ class GroupRepository(PydanticDBRepository[Group]):
                 SELECT {", ".join(self._fields)}
                 FROM {self.table_name}
             """,
+        )
+        return [self._row_to_model(row) for row in rows]
+
+    def get_groups_by_ids(self, group_ids: list[int]) -> list[Group]:
+        if not group_ids:
+            return []
+
+        rows = self._db.execute(
+            f"""
+                SELECT {", ".join(self._fields)}
+                FROM {self.table_name}
+                WHERE {self.pk_field} IN ({", ".join(["%s" for _ in group_ids])})
+            """,
+            tuple(group_ids),
         )
         return [self._row_to_model(row) for row in rows]
 
@@ -274,7 +289,7 @@ class GroupRepository(PydanticDBRepository[Group]):
         self._db.execute(
             f"""
                 DELETE FROM {self.table_name}
-                WHERE id = %s
+                WHERE {self.pk_field} = %s
             """,
             (group_id,),
         )
