@@ -14,6 +14,11 @@ export const categoryQueryKeys = {
     [...categoryQueryKeys.all(), "list", params] as const,
   detail: (id: CategoryNumber) =>
     [...categoryQueryKeys.all(), "detail", id] as const,
+  reports: () => [...categoryQueryKeys.all(), "reports"] as const,
+  revenueReport: (dateFrom?: string, dateTo?: string) =>
+    [...categoryQueryKeys.reports(), "revenue", dateFrom, dateTo] as const,
+  allProductsSoldReport: () =>
+    [...categoryQueryKeys.reports(), "all-products-sold"] as const,
 };
 
 export const categoriesApi = {
@@ -50,5 +55,18 @@ export const categoriesApi = {
 
   async bulkDeleteCategories(request: BulkDeleteCategoryRequest) {
     return apiClient.bulkDeleteCategories(request);
+  },
+
+  async getCategoryRevenueReport(dateFrom?: string, dateTo?: string) {
+    return apiClient.getCategoryRevenueReport({
+      queries: {
+        ...(dateFrom && { date_from: dateFrom }),
+        ...(dateTo && { date_to: dateTo }),
+      },
+    });
+  },
+
+  async getCategoriesWithAllProductsSold() {
+    return apiClient.getCategoriesWithAllProductsSold();
   },
 };

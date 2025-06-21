@@ -24,6 +24,13 @@ export type BulkDeleteCategoryRequest = z.infer<
   typeof apiSchemas.BulkDeleteCategoryRequest
 >;
 
+export type CategoryRevenueReport = z.infer<
+  typeof apiSchemas.CategoryRevenueReport
+>;
+export type CategoryWithAllProductsSold = z.infer<
+  typeof apiSchemas.CategoryWithAllProductsSold
+>;
+
 const baseCategorySchema = z.object({
   category_name: z.string().min(1, "Category name is required"),
 });

@@ -78,3 +78,25 @@ export const useBulkDeleteCategories = () => {
     },
   });
 };
+
+export const useGetCategoryRevenueReport = (
+  dateFrom?: string,
+  dateTo?: string,
+  enabled = true,
+) => {
+  return useApiQuery({
+    queryKey: categoryQueryKeys.revenueReport(dateFrom, dateTo),
+    queryFn: () => categoriesApi.getCategoryRevenueReport(dateFrom, dateTo),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled,
+  });
+};
+
+export const useGetCategoriesWithAllProductsSold = (enabled = true) => {
+  return useApiQuery({
+    queryKey: categoryQueryKeys.allProductsSoldReport(),
+    queryFn: () => categoriesApi.getCategoriesWithAllProductsSold(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled,
+  });
+};

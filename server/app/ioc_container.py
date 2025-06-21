@@ -9,6 +9,10 @@ from .controllers.auth.hasher import IHasher, SHA256Hasher
 from .controllers.auth.login import LoginController
 from .controllers.auth.registration import RegistrationController
 from .controllers.auth.token_generator import ITokenGenerator, JWTTokenGenerator
+from .controllers.category import (
+    CategoryModificationController,
+    CategoryQueryController,
+)
 from .controllers.check import (
     CheckCleanupController,
     CheckModificationController,
@@ -182,6 +186,18 @@ def user_group_controller(
     ),
 ) -> UserGroupController:
     return UserGroupController(group_repo, user_group_repo, group_permission_repo)
+
+
+def category_query_controller(
+    category_repo: CategoryRepository = Depends(category_repository),
+) -> CategoryQueryController:
+    return CategoryQueryController(category_repo)
+
+
+def category_modification_controller(
+    category_repo: CategoryRepository = Depends(category_repository),
+) -> CategoryModificationController:
+    return CategoryModificationController(category_repo)
 
 
 def customer_card_query_controller(

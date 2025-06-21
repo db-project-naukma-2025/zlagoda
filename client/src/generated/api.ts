@@ -33,6 +33,17 @@ const UpdateCategoryRequest = z
 const BulkDeleteCategoryRequest = z
   .object({ category_numbers: z.array(z.number().int()) })
   .passthrough();
+const CategoryRevenueReport = z
+  .object({
+    category_number: z.number().int(),
+    category_name: z.string(),
+    total_amount: z.number().int(),
+    total_revenue: z.number(),
+  })
+  .passthrough();
+const CategoryWithAllProductsSold = z
+  .object({ category_number: z.number().int(), category_name: z.string() })
+  .passthrough();
 const CustomerCard = z
   .object({
     card_number: z.string().min(1).max(13),
@@ -176,7 +187,49 @@ const CreatePromotionalProduct = z
 const app__views__store_product__BulkDeleteRequest = z
   .object({ upcs: z.array(z.string()) })
   .passthrough();
-const search = z.union([z.string(), z.null()]).optional();
+const CreateSale = z
+  .object({
+    UPC: z.string().min(12).max(12),
+    product_number: z.number().int().gt(0),
+  })
+  .passthrough();
+const CreateCheck = z
+  .object({
+    check_number: z.string().min(10).max(10),
+    id_employee: z.string().min(10).max(10),
+    card_number: z.union([z.string(), z.null()]).optional(),
+    print_date: z.string().datetime({ offset: true }),
+    sales: z.array(CreateSale),
+  })
+  .passthrough();
+const Sale = z
+  .object({
+    UPC: z.string().min(12).max(12),
+    product_number: z.number().int().gt(0),
+    selling_price: z.number().gt(0),
+    check_number: z.string().min(10).max(10),
+  })
+  .passthrough();
+const Check = z
+  .object({
+    check_number: z.string().min(10).max(10),
+    id_employee: z.string().min(10).max(10),
+    card_number: z.union([z.string(), z.null()]).optional(),
+    print_date: z.string().datetime({ offset: true }),
+    sum_total: z.number().gte(0),
+    vat: z.number().gte(0),
+    sales: z.array(Sale),
+  })
+  .passthrough();
+const date_from = z.union([z.string(), z.null()]).optional();
+const PaginatedChecks = z
+  .object({
+    data: z.array(Check),
+    total: z.number().int(),
+    page: z.number().int(),
+    page_size: z.number().int(),
+  })
+  .passthrough();
 const Employee = z
   .object({
     empl_surname: z.string().max(50),
@@ -251,10 +304,11 @@ const TokenResponse = z
   .passthrough();
 const User = z
   .object({
-    id: z.number().int(),
     username: z.string(),
-    password: z.string(),
+    password: z.union([z.string(), z.string()]),
     is_superuser: z.boolean().optional().default(false),
+    id_employee: z.union([z.string(), z.null()]).optional(),
+    id: z.number().int(),
   })
   .passthrough();
 
@@ -266,6 +320,8 @@ export const schemas = {
   CreateCategoryRequest,
   UpdateCategoryRequest,
   BulkDeleteCategoryRequest,
+  CategoryRevenueReport,
+  CategoryWithAllProductsSold,
   CustomerCard,
   PaginatedCustomerCards,
   CustomerCardCreate,
@@ -284,7 +340,12 @@ export const schemas = {
   UpdateStoreProduct,
   CreatePromotionalProduct,
   app__views__store_product__BulkDeleteRequest,
-  search,
+  CreateSale,
+  CreateCheck,
+  Sale,
+  Check,
+  date_from,
+  PaginatedChecks,
   Employee,
   PaginatedEmployees,
   CreateEmployee,
@@ -480,6 +541,122 @@ const endpoints = makeApi([
   },
   {
     method: "get",
+    path: "/categories/reports/all-products-sold",
+    alias: "getCategoriesWithAllProductsSold",
+    requestFormat: "json",
+    response: z.array(CategoryWithAllProductsSold),
+  },
+  {
+    method: "get",
+    path: "/categories/reports/revenue",
+    alias: "getCategoryRevenueReport",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "date_from",
+        type: "Query",
+        schema: z.string().optional(),
+      },
+      {
+        name: "date_to",
+        type: "Query",
+        schema: z.string().optional(),
+      },
+    ],
+    response: z.array(CategoryRevenueReport),
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "post",
+    path: "/checks/",
+    alias: "CheckViewSet_create_check_checks__post",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "body",
+        type: "Body",
+        schema: CreateCheck,
+      },
+    ],
+    response: Check,
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "get",
+    path: "/checks/",
+    alias: "CheckViewSet_get_checks_checks__get",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "skip",
+        type: "Query",
+        schema: z.number().int().gte(0).optional().default(0),
+      },
+      {
+        name: "limit",
+        type: "Query",
+        schema: category_number,
+      },
+      {
+        name: "date_from",
+        type: "Query",
+        schema: date_from,
+      },
+      {
+        name: "date_to",
+        type: "Query",
+        schema: date_from,
+      },
+      {
+        name: "employee_id",
+        type: "Query",
+        schema: date_from,
+      },
+    ],
+    response: PaginatedChecks,
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "get",
+    path: "/checks/:check_number",
+    alias: "CheckViewSet_get_check_checks__check_number__get",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "check_number",
+        type: "Path",
+        schema: z.string(),
+      },
+    ],
+    response: Check,
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "get",
     path: "/customer-cards/",
     alias: "getCustomerCards",
     requestFormat: "json",
@@ -633,12 +810,12 @@ const endpoints = makeApi([
       {
         name: "search",
         type: "Query",
-        schema: search,
+        schema: date_from,
       },
       {
         name: "role_filter",
         type: "Query",
-        schema: search,
+        schema: date_from,
       },
       {
         name: "sort_by",
@@ -649,10 +826,6 @@ const endpoints = makeApi([
             "empl_role",
             "id_employee",
             "salary",
-            "phone_number",
-            "city",
-            "street",
-            "zip_code",
             "date_of_birth",
             "date_of_start",
           ])

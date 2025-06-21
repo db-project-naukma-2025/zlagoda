@@ -3,6 +3,10 @@ import { PageLayout } from "@/components/layout/page-layout";
 import { TableToolbar } from "@/components/table-toolbar";
 
 import { CreateCategoryDialog } from "./dialogs";
+import {
+  AllProductsSoldReportDialog,
+  CategoryRevenueReportDialog,
+} from "./reports";
 import { categoryColumns } from "./table";
 import { useCategories } from "./use-categories";
 
@@ -31,16 +35,24 @@ export default function CategoriesPage() {
       description="Manage product categories and classifications."
       title="Categories"
     >
-      <TableToolbar
-        bulkDeleteItemName="categories"
-        createButton={createButton}
-        isBulkDeletePending={bulkDeleteMutation.isPending}
-        searchValue={searchTerm}
-        selectedItems={selectedCategories}
-        onBulkDelete={handleBulkDelete}
-        onClearSearch={clearSearch}
-        onSearch={setSearchTerm}
-      />
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex gap-2">
+          <CategoryRevenueReportDialog />
+          <AllProductsSoldReportDialog />
+        </div>
+        <div className="flex-1 max-w-md ml-4">
+          <TableToolbar
+            bulkDeleteItemName="categories"
+            createButton={createButton}
+            isBulkDeletePending={bulkDeleteMutation.isPending}
+            searchValue={searchTerm}
+            selectedItems={selectedCategories}
+            onBulkDelete={handleBulkDelete}
+            onClearSearch={clearSearch}
+            onSearch={setSearchTerm}
+          />
+        </div>
+      </div>
       <DataTable
         columns={categoryColumns}
         data={categories}

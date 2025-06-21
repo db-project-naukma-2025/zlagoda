@@ -148,6 +148,7 @@ export interface DataTableProps<T, K extends keyof T> {
     sort_order?: "asc" | "desc";
   }) => void;
   isLoading?: boolean;
+  hidePagination?: boolean;
 }
 
 export function DataTable<T, K extends keyof T>({
@@ -162,6 +163,7 @@ export function DataTable<T, K extends keyof T>({
   sorting,
   onSortingChange,
   isLoading = false,
+  hidePagination = false,
 }: DataTableProps<T, K>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -286,7 +288,9 @@ export function DataTable<T, K extends keyof T>({
   return (
     <div className="flex flex-col gap-4">
       <DataTableCore columns={columns} isLoading={isLoading} table={table} />
-      <DataTablePagination table={table} totalPages={totalPages} />
+      {!hidePagination && (
+        <DataTablePagination table={table} totalPages={totalPages} />
+      )}
     </div>
   );
 }
