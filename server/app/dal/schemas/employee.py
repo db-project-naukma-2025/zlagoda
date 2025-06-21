@@ -46,3 +46,28 @@ class CreateEmployee(Employee):
 
 class UpdateEmployee(BaseEmployee):
     pass
+
+
+class EmployeeWorkStatistics(BaseModel):
+    total_checks: int = Field(description="Total number of checks created")
+    total_sales_amount: float = Field(description="Total amount of all sales")
+    total_items_sold: int = Field(description="Total number of items sold")
+    average_check_amount: float = Field(description="Average amount per check")
+    customers_served: int = Field(description="Number of unique customers served")
+    days_worked: int = Field(description="Number of days with at least one check")
+    most_recent_check_date: Optional[date] = Field(
+        description="Date of most recent check"
+    )
+    most_sold_product_name: Optional[str] = Field(
+        description="Name of most frequently sold product"
+    )
+    most_sold_product_quantity: int = Field(description="Quantity of most sold product")
+
+
+class EmployeeSelfInfo(BaseModel):
+    """Comprehensive employee information including personal details and work statistics"""
+
+    employee: Employee
+    statistics: EmployeeWorkStatistics
+    work_experience_days: int = Field(description="Total days since start date")
+    age: int = Field(description="Current age in years")

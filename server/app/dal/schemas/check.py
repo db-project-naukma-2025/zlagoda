@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -8,7 +8,6 @@ from .sale import CreateSale, Sale
 
 class BaseCheck(BaseModel):
     check_number: str = Field(min_length=10, max_length=10, examples=["1010101010"])
-    id_employee: str = Field(min_length=10, max_length=10, examples=["0000000001"])
     card_number: Optional[str] = Field(
         min_length=1, max_length=13, examples=["1234567890123"]
     )
@@ -17,7 +16,12 @@ class BaseCheck(BaseModel):
     @field_validator("print_date")
     @classmethod
     def validate_date_not_future(cls, v: datetime) -> datetime:
-        if v > datetime.now():
+        if v.tzinfo is not None:
+            now = datetime.now(timezone.utc)
+        else:
+            now = datetime.now()
+
+        if v > now:
             raise ValueError("Check date cannot be in the future")
         return v
 
@@ -31,6 +35,7 @@ class BaseCheck(BaseModel):
 
 
 class RelationalCheck(BaseCheck):
+    id_employee: str = Field(min_length=10, max_length=10, examples=["0000000001"])
     sum_total: float = Field(ge=0, examples=[150.99])
     vat: float = Field(ge=0, examples=[25.165])
 

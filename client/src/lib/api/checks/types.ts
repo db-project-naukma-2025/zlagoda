@@ -37,10 +37,6 @@ const saleSchema = z.object({
 
 export const createCheckSchema: z.ZodType<CreateCheck> = z.object({
   check_number: checkNumberSchema,
-  id_employee: z
-    .string()
-    .min(10, "Employee ID must be 10 characters")
-    .max(10, "Employee ID must be 10 characters"),
   card_number: z.string().nullable(),
   print_date: z.string().datetime({ offset: true }),
   sales: z.array(saleSchema).min(1, "At least one sale is required"),

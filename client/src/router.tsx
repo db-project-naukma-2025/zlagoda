@@ -25,7 +25,7 @@ const requireAuth = () => {
 const redirectIfAuthenticated = () => {
   const token = tokenStorage.get();
   if (token) {
-    return redirect({ to: "/dashboard" });
+    return redirect({ to: "/checks" });
   }
   return null;
 };
@@ -49,7 +49,7 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
   beforeLoad: () => {
-    return redirect({ to: "/dashboard" });
+    return redirect({ to: "/checks" });
   },
 });
 

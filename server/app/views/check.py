@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, Query, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
@@ -41,11 +41,17 @@ class CheckViewSet:
     async def create_check(
         self,
         check_data: CreateCheck,
-        _: User = Security(
+        current_user: User = Security(
             require_permission((RelationalCheck, BasicPermission.CREATE))
         ),
     ) -> Check:
-        return self.modification_controller.create(check_data)
+        if not current_user.id_employee:
+            raise HTTPException(
+                status_code=400,
+                detail="Current user is not associated with an employee",
+            )
+
+        return self.modification_controller.create(check_data, current_user.id_employee)
 
     @router.get("/{check_number}", response_model=Check)
     async def get_check(

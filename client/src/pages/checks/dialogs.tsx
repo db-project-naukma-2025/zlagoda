@@ -24,7 +24,6 @@ import {
   type CreateCheck,
 } from "@/lib/api/checks/types";
 import { useGetCustomerCards } from "@/lib/api/customer-cards/hooks";
-import { useGetEmployees } from "@/lib/api/employees/hooks";
 import { getApiErrorMessage } from "@/lib/api/get-api-error-message";
 import { useGetProducts } from "@/lib/api/products/hooks";
 import { useGetStoreProducts } from "@/lib/api/store-products/hooks";
@@ -46,7 +45,6 @@ export function ViewCheckDialog({
   employeeLookup,
   canViewEmployees,
 }: ViewCheckDialogProps) {
-  // Fetch store products, products, and categories to get complete product information
   const { data: storeProductsResponse } = useGetStoreProducts({ limit: 1000 });
   const { data: productsResponse } = useGetProducts({ limit: 1000 });
   const { data: categoriesResponse } = useGetCategories({ limit: 1000 });
@@ -241,21 +239,13 @@ export function ViewCheckDialog({
 
 export function CreateCheckDialog() {
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sales, setSales] = useState<CreateCheck["sales"]>([
-    { UPC: "", product_number: 1 },
-  ]);
 
   const createMutation = useCreateCheck();
 
-  const { data: employeesResponse } = useGetEmployees({ limit: 1000 });
   const { data: customerCardsResponse } = useGetCustomerCards({ limit: 1000 });
   const { data: storeProductsResponse } = useGetStoreProducts({ limit: 1000 });
+  const { data: productsResponse } = useGetProducts({ limit: 1000 });
 
-  const employees = useMemo(
-    () => employeesResponse?.data ?? [],
-    [employeesResponse?.data],
-  );
   const customerCards = useMemo(
     () => customerCardsResponse?.data ?? [],
     [customerCardsResponse?.data],
@@ -264,25 +254,25 @@ export function CreateCheckDialog() {
     () => storeProductsResponse?.data ?? [],
     [storeProductsResponse?.data],
   );
+  const products = useMemo(
+    () => productsResponse?.data ?? [],
+    [productsResponse?.data],
+  );
 
   const form = useForm({
     defaultValues: {
       check_number: "",
-      id_employee: "",
       card_number: null as string | null,
       print_date: new Date().toISOString(),
-      sales: [] as CreateCheck["sales"],
+      sales: [{ UPC: "", product_number: 1 }] as CreateCheck["sales"],
     },
     validators: {
-      onBlur: createCheckSchema,
       onSubmit: createCheckSchema,
     },
     onSubmit: async ({ value }) => {
-      setIsSubmitting(true);
       try {
         const checkData: CreateCheck = {
           ...value,
-          sales: sales.filter((sale) => sale.UPC && sale.product_number > 0),
           print_date: new Date().toISOString(),
         };
 
@@ -291,7 +281,6 @@ export function CreateCheckDialog() {
         toast.success("Check created successfully");
         setOpen(false);
         form.reset();
-        setSales([{ UPC: "", product_number: 1 }]);
       } catch (error) {
         console.error("Failed to create check:", error);
         const errorMessage = getApiErrorMessage(
@@ -299,27 +288,18 @@ export function CreateCheckDialog() {
           "Failed to create check",
         );
         toast.error(errorMessage);
-      } finally {
-        setIsSubmitting(false);
       }
     },
   });
 
-  // Generate a unique check number
-  const generateCheckNumber = () => {
-    const timestamp = Date.now().toString();
-    return timestamp.slice(-10); // Last 10 digits
-  };
-
   const handleOpenChange = (newOpen: boolean) => {
     setOpen(newOpen);
-    if (newOpen) {
-      // Generate new check number when opening
-      form.setFieldValue("check_number", generateCheckNumber());
+    if (!newOpen) {
+      form.reset();
     }
   };
 
-  const isPending = isSubmitting || createMutation.isPending;
+  const isPending = createMutation.isPending;
 
   return (
     <FormDialog
@@ -342,8 +322,8 @@ export function CreateCheckDialog() {
     >
       <CheckFormFields
         customerCards={customerCards}
-        employees={employees}
         form={form}
+        products={products}
         storeProducts={storeProducts}
       />
     </FormDialog>

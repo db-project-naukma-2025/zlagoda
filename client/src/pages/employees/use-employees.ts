@@ -87,7 +87,10 @@ export function useEmployees({
 
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
 
-  const employees: Employee[] = paginatedResponse?.data ?? [];
+  const employees: Employee[] = useMemo(
+    () => paginatedResponse?.data ?? [],
+    [paginatedResponse?.data],
+  );
 
   const columns = useMemo(
     () =>

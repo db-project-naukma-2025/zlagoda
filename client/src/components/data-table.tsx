@@ -81,6 +81,11 @@ export function DataTableColumnHeader<TData, TValue>({
         </Button>
       )}
 
+      {/* Title when no sorting but has filter */}
+      {!column.getCanSort() && filter && (
+        <span className="font-medium mr-2">{title}</span>
+      )}
+
       {/* Filter button */}
       {filter && (
         <Popover>

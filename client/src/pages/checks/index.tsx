@@ -137,7 +137,6 @@ export default function ChecksPage() {
           })),
         ]}
         placeholder="Filter by employee"
-        searchPlaceholder="Search employees..."
         value={employeeFilter ?? "all"}
         onValueChange={(value) => {
           setEmployeeFilter(value === "all" ? undefined : value);
@@ -220,6 +219,10 @@ export default function ChecksPage() {
       loadingText="Loading checks..."
       title="Checks"
     >
+      <ChecksMetadataDisplay
+        filterContext={filterContext}
+        metadata={metadata}
+      />
       {toolbar}
       <DataTable
         columns={columns}
@@ -232,11 +235,6 @@ export default function ChecksPage() {
         totalPages={totalPages}
         onPaginationChange={setPagination}
         onSortingChange={handleSortingChange}
-      />
-
-      <ChecksMetadataDisplay
-        filterContext={filterContext}
-        metadata={metadata}
       />
 
       <ViewCheckDialog

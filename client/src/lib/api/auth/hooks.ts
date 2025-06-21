@@ -55,7 +55,7 @@ export const useLogin = () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Redirect to dashboard
-      void router.navigate({ to: "/dashboard" });
+      void router.navigate({ to: "/checks" });
     },
   });
 };

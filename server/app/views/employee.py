@@ -9,7 +9,12 @@ from ..controllers.employee import (
 )
 from ..dal.repositories.employee import EmployeeRepository
 from ..dal.schemas.auth import User
-from ..dal.schemas.employee import CreateEmployee, Employee, UpdateEmployee
+from ..dal.schemas.employee import (
+    CreateEmployee,
+    Employee,
+    EmployeeSelfInfo,
+    UpdateEmployee,
+)
 from ..db.connection.exceptions import IntegrityError
 from ..ioc_container import (
     employee_modification_controller,
@@ -37,6 +42,24 @@ class EmployeeViewSet:
     modification_controller: EmployeeModificationController = Depends(
         employee_modification_controller
     )
+
+    @router.get("/me", response_model=EmployeeSelfInfo, operation_id="getMyEmployee")
+    async def get_my_employee(
+        self,
+        current_user: User = Security(require_permission((Employee, "view_self"))),
+    ):
+        if not current_user.id_employee:
+            raise HTTPException(
+                status_code=404,
+                detail="Current user is not associated with an employee",
+            )
+
+        try:
+            return self.query_controller.get_employee_self_info(
+                current_user.id_employee
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
 
     @router.get(
         "/", response_model=PaginatedResponse[Employee], operation_id="getEmployees"

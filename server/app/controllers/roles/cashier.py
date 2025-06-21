@@ -1,9 +1,8 @@
-from ...controllers.permissions import (
-    BasicPermission,
-)
+from ...controllers.permissions import BasicPermission
 from ...dal.schemas import (
     Category,
     CustomerCard,
+    Employee,
     Product,
     RelationalCheck,
     StoreProduct,
@@ -24,4 +23,5 @@ class UserCashierPermissionController(UserRoleController):
             (Product, BasicPermission.VIEW),
             (RelationalCheck, BasicPermission.VIEW),
             (RelationalCheck, BasicPermission.CREATE),
+            (Employee, "view_self"),
         ]

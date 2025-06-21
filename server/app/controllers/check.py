@@ -101,14 +101,14 @@ class CheckQueryController(BaseCheckController):
 
 
 class CheckModificationController(BaseCheckController):
-    def create(self, data: CreateCheck) -> Check:
+    def create(self, data: CreateCheck, employee_id: str) -> Check:
         sales_with_prices, final_total, vat = self._prepare_sales_and_calculate_totals(
             data
         )
 
         relational_check = RelationalCheck(
             check_number=data.check_number,
-            id_employee=data.id_employee,
+            id_employee=employee_id,
             card_number=data.card_number,
             print_date=data.print_date,
             sum_total=float(final_total),

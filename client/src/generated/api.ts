@@ -229,7 +229,6 @@ const CreateSale = z
 const CreateCheck = z
   .object({
     check_number: z.string().min(10).max(10),
-    id_employee: z.string().min(10).max(10),
     card_number: z.union([z.string(), z.null()]),
     print_date: z.string().datetime({ offset: true }),
     sales: z.array(CreateSale),
@@ -290,6 +289,27 @@ const Employee = z
     street: z.string().max(50),
     zip_code: z.string().min(5).max(9),
     id_employee: z.string().min(10).max(10),
+  })
+  .passthrough();
+const EmployeeWorkStatistics = z
+  .object({
+    total_checks: z.number().int(),
+    total_sales_amount: z.number(),
+    total_items_sold: z.number().int(),
+    average_check_amount: z.number(),
+    customers_served: z.number().int(),
+    days_worked: z.number().int(),
+    most_recent_check_date: z.union([z.string(), z.null()]),
+    most_sold_product_name: z.union([z.string(), z.null()]),
+    most_sold_product_quantity: z.number().int(),
+  })
+  .passthrough();
+const EmployeeSelfInfo = z
+  .object({
+    employee: Employee,
+    statistics: EmployeeWorkStatistics,
+    work_experience_days: z.number().int(),
+    age: z.number().int(),
   })
   .passthrough();
 const PaginatedResponse_Employee_ = z
@@ -401,6 +421,8 @@ export const schemas = {
   ChecksMetadata,
   PaginatedChecks,
   Employee,
+  EmployeeWorkStatistics,
+  EmployeeSelfInfo,
   PaginatedResponse_Employee_,
   CreateEmployee,
   UpdateEmployee,
@@ -1113,6 +1135,13 @@ const endpoints = makeApi([
         schema: HTTPValidationError,
       },
     ],
+  },
+  {
+    method: "get",
+    path: "/employees/me",
+    alias: "getMyEmployee",
+    requestFormat: "json",
+    response: EmployeeSelfInfo,
   },
   {
     method: "get",

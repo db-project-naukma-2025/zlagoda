@@ -24,6 +24,13 @@ export function useGetEmployee(id: EmployeeId) {
   });
 }
 
+export function useGetMyEmployee() {
+  return useQuery({
+    queryKey: employeeQueryKeys.me(),
+    queryFn: () => employeesService.getMyEmployee(),
+  });
+}
+
 export function useCreateEmployee() {
   const queryClient = useQueryClient();
 

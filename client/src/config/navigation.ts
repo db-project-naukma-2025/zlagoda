@@ -1,11 +1,11 @@
 import {
   IconArchive,
   IconBox,
-  IconDashboard,
   IconPackage,
   IconReceipt,
   IconTags,
   IconUser,
+  IconUserCircle,
   IconUsers,
 } from "@tabler/icons-react";
 import { type RouteComponent } from "@tanstack/react-router";
@@ -13,8 +13,8 @@ import { type RouteComponent } from "@tanstack/react-router";
 import CategoriesPage from "../pages/categories";
 import ChecksPage from "../pages/checks";
 import CustomersPage from "../pages/customers";
-import DashboardPage from "../pages/dashboard-page";
 import EmployeesPage from "../pages/employees";
+import MePage from "../pages/me";
 import ProductsPage from "../pages/products";
 import StoreProductsPage from "../pages/store-products";
 
@@ -32,11 +32,12 @@ export interface NavigationItem {
 
 export const navigationConfig: NavigationItem[] = [
   {
-    id: "dashboard",
-    title: "Dashboard",
-    path: "/dashboard",
-    icon: IconDashboard,
-    component: DashboardPage,
+    id: "me",
+    title: "Me",
+    path: "/me",
+    icon: IconUserCircle,
+    component: MePage,
+    view_scope: scopes.employee.view_self,
   },
   {
     id: "employees",

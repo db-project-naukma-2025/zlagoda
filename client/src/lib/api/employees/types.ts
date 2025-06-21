@@ -12,6 +12,11 @@ export type BulkDeleteEmployeeRequest = z.infer<
   typeof apiSchemas.BulkDeleteEmployee
 >;
 
+export type EmployeeWorkStatistics = z.infer<
+  typeof apiSchemas.EmployeeWorkStatistics
+>;
+export type EmployeeSelfInfo = z.infer<typeof apiSchemas.EmployeeSelfInfo>;
+
 type GetEmployeesQueryParams = Extract<
   Api[number],
   { path: "/employees/"; method: "get" }
