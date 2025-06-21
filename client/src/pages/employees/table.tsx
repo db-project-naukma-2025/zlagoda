@@ -16,10 +16,45 @@ import { type Employee } from "@/lib/api/employees/types";
 
 import { DeleteEmployeeDialog, EditEmployeeDialog } from "./dialogs";
 
-export function createEmployeeColumns(
-  canDelete: boolean,
-  canEdit: boolean,
-): ColumnDef<Employee>[] {
+interface EmployeeTableProps {
+  canDelete: boolean;
+  canEdit: boolean;
+  roleFilter: string | undefined;
+  setRoleFilter?: (role: string | undefined) => void;
+  employees: Employee[];
+  resetPagination?: () => void;
+}
+
+export function createEmployeeColumns({
+  canDelete,
+  canEdit,
+  roleFilter,
+  setRoleFilter,
+  employees,
+  resetPagination,
+}: EmployeeTableProps): ColumnDef<Employee>[] {
+  const roleLookup = employees.reduce<Record<string, string>>(
+    (acc, employee) => {
+      acc[employee.empl_role] = employee.empl_role;
+      return acc;
+    },
+    {},
+  );
+
+  const roleFilterConfig = {
+    options: Object.values(roleLookup).map((role) => ({
+      value: role,
+      label: role,
+    })),
+    value: roleFilter ?? "",
+    onValueChange: (value: string) => {
+      setRoleFilter?.(value === "" ? undefined : value);
+      resetPagination?.();
+    },
+    placeholder: "Select role",
+    label: "Role",
+  };
+
   const columns: ColumnDef<Employee>[] = [
     {
       accessorKey: "id_employee",
@@ -55,7 +90,11 @@ export function createEmployeeColumns(
     {
       accessorKey: "empl_role",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Role" />
+        <DataTableColumnHeader
+          column={column}
+          filter={roleFilterConfig}
+          title="Role"
+        />
       ),
       cell: ({ row }) => {
         const role = row.getValue<string>("empl_role");

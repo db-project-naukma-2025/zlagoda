@@ -29,7 +29,7 @@ export default function EmployeesPage() {
     setSearchTerm,
     clearSearch,
     columns,
-  } = useEmployees(canDelete, canEdit);
+  } = useEmployees({ canDelete, canEdit });
 
   const createButton = canAdd ? <CreateEmployeeDialog /> : null;
 

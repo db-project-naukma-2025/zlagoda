@@ -12,7 +12,15 @@ export function EmployeesOnlyWithPromotionalSalesReportDialog() {
   const { data: reportData, isLoading } =
     useGetEmployeesOnlyWithPromotionalSales();
 
-  const columns = createEmployeeColumns(false, false);
+  const columns = createEmployeeColumns({
+    canDelete: false,
+    canEdit: false,
+    roleFilter: "",
+    setRoleFilter: () => {
+      // do nothing
+    },
+    employees: reportData ?? [],
+  });
 
   return (
     <ReportDialog

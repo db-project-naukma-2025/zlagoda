@@ -13,7 +13,13 @@ import {
 
 import { createEmployeeColumns } from "./table";
 
-export function useEmployees(canDelete: boolean, canEdit: boolean) {
+interface UseEmployeesProps {
+  canDelete: boolean;
+  canEdit: boolean;
+  roleFilter?: string;
+}
+
+export function useEmployees({ canDelete, canEdit }: UseEmployeesProps) {
   const {
     pagination,
     setPagination,
@@ -57,8 +63,16 @@ export function useEmployees(canDelete: boolean, canEdit: boolean) {
   const employees: Employee[] = paginatedResponse?.data ?? [];
 
   const columns = useMemo(
-    () => createEmployeeColumns(canDelete, canEdit),
-    [canDelete, canEdit],
+    () =>
+      createEmployeeColumns({
+        canDelete,
+        canEdit,
+        roleFilter,
+        setRoleFilter,
+        employees,
+        resetPagination,
+      }),
+    [canDelete, canEdit, roleFilter, setRoleFilter, employees, resetPagination],
   );
 
   // Bulk delete handler for DataTable
