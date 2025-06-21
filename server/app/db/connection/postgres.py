@@ -44,7 +44,7 @@ class PostgresDatabase(IDatabase):
         formatted_query = " ".join(
             line.strip() for line in query.splitlines() if line.strip()
         )
-        logger.debug("execute_query.start", query=formatted_query)
+        logger.debug("execute_query.start", query=formatted_query, params=params)
         conn = self._must_conn
         original_error = None
         new_error = None

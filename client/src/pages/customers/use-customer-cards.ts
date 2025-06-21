@@ -4,11 +4,11 @@ import { useSearch } from "@/hooks/use-search";
 import { useTableState } from "@/hooks/use-table-state";
 import {
   useBulkDeleteCustomerCards,
-  useGetCustomerCards,
+  useSearchCustomerCards,
 } from "@/lib/api/customer-cards/hooks";
 import {
   type CustomerCard,
-  type GetCustomerCardsOptions,
+  type SearchCustomerCardsOptions,
 } from "@/lib/api/customer-cards/types";
 
 interface UseCustomerCardsOptions {
@@ -26,7 +26,7 @@ export function useCustomerCards({
     resetPagination,
   } = useTableState({
     defaultSorting: {
-      sort_by: "category_number",
+      sort_by: "card_number",
       sort_order: "desc",
     },
   });
@@ -37,20 +37,24 @@ export function useCustomerCards({
     },
   });
 
-  const queryParams = useMemo<Partial<GetCustomerCardsOptions>>(
+  const queryParams = useMemo<Partial<SearchCustomerCardsOptions>>(
     () => ({
       skip: printMode ? 0 : pagination.pageIndex * pagination.pageSize,
-      limit: printMode ? null : pagination.pageSize,
-      search: searchTerm,
+      limit: pagination.pageSize,
+      cust_surname: searchTerm,
+      percent: undefined,
+      sort_by: sorting.sort_by as SearchCustomerCardsOptions["sort_by"],
+      sort_order:
+        sorting.sort_order as SearchCustomerCardsOptions["sort_order"],
     }),
-    [pagination, searchTerm, printMode],
+    [pagination, searchTerm, printMode, sorting],
   );
 
   const {
     data: paginatedResponse,
     isLoading,
     refetch,
-  } = useGetCustomerCards(queryParams);
+  } = useSearchCustomerCards(queryParams);
   const bulkDeleteMutation = useBulkDeleteCustomerCards();
 
   const totalPages = paginatedResponse?.total_pages ?? 0;

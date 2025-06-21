@@ -90,3 +90,14 @@ export type GetCardSoldCategoriesReportOptions = {
     K["schema"]
   >;
 };
+
+type SearchCustomerCardsQueryParams = Extract<
+  Api[number],
+  { path: "/customer-cards/search"; method: "get" }
+>["parameters"];
+
+export type SearchCustomerCardsOptions = {
+  [K in SearchCustomerCardsQueryParams[number] as K["name"]]: z.infer<
+    K["schema"]
+  >;
+};

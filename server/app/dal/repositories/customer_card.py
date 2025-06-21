@@ -48,7 +48,7 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
             """,
             (card_number,),
         )
-        
+
     def delete_multiple(self, card_numbers: list[str]) -> None:
         self._db.execute(
             f"""
@@ -112,7 +112,9 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
         if sort_order not in ["asc", "desc"]:
             raise ValueError(f"Invalid sort_order: {sort_order}")
 
-        where_clauses, params = self._construct_clauses(fields, customer_card)
+        where_clauses, params = self._construct_clauses(
+            fields, customer_card, use_like=True
+        )
 
         query = f""" SELECT {", ".join(fields)} FROM {self.table_name}"""
         if where_clauses:

@@ -21,7 +21,7 @@ class CustomerCardQueryController(BaseCustomerCardController):
         sort_order: Literal["asc", "desc"]
 
     DEFAULT_ORDERING: _DefaultOrdering = {
-        "order_by": "cust_surname",
+        "order_by": "card_number",
         "sort_order": "desc",
     }
 
@@ -35,32 +35,30 @@ class CustomerCardQueryController(BaseCustomerCardController):
         total = self.repo.get_total_count()
         return cards, total
 
-    def by_percentage(
+    def search(
         self,
-        discount_percent: int,
+        cust_surname: str | None = None,
+        percent: int | None = None,
         *,
+        order_by: str | None = None,
+        sort_order: Literal["asc", "desc"] | None = None,
         limit: int | None = None,
         offset: int | None = None,
     ) -> tuple[list[CustomerCard], int]:
-        cards = self.repo.search(
-            CustomerCardUpdate(percent=discount_percent),
-            limit=limit,
-            offset=offset,
-            **self.DEFAULT_ORDERING,
-        )
-        total = self.repo.get_total_count(CustomerCardUpdate(percent=discount_percent))
-        return cards, total
+        search_params = CustomerCardUpdate()
+        if cust_surname:
+            search_params.cust_surname = cust_surname
+        if percent:
+            search_params.percent = percent
 
-    def by_surname(
-        self, surname: str, *, limit: int | None = None, offset: int | None = None
-    ) -> tuple[list[CustomerCard], int]:
         cards = self.repo.search(
-            CustomerCardUpdate(cust_surname=surname),
+            search_params,
+            order_by=order_by or self.DEFAULT_ORDERING["order_by"],
+            sort_order=sort_order or self.DEFAULT_ORDERING["sort_order"],
             limit=limit,
             offset=offset,
-            **self.DEFAULT_ORDERING,
         )
-        total = self.repo.get_total_count(CustomerCardUpdate(cust_surname=surname))
+        total = self.repo.get_total_count(search_params)
         return cards, total
 
     def get_card_sold_categories(

@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_utils.cbv import cbv
@@ -74,6 +74,52 @@ class CustomerCardViewSet:
 
         return PaginationHelper.create_paginated_response(
             data=customer_cards, total=total, skip=skip, limit=limit
+        )
+
+    @router.get(
+        "/search",
+        response_model=PaginatedResponse[CustomerCard],
+        operation_id="searchCustomerCards",
+    )
+    async def search_customer_cards(
+        self,
+        cust_surname: str | None = None,
+        percent: int | None = None,
+        skip: int = Query(0, ge=0, description="Number of records to skip"),
+        limit: int = Query(
+            10, ge=1, le=1000, description="Maximum number of records to return"
+        ),
+        sort_by: Optional[
+            Literal[
+                "cust_surname",
+                "percent",
+                "card_number",
+                "cust_name",
+                "cust_patronymic",
+                "phone_number",
+                "city",
+                "street",
+                "zip_code",
+            ]
+        ] = Query("card_number", description="Field to sort by"),
+        sort_order: Optional[Literal["asc", "desc"]] = Query(
+            "asc", description="Sort order"
+        ),
+        _: User = Security(require_permission((CustomerCard, BasicPermission.VIEW))),
+    ):
+        customer_cards, total = self.query_controller.search(
+            cust_surname=cust_surname,
+            percent=percent,
+            order_by=sort_by,
+            sort_order=sort_order,
+            limit=limit,
+            offset=skip,
+        )
+        return PaginationHelper.create_paginated_response(
+            data=customer_cards,
+            total=total,
+            skip=skip,
+            limit=limit,
         )
 
     @router.get(

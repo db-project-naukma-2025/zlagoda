@@ -29,6 +29,7 @@
     "createuser",
     "cust",
     "empl",
-    "deassign"
+    "deassign",
+    "ilike"
   ]
 }

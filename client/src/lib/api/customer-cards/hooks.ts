@@ -9,6 +9,7 @@ import {
   type CustomerCardNumber,
   type GetCardSoldCategoriesReportOptions,
   type GetCustomerCardsOptions,
+  type SearchCustomerCardsOptions,
   type UpdateCustomerCardFormData,
 } from "./types";
 
@@ -97,6 +98,16 @@ export const useGetCardSoldCategoriesReport = (
   return useApiQuery({
     queryKey: customerCardQueryKeys.report(params),
     queryFn: () => customerCardsApi.getCardSoldCategoriesReport(params),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+};
+
+export const useSearchCustomerCards = (
+  params?: Partial<SearchCustomerCardsOptions>,
+) => {
+  return useApiQuery({
+    queryKey: customerCardQueryKeys.search(params),
+    queryFn: () => customerCardsApi.searchCustomerCards(params),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };

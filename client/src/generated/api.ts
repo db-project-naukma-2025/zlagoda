@@ -89,6 +89,28 @@ const CustomerCardCreate = z
     percent: z.number().int().gte(0).lte(100),
   })
   .passthrough();
+const percent = z.union([z.number(), z.null()]).optional();
+const sort_by = z
+  .union([
+    z.enum([
+      "cust_surname",
+      "percent",
+      "card_number",
+      "cust_name",
+      "cust_patronymic",
+      "phone_number",
+      "city",
+      "street",
+      "zip_code",
+    ]),
+    z.null(),
+  ])
+  .optional()
+  .default("card_number");
+const sort_order = z
+  .union([z.enum(["asc", "desc"]), z.null()])
+  .optional()
+  .default("asc");
 const CardSoldCategoriesReport = z
   .object({
     card_number: z.string(),
@@ -114,7 +136,6 @@ const CustomerCardUpdate = z
 const BulkDeleteCustomerCard = z
   .object({ ids: z.array(z.string()) })
   .passthrough();
-const category_number = z.union([z.number(), z.null()]).optional();
 const Product = z
   .object({
     category_number: z.number().int(),
@@ -233,10 +254,10 @@ const Check = z
     sales: z.array(Sale),
   })
   .passthrough();
-const sort_by = z
+const sort_by__2 = z
   .union([z.enum(["check_number", "print_date", "sum_total"]), z.null()])
   .optional();
-const sort_order = z.union([z.enum(["asc", "desc"]), z.null()]).optional();
+const sort_order__2 = z.union([z.enum(["asc", "desc"]), z.null()]).optional();
 const ChecksMetadata = z
   .object({
     total_sum: z.number(),
@@ -353,10 +374,12 @@ export const schemas = {
   CustomerCard,
   PaginatedResponse_CustomerCard_,
   CustomerCardCreate,
+  percent,
+  sort_by,
+  sort_order,
   CardSoldCategoriesReport,
   CustomerCardUpdate,
   BulkDeleteCustomerCard,
-  category_number,
   Product,
   PaginatedResponse_Product_,
   CreateProduct,
@@ -373,8 +396,8 @@ export const schemas = {
   CreateCheck,
   Sale,
   Check,
-  sort_by,
-  sort_order,
+  sort_by__2,
+  sort_order__2,
   ChecksMetadata,
   PaginatedChecks,
   Employee,
@@ -644,7 +667,7 @@ const endpoints = makeApi([
       {
         name: "limit",
         type: "Query",
-        schema: category_number,
+        schema: percent,
       },
       {
         name: "date_from",
@@ -669,12 +692,12 @@ const endpoints = makeApi([
       {
         name: "sort_by",
         type: "Query",
-        schema: sort_by,
+        schema: sort_by__2,
       },
       {
         name: "sort_order",
         type: "Query",
-        schema: sort_order,
+        schema: sort_order__2,
       },
     ],
     response: PaginatedChecks,
@@ -871,6 +894,52 @@ const endpoints = makeApi([
       },
     ],
     response: z.array(CardSoldCategoriesReport),
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "get",
+    path: "/customer-cards/search",
+    alias: "searchCustomerCards",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "cust_surname",
+        type: "Query",
+        schema: search,
+      },
+      {
+        name: "percent",
+        type: "Query",
+        schema: percent,
+      },
+      {
+        name: "skip",
+        type: "Query",
+        schema: z.number().int().gte(0).optional().default(0),
+      },
+      {
+        name: "limit",
+        type: "Query",
+        schema: z.number().int().gte(1).lte(1000).optional().default(10),
+      },
+      {
+        name: "sort_by",
+        type: "Query",
+        schema: sort_by,
+      },
+      {
+        name: "sort_order",
+        type: "Query",
+        schema: sort_order,
+      },
+    ],
+    response: PaginatedResponse_CustomerCard_,
     errors: [
       {
         status: 422,
@@ -1089,7 +1158,7 @@ const endpoints = makeApi([
       {
         name: "category_number",
         type: "Query",
-        schema: category_number,
+        schema: percent,
       },
     ],
     response: PaginatedResponse_Product_,
@@ -1259,7 +1328,7 @@ const endpoints = makeApi([
       {
         name: "id_product",
         type: "Query",
-        schema: category_number,
+        schema: percent,
       },
     ],
     response: PaginatedResponse_StoreProduct_,

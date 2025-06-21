@@ -58,6 +58,7 @@ class PydanticDBRepository(DBRepository, Generic[_T_BaseModel]):
         parameters: BaseModel | None = None,
         *,
         exclude_fields: list[str] | None = None,
+        use_like: bool = False,
     ) -> tuple[list[str], list[Any]]:
         clauses, params = [], []
         if parameters is not None:
@@ -75,7 +76,11 @@ class PydanticDBRepository(DBRepository, Generic[_T_BaseModel]):
                 filter_values[field] = value
 
             for field, value in filter_values.items():
-                clauses.append(f"{field} = %s")
-                params.append(value)
+                if use_like:
+                    clauses.append(f"{field} LIKE %s")
+                    params.append(f"%{value}%")
+                else:
+                    clauses.append(f"{field} = %s")
+                    params.append(value)
 
         return clauses, params

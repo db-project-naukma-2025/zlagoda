@@ -6,6 +6,7 @@ import {
   type CustomerCardNumber,
   type GetCardSoldCategoriesReportOptions,
   type GetCustomerCardsOptions,
+  type SearchCustomerCardsOptions,
   type UpdateCustomerCardFormData,
 } from "./types";
 
@@ -17,6 +18,8 @@ export const customerCardQueryKeys = {
     [...customerCardQueryKeys.all(), "detail", id] as const,
   report: (params?: Partial<GetCardSoldCategoriesReportOptions>) =>
     [...customerCardQueryKeys.all(), "report", params] as const,
+  search: (params?: Partial<SearchCustomerCardsOptions>) =>
+    [...customerCardQueryKeys.all(), "search", params] as const,
 };
 
 export const customerCardsApi = {
@@ -59,6 +62,12 @@ export const customerCardsApi = {
     params?: Partial<GetCardSoldCategoriesReportOptions>,
   ) {
     return apiClient.getCardSoldCategoriesReport({
+      queries: params ?? {},
+    });
+  },
+
+  async searchCustomerCards(params?: Partial<SearchCustomerCardsOptions>) {
+    return apiClient.searchCustomerCards({
       queries: params ?? {},
     });
   },
