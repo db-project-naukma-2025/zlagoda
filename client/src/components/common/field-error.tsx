@@ -5,6 +5,7 @@ interface FieldErrorProps {
 }
 
 export function FieldError({ field }: FieldErrorProps) {
+  // TODO: improve UX experience
   const shouldShowError =
     field.state.meta.isTouched || field.state.meta.isDirty;
 

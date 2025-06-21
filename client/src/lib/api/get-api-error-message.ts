@@ -12,7 +12,23 @@ export function getApiErrorMessage(
     typeof error.response.data === "object" &&
     "detail" in error.response.data
   ) {
-    return String(error.response.data.detail);
+    const detail = error.response.data.detail;
+
+    if (typeof detail === "string") {
+      return detail;
+    } else if (typeof detail === "object" && detail && "msg" in detail) {
+      return String(detail.msg);
+    } else if (Array.isArray(detail)) {
+      return [
+        ...new Set(
+          detail.map((item: object | null) =>
+            item && "msg" in item ? String(item.msg) : "error",
+          ),
+        ),
+      ].join("\n");
+    }
+
+    return fallback;
   }
 
   if (error instanceof Error && error.message) {

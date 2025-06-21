@@ -38,6 +38,14 @@ export function CreateCustomerDialog() {
     createMutation,
     successMessage: "Customer created successfully",
     errorMessage: "Failed to create customer",
+    transformValue: (value) => ({
+      ...value,
+      cust_patronymic:
+        value.cust_patronymic === "" ? null : value.cust_patronymic,
+      city: value.city === "" ? null : value.city,
+      street: value.street === "" ? null : value.street,
+      zip_code: value.zip_code === "" ? null : value.zip_code,
+    }),
   });
 
   return (
@@ -88,6 +96,13 @@ export function EditCustomerDialog({
       street: customer.street,
       zip_code: customer.zip_code,
       percent: customer.percent,
+    }),
+    transformValue: (value) => ({
+      ...value,
+      cust_patronymic: value.cust_patronymic ?? null,
+      city: value.city ?? null,
+      street: value.street ?? null,
+      zip_code: value.zip_code ?? null,
     }),
     getId: (customer) => customer.card_number,
     successMessage: "Customer updated successfully",
