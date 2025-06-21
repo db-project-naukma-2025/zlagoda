@@ -32,6 +32,8 @@ const createProductOptions = (storeProducts: StoreProductWithName[]) => {
 export default function ChecksPage() {
   const { user } = useAuth();
   const canAdd = user?.scopes.includes(scopes.check.can_create) ?? false;
+  const canPrintToPdf =
+    user?.scopes.includes(scopes.check.print_to_pdf) ?? false;
 
   const {
     pagination,
@@ -185,6 +187,32 @@ export default function ChecksPage() {
 
   const createButton = canAdd ? <CreateCheckDialog /> : null;
 
+  const tableToolbar = (
+    <TableToolbar
+      additionalFilters={additionalFilters}
+      createButton={createButton}
+      enableBulkDelete={false}
+      searchValue={searchTerm}
+      selectedItems={[]}
+      onClearSearch={clearSearch}
+      onSearch={setSearchTerm}
+    />
+  );
+
+  let toolbar;
+  if (canPrintToPdf) {
+    toolbar = (
+      <>
+        <div className="flex justify-between items-center">
+          <PrintButton columns={columns} data={allChecks} title="Checks" />
+          {tableToolbar}
+        </div>
+      </>
+    );
+  } else {
+    toolbar = tableToolbar;
+  }
+
   return (
     <PageLayout
       description="Manage sales receipts and transactions."
@@ -192,18 +220,7 @@ export default function ChecksPage() {
       loadingText="Loading checks..."
       title="Checks"
     >
-      <div className="flex justify-between items-center">
-        <PrintButton columns={columns} data={allChecks} title="Checks" />
-        <TableToolbar
-          additionalFilters={additionalFilters}
-          createButton={createButton}
-          enableBulkDelete={false}
-          searchValue={searchTerm}
-          selectedItems={[]}
-          onClearSearch={clearSearch}
-          onSearch={setSearchTerm}
-        />
-      </div>
+      {toolbar}
       <DataTable
         columns={columns}
         data={checks}

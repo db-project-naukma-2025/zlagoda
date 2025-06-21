@@ -15,6 +15,8 @@ export default function EmployeesPage() {
   const canAdd = user?.scopes.includes(scopes.employee.can_create) ?? false;
   const canDelete = user?.scopes.includes(scopes.employee.can_delete) ?? false;
   const canEdit = user?.scopes.includes(scopes.employee.can_update) ?? false;
+  const canPrintToPdf =
+    user?.scopes.includes(scopes.employee.print_to_pdf) ?? false;
 
   const {
     pagination,
@@ -53,7 +55,9 @@ export default function EmployeesPage() {
     >
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
-          <PrintButton columns={columns} data={printData} title="Employees" />
+          {canPrintToPdf && (
+            <PrintButton columns={columns} data={printData} title="Employees" />
+          )}
           <EmployeesOnlyWithPromotionalSalesReportDialog />
         </div>
         <TableToolbar

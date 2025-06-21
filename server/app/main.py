@@ -12,6 +12,9 @@ from .cli.commands.create_permissions import CreatePermissionsCommand
 from .cli.commands.createuser import Command as CreateUserCommand
 from .cli.commands.deassign_employee import Command as DeassignEmployeeCommand
 from .cli.commands.migrate import Command as DatabaseMigrationCommand
+from .cli.commands.update_user_permissions import (
+    Command as UpdateUserPermissionsCommand,
+)
 from .ioc_container import (
     check_repository,
     create_db,
@@ -65,6 +68,7 @@ def basic_checks():
 
     create_permissions(to_stdout=False)
     init_roles()
+    update_user_permissions()
 
 
 @click.group()
@@ -349,6 +353,56 @@ def deassign_employee():
 
         command = DeassignEmployeeCommand(employee_controller, user_repo)
         command.execute()
+
+
+def update_user_permissions():
+    """Update user permissions for all employees."""
+    with create_db() as db:
+        # Create repositories
+        user_repo = user_repository(db)
+        emp_repo = employee_repository(db)
+        perm_repo = permission_repository(db)
+        user_group_repo = user_group_repository(db)
+        group_perm_repo = group_permission_repository(db)
+        group_repo = group_repository(db)
+
+        # Create controllers
+        user_perm_controller = user_permission_controller(
+            perm_repo, user_group_repo, group_perm_repo
+        )
+        group_controller = user_group_controller(
+            group_repo, user_group_repo, group_perm_repo
+        )
+
+        # Create role controllers
+        cashier_controller = user_cashier_permission_controller(
+            user_perm_controller,
+            group_controller,
+            group_repo,
+            user_group_repo,
+            group_perm_repo,
+        )
+        manager_controller = user_manager_permission_controller(
+            user_perm_controller,
+            group_controller,
+            group_repo,
+            user_group_repo,
+            group_perm_repo,
+        )
+
+        # Create employee permission controller
+        employee_controller = user_employee_permission_controller(
+            cashier_controller, manager_controller, user_repo, emp_repo
+        )
+
+        command = UpdateUserPermissionsCommand(employee_controller, emp_repo)
+        command.execute()
+
+
+@cli.command(name="update-user-permissions")
+def update_user_permissions_cli():
+    """Update user permissions for all employees."""
+    update_user_permissions()
 
 
 def main():

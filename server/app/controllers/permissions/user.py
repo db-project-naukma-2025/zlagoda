@@ -30,8 +30,14 @@ class UserPermissionController:
         self.group_permission_repo = group_permission_repo
         self._model_name_cache: dict[str, set[Permission]] = {}
 
-    def _get_codename(self, model_name: str, perm_name: BasicPermission) -> str:
-        return f"{model_name.lower()}.can_{perm_name.value}"
+    def _get_codename(self, model_name: str, perm_name: BasicPermission | str) -> str:
+        if isinstance(perm_name, str):
+            suffix = perm_name
+        elif isinstance(perm_name, BasicPermission):
+            suffix = f"can_{perm_name.value}"
+        else:
+            raise ValueError(f"Invalid permission name: {perm_name}")
+        return f"{model_name.lower()}.{suffix}"
 
     def _has_all_permissions(self, user: User) -> bool:
         return user.is_superuser
@@ -109,8 +115,7 @@ class UserPermissionController:
         if self._has_all_permissions(user):
             return True
 
-        if isinstance(name, BasicPermission):
-            name = self._get_codename(model.__name__, name)
+        name = self._get_codename(model.__name__, name)
 
         perm = self.permission_repo.search(
             PermissionUpdate(model_name=model.__name__, codename=name)
@@ -131,8 +136,7 @@ class UserPermissionController:
         if isinstance(model_name, type):
             model_name = model_name.__name__
 
-        if isinstance(name, BasicPermission):
-            name = self._get_codename(model_name, name)
+        name = self._get_codename(model_name, name)
 
         perms = self.permission_repo.search(
             PermissionUpdate(model_name=model_name, codename=name)

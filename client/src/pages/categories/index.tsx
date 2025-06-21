@@ -46,6 +46,8 @@ export default function CategoriesPage() {
   const canAdd = user?.scopes.includes(scopes.category.can_create) ?? false;
   const canDelete = user?.scopes.includes(scopes.category.can_delete) ?? false;
   const canEdit = user?.scopes.includes(scopes.category.can_update) ?? false;
+  const canPrintToPdf =
+    user?.scopes.includes(scopes.category.print_to_pdf) ?? false;
 
   const categoryColumns = createCategoryColumns(canDelete, canEdit);
 
@@ -58,17 +60,15 @@ export default function CategoriesPage() {
     >
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2">
-          <PrintButton
-            columns={categoryColumns}
-            data={printData}
-            title="Categories"
-          />
-          {canView && (
-            <>
-              <CategoryRevenueReportDialog />
-              <AllProductsSoldReportDialog />
-            </>
+          {canPrintToPdf && (
+            <PrintButton
+              columns={categoryColumns}
+              data={printData}
+              title="Categories"
+            />
           )}
+          <CategoryRevenueReportDialog />
+          <AllProductsSoldReportDialog />
         </div>
         <TableToolbar
           bulkDeleteItemName="categories"

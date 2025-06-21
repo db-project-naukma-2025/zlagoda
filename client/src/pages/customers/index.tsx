@@ -40,6 +40,8 @@ export default function CustomerCardsPage() {
     user?.scopes.includes(scopes.customer_card.can_delete) ?? false;
   const canEdit =
     user?.scopes.includes(scopes.customer_card.can_update) ?? false;
+  const canPrintToPdf =
+    user?.scopes.includes(scopes.customer_card.print_to_pdf) ?? false;
 
   const customerCardColumns = createCustomerCardColumns({
     percentFilter,
@@ -78,11 +80,13 @@ export default function CustomerCardsPage() {
       </div>
       <div className="flex justify-between items-center">
         <div className="flex gap-2">
-          <PrintButton
-            columns={printColumns}
-            data={printData}
-            title="Customer Cards"
-          />
+          {canPrintToPdf && (
+            <PrintButton
+              columns={printColumns}
+              data={printData}
+              title="Customer Cards"
+            />
+          )}
           <CardSoldCategoriesReportDialog />
         </div>
         <TableToolbar

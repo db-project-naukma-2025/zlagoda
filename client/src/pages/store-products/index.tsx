@@ -18,6 +18,8 @@ export default function StoreProductsPage() {
     user?.scopes.includes(scopes.store_product.can_delete) ?? false;
   const canEdit =
     user?.scopes.includes(scopes.store_product.can_update) ?? false;
+  const canPrintToPdf =
+    user?.scopes.includes(scopes.store_product.print_to_pdf) ?? false;
 
   const {
     pagination,
@@ -110,6 +112,39 @@ export default function StoreProductsPage() {
     />
   ) : null;
 
+  const tableToolbar = (
+    <TableToolbar
+      additionalFilters={additionalFilters}
+      bulkDeleteItemName="store products"
+      createButton={createButton}
+      enableBulkDelete={canDelete}
+      isBulkDeletePending={bulkDeleteMutation.isPending}
+      searchValue={searchTerm}
+      selectedItems={selectedStoreProducts}
+      onBulkDelete={handleBulkDelete}
+      onClearSearch={clearSearch}
+      onSearch={setSearchTerm}
+    />
+  );
+
+  let toolbar;
+  if (canPrintToPdf) {
+    toolbar = (
+      <>
+        <div className="flex justify-between items-center">
+          <PrintButton
+            columns={columns}
+            data={printData}
+            title="Store Products"
+          />
+          {tableToolbar}
+        </div>
+      </>
+    );
+  } else {
+    toolbar = tableToolbar;
+  }
+
   return (
     <PageLayout
       description="Manage store-specific inventory and stock levels."
@@ -117,25 +152,7 @@ export default function StoreProductsPage() {
       loadingText="Loading inventory..."
       title="Store Inventory"
     >
-      <div className="flex justify-between items-center">
-        <PrintButton
-          columns={columns}
-          data={printData}
-          title="Store Products"
-        />
-        <TableToolbar
-          additionalFilters={additionalFilters}
-          bulkDeleteItemName="store products"
-          createButton={createButton}
-          enableBulkDelete={canDelete}
-          isBulkDeletePending={bulkDeleteMutation.isPending}
-          searchValue={searchTerm}
-          selectedItems={selectedStoreProducts}
-          onBulkDelete={handleBulkDelete}
-          onClearSearch={clearSearch}
-          onSearch={setSearchTerm}
-        />
-      </div>
+      {toolbar}
       <DataTable
         columns={columns}
         data={storeProducts}

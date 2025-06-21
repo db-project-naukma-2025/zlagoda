@@ -19,7 +19,7 @@ class UserRoleController(ABC):
         pass
 
     @abstractmethod
-    def get_permissions(self) -> list[tuple[type, BasicPermission]]:
+    def get_permissions(self) -> list[tuple[type, BasicPermission | str]]:
         pass
 
     def __init__(

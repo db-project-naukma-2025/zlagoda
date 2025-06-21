@@ -14,6 +14,8 @@ export default function ProductsPage() {
   const canAdd = user?.scopes.includes(scopes.product.can_create) ?? false;
   const canDelete = user?.scopes.includes(scopes.product.can_delete) ?? false;
   const canEdit = user?.scopes.includes(scopes.product.can_update) ?? false;
+  const canPrintToPdf =
+    user?.scopes.includes(scopes.product.print_to_pdf) ?? false;
 
   const {
     pagination,
@@ -48,25 +50,39 @@ export default function ProductsPage() {
     <CreateProductDialog categories={categories?.data ?? []} />
   ) : null;
 
+  const tableToolbar = (
+    <TableToolbar
+      bulkDeleteItemName="products"
+      createButton={createButton}
+      enableBulkDelete={canDelete}
+      isBulkDeletePending={bulkDeleteMutation.isPending}
+      searchValue={searchTerm}
+      selectedItems={selectedProducts}
+      onBulkDelete={handleBulkDelete}
+      onClearSearch={clearSearch}
+      onSearch={setSearchTerm}
+    />
+  );
+
+  let toolbar;
+  if (canPrintToPdf) {
+    toolbar = (
+      <>
+        <div className="flex justify-between items-center">
+          <PrintButton columns={columns} data={printData} title="Products" />
+          {tableToolbar}
+        </div>
+      </>
+    );
+  } else {
+    toolbar = tableToolbar;
+  }
   return (
     <PageLayout
       description="Manage base product catalog and product definitions."
       title="Base Products"
     >
-      <div className="flex justify-between items-center">
-        <PrintButton columns={columns} data={printData} title="Products" />
-        <TableToolbar
-          bulkDeleteItemName="products"
-          createButton={createButton}
-          enableBulkDelete={canDelete}
-          isBulkDeletePending={bulkDeleteMutation.isPending}
-          searchValue={searchTerm}
-          selectedItems={selectedProducts}
-          onBulkDelete={handleBulkDelete}
-          onClearSearch={clearSearch}
-          onSearch={setSearchTerm}
-        />
-      </div>
+      {toolbar}
       <DataTable
         columns={columns}
         data={products}

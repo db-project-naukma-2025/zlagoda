@@ -15,7 +15,7 @@ class UserCashierPermissionController(UserRoleController):
     def get_role_name(self) -> str:
         return "Cashier"
 
-    def get_permissions(self) -> list[tuple[type, BasicPermission]]:
+    def get_permissions(self) -> list[tuple[type, BasicPermission | str]]:
         return [
             (Category, BasicPermission.VIEW),
             (CustomerCard, BasicPermission.VIEW),

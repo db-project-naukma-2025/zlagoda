@@ -9,12 +9,14 @@ from ...dal.schemas import (
 )
 from ._base import UserRoleController
 
+PDF_PERMISSION = "print_to_pdf"
+
 
 class UserManagerPermissionController(UserRoleController):
     def get_role_name(self) -> str:
         return "Manager"
 
-    def get_permissions(self) -> list[tuple[type, BasicPermission]]:
+    def get_permissions(self) -> list[tuple[type, BasicPermission | str]]:
         return [
             (Employee, BasicPermission.VIEW),
             (Employee, BasicPermission.CREATE),
@@ -38,4 +40,10 @@ class UserManagerPermissionController(UserRoleController):
             (CustomerCard, BasicPermission.DELETE),
             (RelationalCheck, BasicPermission.VIEW),
             (RelationalCheck, BasicPermission.DELETE),
+            (Employee, PDF_PERMISSION),
+            (CustomerCard, PDF_PERMISSION),
+            (Category, PDF_PERMISSION),
+            (Product, PDF_PERMISSION),
+            (StoreProduct, PDF_PERMISSION),
+            (RelationalCheck, PDF_PERMISSION),
         ]
