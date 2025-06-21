@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -21,7 +21,7 @@ class BaseCheck(BaseModel):
         else:
             now = datetime.now()
 
-        if v > now:
+        if v > now + timedelta(minutes=1):
             raise ValueError("Check date cannot be in the future")
         return v
 
