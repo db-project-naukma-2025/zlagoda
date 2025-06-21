@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Query, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
@@ -11,6 +11,7 @@ from ..controllers.category import (
 )
 from ..dal.schemas.auth import User
 from ..dal.schemas.category import Category
+from ..db.connection.exceptions import IntegrityError
 from ..ioc_container import category_modification_controller, category_query_controller
 from .auth import BasicPermission, require_permission, require_user
 
@@ -128,7 +129,13 @@ class CategoryViewSet:
         category_number: int,
         _: User = Security(require_permission((Category, BasicPermission.DELETE))),
     ):
-        return self.category_modification_controller.delete(category_number)
+        try:
+            return self.category_modification_controller.delete(category_number)
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete category because it is associated with products",
+            ) from e
 
     @router.post("/bulk-delete", operation_id="bulkDeleteCategories")
     async def bulk_delete_categories(
@@ -136,9 +143,15 @@ class CategoryViewSet:
         request: BulkDeleteCategoryRequest,
         _: User = Security(require_permission((Category, BasicPermission.DELETE))),
     ):
-        return self.category_modification_controller.delete_multiple(
-            request.category_numbers
-        )
+        try:
+            return self.category_modification_controller.delete_multiple(
+                request.category_numbers
+            )
+        except IntegrityError:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete category because it is associated with products",
+            )
 
     @router.get(
         "/reports/revenue",

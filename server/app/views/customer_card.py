@@ -1,6 +1,6 @@
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
@@ -14,6 +14,7 @@ from ..dal.schemas.customer_card import (
     CustomerCardCreate,
     CustomerCardUpdate,
 )
+from ..db.connection.exceptions import IntegrityError
 from ..ioc_container import (
     customer_card_modification_controller,
     customer_card_query_controller,
@@ -141,7 +142,13 @@ class CustomerCardViewSet:
         card_number: str,
         _: User = Security(require_permission((CustomerCard, BasicPermission.DELETE))),
     ):
-        return self.modification_controller.delete(card_number)
+        try:
+            return self.modification_controller.delete(card_number)
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete customer card because it is associated with checks",
+            ) from e
 
     @router.post("/bulk-delete", operation_id="bulkDeleteCustomerCards")
     async def bulk_delete_customer_cards(
@@ -149,5 +156,11 @@ class CustomerCardViewSet:
         request: BulkDeleteCustomerCardRequest,
         _: User = Security(require_permission((CustomerCard, BasicPermission.DELETE))),
     ):
-        for card_number in request.card_numbers:
-            self.modification_controller.delete(card_number)
+        try:
+            for card_number in request.card_numbers:
+                self.modification_controller.delete(card_number)
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete customer card because it is associated with checks",
+            ) from e

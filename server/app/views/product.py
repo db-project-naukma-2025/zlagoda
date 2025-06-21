@@ -1,12 +1,13 @@
 from typing import Literal, Optional
 
-from fastapi import APIRouter, Depends, Query, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
 from ..dal.repositories.product import ProductRepository
 from ..dal.schemas.auth import User
 from ..dal.schemas.product import CreateProduct, Product, UpdateProduct
+from ..db.connection.exceptions import IntegrityError
 from ..ioc_container import product_repository
 from .auth import BasicPermission, require_permission, require_user
 
@@ -101,7 +102,13 @@ class ProductViewSet:
         repo: ProductRepository = Depends(product_repository),
         _: User = Security(require_permission((Product, BasicPermission.DELETE))),
     ):
-        return repo.delete(id_product)
+        try:
+            return repo.delete(id_product)
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete product because it is associated with store products",
+            ) from e
 
     @router.post("/bulk-delete", operation_id="bulkDeleteProducts")
     async def bulk_delete_products(
@@ -110,4 +117,10 @@ class ProductViewSet:
         repo: ProductRepository = Depends(product_repository),
         _: User = Security(require_permission((Product, BasicPermission.DELETE))),
     ):
-        return repo.delete_multiple(request.product_ids)
+        try:
+            return repo.delete_multiple(request.product_ids)
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete product because it is associated with store products",
+            ) from e

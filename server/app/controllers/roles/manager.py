@@ -37,4 +37,5 @@ class UserManagerPermissionController(UserRoleController):
             (CustomerCard, BasicPermission.UPDATE),
             (CustomerCard, BasicPermission.DELETE),
             (RelationalCheck, BasicPermission.VIEW),
+            (RelationalCheck, BasicPermission.DELETE),
         ]

@@ -11,6 +11,7 @@ from ..controllers.employee import (
 from ..dal.repositories.employee import EmployeeRepository
 from ..dal.schemas.auth import User
 from ..dal.schemas.employee import CreateEmployee, Employee, UpdateEmployee
+from ..db.connection.exceptions import IntegrityError
 from ..ioc_container import (
     employee_modification_controller,
     employee_query_controller,
@@ -130,7 +131,13 @@ class EmployeeViewSet:
         id_employee: str,
         _: User = Security(require_permission((Employee, BasicPermission.DELETE))),
     ):
-        self.modification_controller.delete_employee(id_employee)
+        try:
+            self.modification_controller.delete_employee(id_employee)
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete employee because it is associated with checks",
+            ) from e
 
     @router.post("/bulk-delete", operation_id="bulkDeleteEmployees")
     async def bulk_delete_employees(
@@ -138,4 +145,10 @@ class EmployeeViewSet:
         request: BulkDeleteRequest,
         _: User = Security(require_permission((Employee, BasicPermission.DELETE))),
     ):
-        return self.modification_controller.bulk_delete(request.employee_ids)
+        try:
+            return self.modification_controller.bulk_delete(request.employee_ids)
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete employee because it is associated with checks",
+            ) from e

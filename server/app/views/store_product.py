@@ -12,7 +12,7 @@ from ..dal.schemas.store_product import (
     StoreProduct,
     UpdateStoreProduct,
 )
-from ..db.connection import transaction
+from ..db.connection import IntegrityError, transaction
 from ..ioc_container import store_product_repository
 from .auth import BasicPermission, require_permission, require_user
 
@@ -289,7 +289,13 @@ class StoreProductViewSet:
                     detail="Cannot delete regular product that has a promotional version. Please delete the promotional product first.",
                 )
 
-        return repo.delete(upc)
+        try:
+            return repo.delete(upc)
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete store product because it is associated with sales",
+            ) from e
 
     @router.post("/bulk-delete", operation_id="bulkDeleteStoreProducts")
     async def bulk_delete_store_products(
@@ -311,7 +317,13 @@ class StoreProductViewSet:
                         detail=f"Cannot delete regular product {upc} that has a promotional version. Please delete the promotional product first.",
                     )
 
-        return repo.delete_multiple(request.upcs)
+        try:
+            return repo.delete_multiple(request.upcs)
+        except IntegrityError as e:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot delete store product because it is associated with sales",
+            ) from e
 
     async def _validate_product_upc_uniqueness(
         self,
