@@ -1,5 +1,6 @@
 from abc import ABC
-from typing import Literal, TypedDict
+from datetime import date
+from typing import Any, Literal, TypedDict
 
 from ..dal.repositories.customer_card import CustomerCardRepository
 from ..dal.schemas.customer_card import (
@@ -61,6 +62,21 @@ class CustomerCardQueryController(BaseCustomerCardController):
         )
         total = self.repo.get_total_count(CustomerCardUpdate(cust_surname=surname))
         return cards, total
+
+    def get_card_sold_categories(
+        self,
+        *,
+        card_number: str | None = None,
+        category_name: str | None = None,
+        start_date: date | None = None,
+        end_date: date | None = None,
+    ) -> list[dict[str, Any]]:
+        return self.repo.get_card_sold_categories(
+            card_number=card_number,
+            category_name=category_name,
+            start_date=start_date,
+            end_date=end_date,
+        )
 
 
 class CustomerCardModificationController(BaseCustomerCardController):

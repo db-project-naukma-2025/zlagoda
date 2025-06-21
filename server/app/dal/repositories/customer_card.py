@@ -1,4 +1,5 @@
-from typing import Literal
+from datetime import date
+from typing import Any, Literal
 
 import structlog
 
@@ -138,3 +139,63 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
         if not rows:
             raise ValueError(f"Customer card with card_number {card_number} not found")
         return self._row_to_model(rows[0])
+
+    def get_card_sold_categories(
+        self,
+        *,
+        card_number: str | None = None,
+        category_name: str | None = None,
+        start_date: date | None = None,
+        end_date: date | None = None,
+    ) -> list[dict[str, Any]]:
+        date_filter = ""
+        params: list[Any] = []
+
+        if start_date and end_date:
+            date_filter = 'AND "check".print_date BETWEEN %s AND %s'
+            params = [start_date, end_date, start_date, end_date]
+        elif start_date:
+            date_filter = 'AND "check".print_date >= %s'
+            params = [start_date, start_date]
+        elif end_date:
+            date_filter = 'AND "check".print_date <= %s'
+            params = [end_date, end_date]
+
+        having_clauses, params = [], []
+        if category_name:
+            having_clauses.append("cat.category_name = %s")
+            params.append(category_name)
+        if card_number:
+            having_clauses.append("cc.card_number = %s")
+            params.append(card_number)
+
+        query = f"""
+        SELECT 
+            cc.card_number AS card_number, 
+            cc.cust_surname || ' ' || cc.cust_name as customer_name, 
+            cat.category_name AS category_name,
+            SUM(s.product_number) AS total_products,
+            SUM(s.product_number * s.selling_price) as total_revenue
+        FROM customer_card cc 
+            INNER JOIN "check" c ON cc.card_number = c.card_number
+            INNER JOIN sale s ON c.check_number = s.check_number
+            INNER JOIN store_product sp ON s.upc = sp.upc
+            INNER JOIN product p ON sp.id_product = p.id_product
+            INNER JOIN category cat ON p.category_number = cat.category_number
+        WHERE 1=1 {date_filter}
+        GROUP BY (cc.card_number, cc.cust_surname, cc.cust_name, cat.category_name)    
+        """
+        if having_clauses:
+            query += " HAVING " + " AND ".join(having_clauses)
+
+        rows = self._db.execute(query, tuple(params))
+        return [
+            {
+                "card_number": row[0],
+                "customer_name": row[1],
+                "category_name": row[2],
+                "total_products": row[3],
+                "total_revenue": row[4],
+            }
+            for row in rows
+        ]

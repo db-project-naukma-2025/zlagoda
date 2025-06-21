@@ -87,6 +87,16 @@ const CustomerCardCreate = z
     percent: z.number().int().gte(0).lte(100),
   })
   .passthrough();
+const card_number = z.union([z.string(), z.null()]).optional();
+const CardSoldCategoriesReport = z
+  .object({
+    card_number: z.string(),
+    customer_name: z.string(),
+    category_name: z.string(),
+    total_products: z.number().int(),
+    total_revenue: z.number(),
+  })
+  .passthrough();
 const CustomerCardUpdate = z
   .object({
     cust_surname: z.string().min(1).max(50),
@@ -221,7 +231,6 @@ const Check = z
     sales: z.array(Sale),
   })
   .passthrough();
-const date_from = z.union([z.string(), z.null()]).optional();
 const PaginatedChecks = z
   .object({
     data: z.array(Check),
@@ -328,6 +337,8 @@ export const schemas = {
   CustomerCard,
   PaginatedCustomerCards,
   CustomerCardCreate,
+  card_number,
+  CardSoldCategoriesReport,
   CustomerCardUpdate,
   BulkDeleteCustomerCardRequest,
   category_number,
@@ -347,7 +358,6 @@ export const schemas = {
   CreateCheck,
   Sale,
   Check,
-  date_from,
   PaginatedChecks,
   Employee,
   PaginatedEmployees,
@@ -621,17 +631,17 @@ const endpoints = makeApi([
       {
         name: "date_from",
         type: "Query",
-        schema: date_from,
+        schema: card_number,
       },
       {
         name: "date_to",
         type: "Query",
-        schema: date_from,
+        schema: card_number,
       },
       {
         name: "employee_id",
         type: "Query",
-        schema: date_from,
+        schema: card_number,
       },
     ],
     response: PaginatedChecks,
@@ -802,6 +812,42 @@ const endpoints = makeApi([
   },
   {
     method: "get",
+    path: "/customer-cards/reports/card-sold-categories",
+    alias: "getCardSoldCategoriesReport",
+    requestFormat: "json",
+    parameters: [
+      {
+        name: "card_number",
+        type: "Query",
+        schema: card_number,
+      },
+      {
+        name: "category_name",
+        type: "Query",
+        schema: card_number,
+      },
+      {
+        name: "start_date",
+        type: "Query",
+        schema: card_number,
+      },
+      {
+        name: "end_date",
+        type: "Query",
+        schema: card_number,
+      },
+    ],
+    response: z.array(CardSoldCategoriesReport),
+    errors: [
+      {
+        status: 422,
+        description: `Validation Error`,
+        schema: HTTPValidationError,
+      },
+    ],
+  },
+  {
+    method: "get",
     path: "/employees/",
     alias: "getEmployees",
     requestFormat: "json",
@@ -819,12 +865,12 @@ const endpoints = makeApi([
       {
         name: "search",
         type: "Query",
-        schema: date_from,
+        schema: card_number,
       },
       {
         name: "role_filter",
         type: "Query",
-        schema: date_from,
+        schema: card_number,
       },
       {
         name: "sort_by",

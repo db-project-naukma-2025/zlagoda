@@ -4,6 +4,7 @@ import {
   type BulkDeleteCustomerCardRequest,
   type CreateCustomerCardFormData,
   type CustomerCardNumber,
+  type GetCardSoldCategoriesReportOptions,
   type GetCustomerCardsOptions,
   type UpdateCustomerCardFormData,
 } from "./types";
@@ -14,6 +15,8 @@ export const customerCardQueryKeys = {
     [...customerCardQueryKeys.all(), "list", params] as const,
   detail: (id: CustomerCardNumber) =>
     [...customerCardQueryKeys.all(), "detail", id] as const,
+  report: (params?: Partial<GetCardSoldCategoriesReportOptions>) =>
+    [...customerCardQueryKeys.all(), "report", params] as const,
 };
 
 export const customerCardsApi = {
@@ -50,5 +53,13 @@ export const customerCardsApi = {
 
   async bulkDeleteCustomerCards(request: BulkDeleteCustomerCardRequest) {
     return apiClient.bulkDeleteCustomerCards(request);
+  },
+
+  async getCardSoldCategoriesReport(
+    params?: Partial<GetCardSoldCategoriesReportOptions>,
+  ) {
+    return apiClient.getCardSoldCategoriesReport({
+      queries: params ?? {},
+    });
   },
 };

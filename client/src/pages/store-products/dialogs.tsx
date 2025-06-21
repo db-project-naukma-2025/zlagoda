@@ -57,7 +57,7 @@ export function CreateStoreProductDialog({
   const { form, open, setOpen, isPending } = useCreateDialog({
     defaultValues: {
       UPC: "",
-      UPC_prom: null as string | null,
+      UPC_prom: "" as string | null,
       id_product: 0,
       selling_price: 0,
       products_number: 0,
@@ -84,6 +84,7 @@ export function CreateStoreProductDialog({
       }
       onOpenChange={setOpen}
       onSubmit={(e) => {
+        console.log("onSubmit", e);
         e.preventDefault();
         void form.handleSubmit();
       }}

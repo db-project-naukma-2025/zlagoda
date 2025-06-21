@@ -75,3 +75,18 @@ export const createCustomerCardSchema: z.ZodType<CreateCustomerCardFormData> =
       .min(1, "Card number is required")
       .max(13, "Card number must be 13 digits"),
   });
+
+export type CardSoldCategoriesReport = z.infer<
+  typeof apiSchemas.CardSoldCategoriesReport
+>;
+
+type GetCardSoldCategoriesReportQueryParams = Extract<
+  Api[number],
+  { path: "/customer-cards/reports/card-sold-categories"; method: "get" }
+>["parameters"];
+
+export type GetCardSoldCategoriesReportOptions = {
+  [K in GetCardSoldCategoriesReportQueryParams[number] as K["name"]]: z.infer<
+    K["schema"]
+  >;
+};

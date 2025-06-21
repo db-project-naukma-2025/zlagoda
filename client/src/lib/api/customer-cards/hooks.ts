@@ -7,6 +7,7 @@ import {
   type BulkDeleteCustomerCardRequest,
   type CreateCustomerCardFormData,
   type CustomerCardNumber,
+  type GetCardSoldCategoriesReportOptions,
   type GetCustomerCardsOptions,
   type UpdateCustomerCardFormData,
 } from "./types";
@@ -87,5 +88,15 @@ export const useBulkDeleteCustomerCards = () => {
         queryKey: customerCardQueryKeys.all(),
       });
     },
+  });
+};
+
+export const useGetCardSoldCategoriesReport = (
+  params: Partial<GetCardSoldCategoriesReportOptions>,
+) => {
+  return useApiQuery({
+    queryKey: customerCardQueryKeys.report(params),
+    queryFn: () => customerCardsApi.getCardSoldCategoriesReport(params),
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };

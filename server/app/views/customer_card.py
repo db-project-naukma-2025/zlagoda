@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, Query, Security
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
@@ -37,6 +39,14 @@ class BulkDeleteCustomerCardRequest(BaseModel):
     card_numbers: list[str]
 
 
+class CardSoldCategoriesReport(BaseModel):
+    card_number: str
+    customer_name: str
+    category_name: str
+    total_products: int
+    total_revenue: float
+
+
 @cbv(router)
 class CustomerCardViewSet:
     query_controller: CustomerCardQueryController = Depends(
@@ -70,6 +80,31 @@ class CustomerCardViewSet:
             page_size=limit,
             total_pages=total_pages,
         )
+
+    @router.get(
+        "/reports/card-sold-categories",
+        response_model=list[CardSoldCategoriesReport],
+        operation_id="getCardSoldCategoriesReport",
+    )
+    async def get_card_sold_categories_report(
+        self,
+        card_number: str = Query(default=None, description="Card number"),
+        category_name: str = Query(default=None, description="Category name"),
+        start_date: date = Query(
+            default=None, description="Start date", pattern=r"^\d{4}-\d{2}-\d{2}$"
+        ),
+        end_date: date = Query(
+            default=None, description="End date", pattern=r"^\d{4}-\d{2}-\d{2}$"
+        ),
+        _: User = Security(require_permission((CustomerCard, BasicPermission.VIEW))),
+    ):
+        rows = self.query_controller.get_card_sold_categories(
+            card_number=card_number,
+            category_name=category_name,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        return [CardSoldCategoriesReport(**row) for row in rows]
 
     @router.get(
         "/{card_number}", response_model=CustomerCard, operation_id="getCustomerCard"

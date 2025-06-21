@@ -4,6 +4,7 @@ import scopes from "@/config/scopes";
 import { useAuth } from "@/lib/api/auth";
 
 import { CreateCustomerDialog } from "./dialogs";
+import { CardSoldCategoriesReportDialog } from "./reports";
 import { createCustomerCardColumns } from "./table";
 import { useCustomerCards } from "./use-customer-cards";
 
@@ -46,6 +47,9 @@ export default function CustomerCardsPage() {
             Manage customer cards and their information.
           </p>
         </div>
+      </div>
+      <div className="flex gap-2">
+        <CardSoldCategoriesReportDialog />
       </div>
       <TableToolbar
         bulkDeleteItemName="customer cards"
