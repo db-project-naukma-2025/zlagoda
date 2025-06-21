@@ -5,7 +5,7 @@ const scopes = {
     can_update: "employee.can_update",
     can_delete: "employee.can_delete",
     print_to_pdf: "employee.print_to_pdf",
-    view_self: "view_self",
+    view_self: "employee.view_self",
   },
   product: {
     can_view: "product.can_view",

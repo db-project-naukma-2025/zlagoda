@@ -9,6 +9,8 @@ from ...dal.schemas import (
 )
 from ._base import UserRoleController
 
+VIEW_SELF_PERMISSION = "view_self"
+
 
 class UserCashierPermissionController(UserRoleController):
     def get_role_name(self) -> str:
@@ -23,5 +25,5 @@ class UserCashierPermissionController(UserRoleController):
             (Product, BasicPermission.VIEW),
             (RelationalCheck, BasicPermission.VIEW),
             (RelationalCheck, BasicPermission.CREATE),
-            (Employee, "view_self"),
+            (Employee, VIEW_SELF_PERMISSION),
         ]
