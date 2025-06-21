@@ -37,17 +37,21 @@ export function useCustomerCards({
     },
   });
 
+  const [percentFilter, setPercentFilter] = useState<number | undefined>(
+    undefined,
+  );
+
   const queryParams = useMemo<Partial<SearchCustomerCardsOptions>>(
     () => ({
       skip: printMode ? 0 : pagination.pageIndex * pagination.pageSize,
       limit: pagination.pageSize,
       cust_surname: searchTerm,
-      percent: undefined,
+      percent: percentFilter,
       sort_by: sorting.sort_by as SearchCustomerCardsOptions["sort_by"],
       sort_order:
         sorting.sort_order as SearchCustomerCardsOptions["sort_order"],
     }),
-    [pagination, searchTerm, printMode, sorting],
+    [pagination, searchTerm, printMode, sorting, percentFilter],
   );
 
   const {
@@ -86,6 +90,10 @@ export function useCustomerCards({
     data: customerCards, // alias
     total: paginatedResponse?.total ?? 0,
 
+    // Filter state
+    percentFilter,
+    setPercentFilter,
+
     // Handlers
     handleSortingChange,
     handleBulkDelete,
@@ -94,5 +102,6 @@ export function useCustomerCards({
     setSearchTerm: handleInputChange,
     clearSearch,
     refetch,
+    resetPagination,
   };
 }

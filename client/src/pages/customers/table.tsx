@@ -16,10 +16,46 @@ import { type CustomerCard } from "@/lib/api/customer-cards/types";
 
 import { DeleteCustomerDialog, EditCustomerDialog } from "./dialogs";
 
-export function createCustomerCardColumns(
-  canDelete: boolean,
-  canEdit: boolean,
-): ColumnDef<CustomerCard>[] {
+interface BaseCustomerCardTableProps {
+  percentFilter?: number | undefined;
+  setPercentFilter: (value: number | undefined) => void;
+  resetPagination: () => void;
+  customerCards: CustomerCard[];
+  canDelete: boolean;
+  canEdit: boolean;
+}
+
+export function createCustomerCardColumns({
+  percentFilter,
+  setPercentFilter,
+  resetPagination,
+  canDelete,
+  canEdit,
+  customerCards,
+}: BaseCustomerCardTableProps): ColumnDef<CustomerCard>[] {
+  // Common discount percentages that customers might have
+  const percentLookup = customerCards.reduce<Record<number, string>>(
+    (acc, customerCard) => {
+      acc[customerCard.percent] = customerCard.percent.toString() + "%";
+      return acc;
+    },
+    {},
+  );
+
+  const percentFilterConfig = {
+    options: Object.entries(percentLookup).map(([value, label]) => ({
+      value,
+      label,
+    })),
+    value: percentFilter?.toString() ?? "",
+    onValueChange: (value: string) => {
+      setPercentFilter(value === "" ? undefined : Number(value));
+      resetPagination();
+    },
+    placeholder: "Select discount",
+    label: "Discount",
+  };
+
   const columns: ColumnDef<CustomerCard>[] = [
     {
       accessorKey: "card_number",
@@ -110,7 +146,11 @@ export function createCustomerCardColumns(
     {
       accessorKey: "percent",
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Discount" />
+        <DataTableColumnHeader
+          column={column}
+          filter={percentFilterConfig}
+          title="Discount"
+        />
       ),
       cell: ({ row }) => (
         <div className="font-medium">{row.getValue("percent")}%</div>

@@ -25,6 +25,9 @@ export default function CustomerCardsPage() {
     searchTerm,
     setSearchTerm,
     clearSearch,
+    percentFilter,
+    setPercentFilter,
+    resetPagination,
   } = useCustomerCards();
   const { data: printData } = useCustomerCards({
     printMode: true,
@@ -38,7 +41,28 @@ export default function CustomerCardsPage() {
   const canEdit =
     user?.scopes.includes(scopes.customer_card.can_update) ?? false;
 
-  const customerCardColumns = createCustomerCardColumns(canDelete, canEdit);
+  const customerCardColumns = createCustomerCardColumns({
+    percentFilter,
+    setPercentFilter,
+    resetPagination,
+    canDelete,
+    canEdit,
+    customerCards,
+  });
+
+  // Create print columns without filter functionality
+  const printColumns = createCustomerCardColumns({
+    percentFilter: undefined,
+    setPercentFilter: () => {
+      // No-op for print mode
+    },
+    resetPagination: () => {
+      // No-op for print mode
+    },
+    canDelete: false,
+    canEdit: false,
+    customerCards: [],
+  });
 
   const createButton = canAdd ? <CreateCustomerDialog /> : null;
 
@@ -55,7 +79,7 @@ export default function CustomerCardsPage() {
       <div className="flex justify-between items-center">
         <div className="flex gap-2">
           <PrintButton
-            columns={customerCardColumns}
+            columns={printColumns}
             data={printData}
             title="Customer Cards"
           />

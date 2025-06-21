@@ -76,7 +76,7 @@ class PydanticDBRepository(DBRepository, Generic[_T_BaseModel]):
                 filter_values[field] = value
 
             for field, value in filter_values.items():
-                if use_like:
+                if use_like and isinstance(value, str):
                     clauses.append(f"{field} LIKE %s")
                     params.append(f"%{value}%")
                 else:

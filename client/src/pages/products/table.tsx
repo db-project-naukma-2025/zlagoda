@@ -40,7 +40,6 @@ export function createBaseProductColumns({
     },
     {},
   );
-
   const categoryFilterConfig = {
     options: [
       ...categories.map((category) => ({
