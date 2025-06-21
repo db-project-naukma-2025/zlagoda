@@ -11,7 +11,13 @@ import {
   type GetCustomerCardsOptions,
 } from "@/lib/api/customer-cards/types";
 
-export function useCustomerCards() {
+interface UseCustomerCardsOptions {
+  printMode?: boolean;
+}
+
+export function useCustomerCards({
+  printMode = false,
+}: UseCustomerCardsOptions = {}) {
   const {
     pagination,
     setPagination,
@@ -33,15 +39,18 @@ export function useCustomerCards() {
 
   const queryParams = useMemo<Partial<GetCustomerCardsOptions>>(
     () => ({
-      skip: pagination.pageIndex * pagination.pageSize,
-      limit: pagination.pageSize,
+      skip: printMode ? 0 : pagination.pageIndex * pagination.pageSize,
+      limit: printMode ? null : pagination.pageSize,
       search: searchTerm,
     }),
-    [pagination, searchTerm],
+    [pagination, searchTerm, printMode],
   );
 
-  const { data: paginatedResponse, isLoading } =
-    useGetCustomerCards(queryParams);
+  const {
+    data: paginatedResponse,
+    isLoading,
+    refetch,
+  } = useGetCustomerCards(queryParams);
   const bulkDeleteMutation = useBulkDeleteCustomerCards();
 
   const totalPages = paginatedResponse?.total_pages ?? 0;
@@ -52,11 +61,10 @@ export function useCustomerCards() {
 
   const customerCards: CustomerCard[] = paginatedResponse?.data ?? [];
 
-  // Bulk delete handler for DataTable
   const handleBulkDelete = async (items: CustomerCard[]) => {
     const customerCardNumbers = items.map((item) => item.card_number);
     await bulkDeleteMutation.mutateAsync({
-      card_numbers: customerCardNumbers,
+      ids: customerCardNumbers,
     });
   };
 
@@ -71,6 +79,9 @@ export function useCustomerCards() {
     setSelectedCustomerCards,
     customerCards,
 
+    data: customerCards, // alias
+    total: paginatedResponse?.total ?? 0,
+
     // Handlers
     handleSortingChange,
     handleBulkDelete,
@@ -78,5 +89,6 @@ export function useCustomerCards() {
     searchTerm: inputValue,
     setSearchTerm: handleInputChange,
     clearSearch,
+    refetch,
   };
 }

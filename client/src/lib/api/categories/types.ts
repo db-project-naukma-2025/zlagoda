@@ -21,7 +21,7 @@ export type UpdateCategoryFormData = z.infer<
   typeof apiSchemas.UpdateCategoryRequest
 >;
 export type BulkDeleteCategoryRequest = z.infer<
-  typeof apiSchemas.BulkDeleteCategoryRequest
+  typeof apiSchemas.BulkDeleteCategory
 >;
 
 export type CategoryRevenueReport = z.infer<

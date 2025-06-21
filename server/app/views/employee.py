@@ -2,7 +2,6 @@ from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_utils.cbv import cbv
-from pydantic import BaseModel
 
 from ..controllers.employee import (
     EmployeeModificationController,
@@ -17,6 +16,7 @@ from ..ioc_container import (
     employee_query_controller,
     employee_repository,
 )
+from ._base import BulkDelete, PaginatedResponse, PaginationHelper
 from .auth import BasicPermission, require_permission, require_user
 
 router = APIRouter(
@@ -26,16 +26,8 @@ router = APIRouter(
 )
 
 
-class PaginatedEmployees(BaseModel):
-    data: list[Employee]
-    total: int
-    page: int
-    page_size: int
-    total_pages: int
-
-
-class BulkDeleteRequest(BaseModel):
-    employee_ids: list[str]
+class BulkDeleteEmployee(BulkDelete[str]):
+    pass
 
 
 @cbv(router)
@@ -46,11 +38,13 @@ class EmployeeViewSet:
         employee_modification_controller
     )
 
-    @router.get("/", response_model=PaginatedEmployees, operation_id="getEmployees")
+    @router.get(
+        "/", response_model=PaginatedResponse[Employee], operation_id="getEmployees"
+    )
     async def get_employees(
         self,
         skip: int = Query(0, ge=0),
-        limit: int = Query(10, ge=1, le=1000),
+        limit: Optional[int] = Query(10, ge=1, le=1000),
         search: Optional[str] = Query(None, description="Search by surname"),
         role_filter: Optional[str] = Query(None, description="Filter by role"),
         sort_by: Literal[
@@ -73,14 +67,9 @@ class EmployeeViewSet:
             sort_order=sort_order,
         )
         total = len(employees)
-        total_pages = (total + limit - 1) // limit
 
-        return PaginatedEmployees(
-            data=employees,
-            total=total,
-            page=(skip // limit) + 1,
-            page_size=limit,
-            total_pages=total_pages,
+        return PaginationHelper.create_paginated_response(
+            data=employees, total=total, skip=skip, limit=limit
         )
 
     @router.get(
@@ -142,11 +131,11 @@ class EmployeeViewSet:
     @router.post("/bulk-delete", operation_id="bulkDeleteEmployees")
     async def bulk_delete_employees(
         self,
-        request: BulkDeleteRequest,
+        request: BulkDeleteEmployee,
         _: User = Security(require_permission((Employee, BasicPermission.DELETE))),
     ):
         try:
-            return self.modification_controller.bulk_delete(request.employee_ids)
+            return self.modification_controller.bulk_delete(request.ids)
         except IntegrityError as e:
             raise HTTPException(
                 status_code=400,

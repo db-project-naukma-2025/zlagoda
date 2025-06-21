@@ -15,8 +15,8 @@ export type CreatePromotionalProductFormData = z.infer<
 
 export type StoreProductUPC = string;
 
-export type BulkDeleteRequest = z.infer<
-  typeof apiSchemas.app__views__store_product__BulkDeleteRequest
+export type BulkDeleteStoreProductRequest = z.infer<
+  typeof apiSchemas.BulkDeleteStoreProduct
 >;
 
 type GetStoreProductsQueryParams = Extract<

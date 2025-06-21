@@ -1,13 +1,15 @@
-import React from "react";
+import { useMemo } from "react";
 
 import { ChecksMetadataDisplay } from "@/components/checks-metadata";
 import { DataTable } from "@/components/data-table";
 import { PageLayout } from "@/components/layout/page-layout";
+import { PrintButton } from "@/components/print-button";
 import { TableToolbar } from "@/components/table-toolbar";
 import { Combobox } from "@/components/ui/combobox";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import scopes from "@/config/scopes";
 import { useAuth } from "@/lib/api/auth";
+import { type GetChecksOptions } from "@/lib/api/checks/types";
 import { type Employee } from "@/lib/api/employees/types";
 import { type StoreProduct } from "@/lib/api/store-products/types";
 
@@ -62,7 +64,17 @@ export default function ChecksPage() {
     employeeLookup,
   } = useChecks();
 
-  const filterContext = React.useMemo(() => {
+  const { data: allChecks } = useChecks({
+    printMode: true,
+    employeeFilter,
+    productFilter,
+    dateFrom,
+    dateTo,
+    sortBy: sorting.sort_by as GetChecksOptions["sort_by"],
+    sortOrder: sorting.sort_order,
+  });
+
+  const filterContext = useMemo(() => {
     const context: {
       productName?: string;
       employeeName?: string;
@@ -180,15 +192,18 @@ export default function ChecksPage() {
       loadingText="Loading checks..."
       title="Checks"
     >
-      <TableToolbar
-        additionalFilters={additionalFilters}
-        createButton={createButton}
-        enableBulkDelete={false}
-        searchValue={searchTerm}
-        selectedItems={[]}
-        onClearSearch={clearSearch}
-        onSearch={setSearchTerm}
-      />
+      <div className="flex justify-between items-center">
+        <PrintButton columns={columns} data={allChecks} title="Checks" />
+        <TableToolbar
+          additionalFilters={additionalFilters}
+          createButton={createButton}
+          enableBulkDelete={false}
+          searchValue={searchTerm}
+          selectedItems={[]}
+          onClearSearch={clearSearch}
+          onSearch={setSearchTerm}
+        />
+      </div>
       <DataTable
         columns={columns}
         data={checks}

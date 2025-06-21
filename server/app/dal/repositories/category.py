@@ -16,7 +16,7 @@ class CategoryRepository(PydanticDBRepository[Category]):
     def get_all(
         self,
         skip: int = 0,
-        limit: int = 10,
+        limit: Optional[int] = 10,
         search: Optional[str] = None,
         sort_by: Literal["category_number", "category_name"] = "category_number",
         sort_order: Literal["asc", "desc"] = "asc",
@@ -28,15 +28,16 @@ class CategoryRepository(PydanticDBRepository[Category]):
             where_clause = "WHERE category_name ILIKE %s"
             params.append(f"%{search}%")
 
+        limit_clause, limit_params = self._build_pagination_clause(skip, limit)
+        params.extend(limit_params)
+
         query = f"""
             SELECT {", ".join(self._fields)}
             FROM {self.table_name}
             {where_clause}
             ORDER BY {sort_by} {sort_order}
-            LIMIT %s OFFSET %s
+            {limit_clause}
         """
-
-        params.extend([limit, skip])
 
         rows = self._db.execute(query, tuple(params))
         return [self._row_to_model(row) for row in rows]

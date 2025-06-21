@@ -4,7 +4,7 @@ import { useApiQuery } from "@/hooks/use-api-query";
 
 import { storeProductQueryKeys, storeProductsApi } from "./service";
 import {
-  type BulkDeleteRequest,
+  type BulkDeleteStoreProductRequest,
   type CreatePromotionalProductFormData,
   type CreateStoreProductFormData,
   type GetStoreProductsOptions,
@@ -100,7 +100,7 @@ export const useBulkDeleteStoreProducts = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (request: BulkDeleteRequest) =>
+    mutationFn: (request: BulkDeleteStoreProductRequest) =>
       storeProductsApi.bulkDeleteStoreProducts(request),
     onSuccess: () => {
       void queryClient.invalidateQueries({

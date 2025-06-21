@@ -41,6 +41,7 @@
     "react-dom": "^19.1.0",
     "react-error-boundary": "^6.0.0",
     "react-phone-number-input": "^3.4.12",
+    "react-to-print": "^3.1.0",
     "recharts": "^2.15.3",
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.0",

@@ -88,3 +88,6 @@ class CustomerCardModificationController(BaseCustomerCardController):
 
     def delete(self, card_number: str) -> None:
         self.repo.delete(card_number)
+
+    def delete_multiple(self, card_numbers: list[str]) -> None:
+        self.repo.delete_multiple(card_numbers)

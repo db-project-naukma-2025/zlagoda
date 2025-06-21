@@ -48,6 +48,15 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
             """,
             (card_number,),
         )
+        
+    def delete_multiple(self, card_numbers: list[str]) -> None:
+        self._db.execute(
+            f"""
+                DELETE FROM {self.table_name}
+                WHERE card_number IN %s
+            """,
+            (card_numbers,),
+        )
 
     def update(
         self,
@@ -109,17 +118,14 @@ class CustomerCardRepository(PydanticDBRepository[CustomerCard]):
         if where_clauses:
             query += " WHERE " + " AND ".join(where_clauses)
 
-        extra_params = []
         if order_by:
             # * We can't use %s here because we need to use the field name directly.
             # * We have checked that order_by is in fields, so we can safely use it here.
             query += f" ORDER BY {order_by} {sort_order}"
-        if limit:
-            query += " LIMIT %s"
-            extra_params.append(limit)
-        if offset:
-            query += " OFFSET %s"
-            extra_params.append(offset)
+
+        limit_clause, extra_params = self._build_pagination_clause(offset or 0, limit)
+        if limit_clause:
+            query += f" {limit_clause}"
 
         rows = self._db.execute(query, tuple(params + extra_params))
         return [self._row_to_model(row) for row in rows]

@@ -1,4 +1,5 @@
 import { DataTable } from "@/components/data-table";
+import { PrintButton } from "@/components/print-button";
 import { TableToolbar } from "@/components/table-toolbar";
 import scopes from "@/config/scopes";
 import { useAuth } from "@/lib/api/auth";
@@ -25,6 +26,9 @@ export default function CustomerCardsPage() {
     setSearchTerm,
     clearSearch,
   } = useCustomerCards();
+  const { data: printData } = useCustomerCards({
+    printMode: true,
+  });
 
   const { user } = useAuth();
   const canAdd =
@@ -48,20 +52,27 @@ export default function CustomerCardsPage() {
           </p>
         </div>
       </div>
-      <div className="flex gap-2">
-        <CardSoldCategoriesReportDialog />
+      <div className="flex justify-between items-center">
+        <div className="flex gap-2">
+          <PrintButton
+            columns={customerCardColumns}
+            data={printData}
+            title="Customer Cards"
+          />
+          <CardSoldCategoriesReportDialog />
+        </div>
+        <TableToolbar
+          bulkDeleteItemName="customer cards"
+          createButton={createButton}
+          enableBulkDelete={canDelete}
+          isBulkDeletePending={bulkDeleteMutation.isPending}
+          searchValue={searchTerm}
+          selectedItems={selectedCustomerCards}
+          onBulkDelete={handleBulkDelete}
+          onClearSearch={clearSearch}
+          onSearch={setSearchTerm}
+        />
       </div>
-      <TableToolbar
-        bulkDeleteItemName="customer cards"
-        createButton={createButton}
-        enableBulkDelete={canDelete}
-        isBulkDeletePending={bulkDeleteMutation.isPending}
-        searchValue={searchTerm}
-        selectedItems={selectedCustomerCards}
-        onBulkDelete={handleBulkDelete}
-        onClearSearch={clearSearch}
-        onSearch={setSearchTerm}
-      />
       <DataTable
         columns={customerCardColumns}
         data={customerCards}

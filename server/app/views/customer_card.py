@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_utils.cbv import cbv
@@ -8,6 +9,7 @@ from ..controllers.customer_card import (
     CustomerCardModificationController,
     CustomerCardQueryController,
 )
+from ..dal.repositories.customer_card import CustomerCardRepository
 from ..dal.schemas.auth import User
 from ..dal.schemas.customer_card import (
     CustomerCard,
@@ -18,7 +20,9 @@ from ..db.connection.exceptions import IntegrityError
 from ..ioc_container import (
     customer_card_modification_controller,
     customer_card_query_controller,
+    customer_card_repository,
 )
+from ._base import BulkDelete, PaginatedResponse, PaginationHelper
 from .auth import BasicPermission, require_permission, require_user
 
 router = APIRouter(
@@ -26,18 +30,6 @@ router = APIRouter(
     tags=["customer-cards"],
     dependencies=[Depends(require_user)],
 )
-
-
-class PaginatedCustomerCards(BaseModel):
-    data: list[CustomerCard]
-    total: int
-    page: int
-    page_size: int
-    total_pages: int
-
-
-class BulkDeleteCustomerCardRequest(BaseModel):
-    card_numbers: list[str]
 
 
 class CardSoldCategoriesReport(BaseModel):
@@ -48,6 +40,10 @@ class CardSoldCategoriesReport(BaseModel):
     total_revenue: float
 
 
+class BulkDeleteCustomerCard(BulkDelete[str]):
+    pass
+
+
 @cbv(router)
 class CustomerCardViewSet:
     query_controller: CustomerCardQueryController = Depends(
@@ -56,14 +52,17 @@ class CustomerCardViewSet:
     modification_controller: CustomerCardModificationController = Depends(
         customer_card_modification_controller
     )
+    customer_card_repository: CustomerCardRepository = Depends(customer_card_repository)
 
     @router.get(
-        "/", response_model=PaginatedCustomerCards, operation_id="getCustomerCards"
+        "/",
+        response_model=PaginatedResponse[CustomerCard],
+        operation_id="getCustomerCards",
     )
     async def get_customer_cards(
         self,
         skip: int = Query(0, ge=0, description="Number of records to skip"),
-        limit: int = Query(
+        limit: Optional[int] = Query(
             10, ge=1, le=1000, description="Maximum number of records to return"
         ),
         _: User = Security(require_permission((CustomerCard, BasicPermission.VIEW))),
@@ -72,14 +71,9 @@ class CustomerCardViewSet:
             limit=limit,
             offset=skip,
         )
-        total_pages = (total + limit - 1) // limit
 
-        return PaginatedCustomerCards(
-            data=customer_cards,
-            total=total,
-            page=(skip // limit) + 1,
-            page_size=limit,
-            total_pages=total_pages,
+        return PaginationHelper.create_paginated_response(
+            data=customer_cards, total=total, skip=skip, limit=limit
         )
 
     @router.get(
@@ -153,12 +147,11 @@ class CustomerCardViewSet:
     @router.post("/bulk-delete", operation_id="bulkDeleteCustomerCards")
     async def bulk_delete_customer_cards(
         self,
-        request: BulkDeleteCustomerCardRequest,
+        request: BulkDeleteCustomerCard,
         _: User = Security(require_permission((CustomerCard, BasicPermission.DELETE))),
     ):
         try:
-            for card_number in request.card_numbers:
-                self.modification_controller.delete(card_number)
+            return self.modification_controller.delete_multiple(request.ids)
         except IntegrityError as e:
             raise HTTPException(
                 status_code=400,

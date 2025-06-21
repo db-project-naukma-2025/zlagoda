@@ -1,7 +1,10 @@
 import { DataTable } from "@/components/data-table";
+import { PageLayout } from "@/components/layout/page-layout";
+import { PrintButton } from "@/components/print-button";
 import { TableToolbar } from "@/components/table-toolbar";
 import scopes from "@/config/scopes";
 import { useAuth } from "@/lib/api/auth";
+import { type GetEmployeesOptions } from "@/lib/api/employees/types";
 
 import { CreateEmployeeDialog } from "./dialogs";
 import { EmployeesOnlyWithPromotionalSalesReportDialog } from "./reports";
@@ -29,34 +32,42 @@ export default function EmployeesPage() {
     setSearchTerm,
     clearSearch,
     columns,
+    roleFilter,
   } = useEmployees({ canDelete, canEdit });
+
+  const { data: printData } = useEmployees({
+    printMode: true,
+    canDelete: false,
+    canEdit: false,
+    roleFilter,
+    sortBy: sorting.sort_by as GetEmployeesOptions["sort_by"],
+    sortOrder: sorting.sort_order,
+  });
 
   const createButton = canAdd ? <CreateEmployeeDialog /> : null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Employees</h2>
-          <p className="text-muted-foreground">
-            Manage employees and their information.
-          </p>
+    <PageLayout
+      description="Manage employees and their information."
+      title="Employees"
+    >
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex gap-2">
+          <PrintButton columns={columns} data={printData} title="Employees" />
+          <EmployeesOnlyWithPromotionalSalesReportDialog />
         </div>
+        <TableToolbar
+          bulkDeleteItemName="employees"
+          createButton={createButton}
+          enableBulkDelete={canDelete}
+          isBulkDeletePending={bulkDeleteMutation.isPending}
+          searchValue={searchTerm}
+          selectedItems={selectedEmployees}
+          onBulkDelete={handleBulkDelete}
+          onClearSearch={clearSearch}
+          onSearch={setSearchTerm}
+        />
       </div>
-      <div className="flex gap-2">
-        <EmployeesOnlyWithPromotionalSalesReportDialog />
-      </div>
-      <TableToolbar
-        bulkDeleteItemName="employees"
-        createButton={createButton}
-        enableBulkDelete={canDelete}
-        isBulkDeletePending={bulkDeleteMutation.isPending}
-        searchValue={searchTerm}
-        selectedItems={selectedEmployees}
-        onBulkDelete={handleBulkDelete}
-        onClearSearch={clearSearch}
-        onSearch={setSearchTerm}
-      />
       <DataTable
         columns={columns}
         data={employees}
@@ -70,6 +81,6 @@ export default function EmployeesPage() {
         onSelectionChange={setSelectedEmployees}
         onSortingChange={handleSortingChange}
       />
-    </div>
+    </PageLayout>
   );
 }

@@ -9,6 +9,7 @@ from ..dal.schemas.auth import User
 from ..dal.schemas.product import CreateProduct, Product, UpdateProduct
 from ..db.connection.exceptions import IntegrityError
 from ..ioc_container import product_repository
+from ._base import PaginatedResponse, PaginationHelper
 from .auth import BasicPermission, require_permission, require_user
 
 router = APIRouter(
@@ -18,25 +19,19 @@ router = APIRouter(
 )
 
 
-class PaginatedProducts(BaseModel):
-    data: list[Product]
-    total: int
-    page: int
-    page_size: int
-    total_pages: int
-
-
-class BulkDeleteRequest(BaseModel):
-    product_ids: list[int]
+class BulkDeleteProduct(BaseModel):
+    ids: list[int]
 
 
 @cbv(router)
 class ProductViewSet:
-    @router.get("/", response_model=PaginatedProducts, operation_id="getProducts")
+    @router.get(
+        "/", response_model=PaginatedResponse[Product], operation_id="getProducts"
+    )
     async def get_products(
         self,
         skip: int = Query(0, ge=0, description="Number of records to skip"),
-        limit: int = Query(
+        limit: Optional[int] = Query(
             10, ge=1, le=1000, description="Maximum number of records to return"
         ),
         search: str = Query(None, description="Search products by name"),
@@ -57,14 +52,9 @@ class ProductViewSet:
             category_number=category_number,
         )
         total = repo.get_total_count(search=search, category_number=category_number)
-        total_pages = (total + limit - 1) // limit
 
-        return PaginatedProducts(
-            data=products,
-            total=total,
-            page=(skip // limit) + 1,
-            page_size=limit,
-            total_pages=total_pages,
+        return PaginationHelper.create_paginated_response(
+            data=products, total=total, skip=skip, limit=limit
         )
 
     @router.get("/{id_product}", response_model=Product, operation_id="getProduct")
@@ -113,12 +103,12 @@ class ProductViewSet:
     @router.post("/bulk-delete", operation_id="bulkDeleteProducts")
     async def bulk_delete_products(
         self,
-        request: BulkDeleteRequest,
+        request: BulkDeleteProduct,
         repo: ProductRepository = Depends(product_repository),
         _: User = Security(require_permission((Product, BasicPermission.DELETE))),
     ):
         try:
-            return repo.delete_multiple(request.product_ids)
+            return repo.delete_multiple(request.ids)
         except IntegrityError as e:
             raise HTTPException(
                 status_code=400,

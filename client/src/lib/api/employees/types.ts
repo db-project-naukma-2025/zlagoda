@@ -8,8 +8,8 @@ export type UpdateEmployeeFormData = z.infer<typeof apiSchemas.UpdateEmployee>;
 
 export type EmployeeId = string;
 
-export type BulkDeleteRequest = z.infer<
-  typeof apiSchemas.app__views__employee__BulkDeleteRequest
+export type BulkDeleteEmployeeRequest = z.infer<
+  typeof apiSchemas.BulkDeleteEmployee
 >;
 
 type GetEmployeesQueryParams = Extract<

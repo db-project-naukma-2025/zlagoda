@@ -2,7 +2,6 @@ from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_utils.cbv import cbv
-from pydantic import BaseModel
 
 from ..dal.repositories.store_product import StoreProductRepository
 from ..dal.schemas.auth import User
@@ -14,6 +13,7 @@ from ..dal.schemas.store_product import (
 )
 from ..db.connection import IntegrityError, transaction
 from ..ioc_container import store_product_repository
+from ._base import BulkDelete, PaginatedResponse, PaginationHelper
 from .auth import BasicPermission, require_permission, require_user
 
 router = APIRouter(
@@ -23,27 +23,21 @@ router = APIRouter(
 )
 
 
-class PaginatedStoreProducts(BaseModel):
-    data: list[StoreProduct]
-    total: int
-    page: int
-    page_size: int
-    total_pages: int
-
-
-class BulkDeleteRequest(BaseModel):
-    upcs: list[str]
+class BulkDeleteStoreProduct(BulkDelete[str]):
+    pass
 
 
 @cbv(router)
 class StoreProductViewSet:
     @router.get(
-        "/", response_model=PaginatedStoreProducts, operation_id="getStoreProducts"
+        "/",
+        response_model=PaginatedResponse[StoreProduct],
+        operation_id="getStoreProducts",
     )
     async def get_store_products(
         self,
         skip: int = Query(0, ge=0, description="Number of records to skip"),
-        limit: int = Query(
+        limit: Optional[int] = Query(
             10, ge=1, le=1000, description="Maximum number of records to return"
         ),
         search: str = Query(
@@ -72,14 +66,9 @@ class StoreProductViewSet:
         total = repo.get_total_count(
             search=search, promotional_only=promotional_only, id_product=id_product
         )
-        total_pages = (total + limit - 1) // limit
 
-        return PaginatedStoreProducts(
-            data=store_products,
-            total=total,
-            page=(skip // limit) + 1,
-            page_size=limit,
-            total_pages=total_pages,
+        return PaginationHelper.create_paginated_response(
+            data=store_products, total=total, skip=skip, limit=limit
         )
 
     @router.get("/{upc}", response_model=StoreProduct, operation_id="getStoreProduct")
@@ -300,12 +289,11 @@ class StoreProductViewSet:
     @router.post("/bulk-delete", operation_id="bulkDeleteStoreProducts")
     async def bulk_delete_store_products(
         self,
-        request: BulkDeleteRequest,
+        request: BulkDeleteStoreProduct,
         repo: StoreProductRepository = Depends(store_product_repository),
         _: User = Security(require_permission((StoreProduct, BasicPermission.DELETE))),
     ):
-        # Check each UPC for promotional dependencies
-        for upc in request.upcs:
+        for upc in request.ids:
             current_product = repo.get_by_upc(upc)
             if current_product and not current_product.promotional_product:
                 promotional_product = repo.get_promotional_product_for_product_id(
@@ -318,7 +306,7 @@ class StoreProductViewSet:
                     )
 
         try:
-            return repo.delete_multiple(request.upcs)
+            return repo.delete_multiple(request.ids)
         except IntegrityError as e:
             raise HTTPException(
                 status_code=400,

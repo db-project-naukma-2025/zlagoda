@@ -14,7 +14,23 @@ import {
 
 import { createBaseProductColumns } from "./table";
 
-export function useProducts(canDelete: boolean, canEdit: boolean) {
+interface UseProductsOptions {
+  canDelete: boolean;
+  canEdit: boolean;
+  printMode?: boolean;
+  categoryFilter?: number | undefined;
+  sortBy?: GetProductsOptions["sort_by"];
+  sortOrder?: GetProductsOptions["sort_order"] | undefined;
+}
+
+export function useProducts({
+  canDelete,
+  canEdit,
+  printMode = false,
+  categoryFilter: externalCategoryFilter,
+  sortBy: externalSortBy,
+  sortOrder: externalSortOrder,
+}: UseProductsOptions) {
   const {
     pagination,
     setPagination,
@@ -34,24 +50,40 @@ export function useProducts(canDelete: boolean, canEdit: boolean) {
     },
   });
 
-  const [categoryFilter, setCategoryFilter] = useState<number | undefined>();
+  const [internalCategoryFilter, setCategoryFilter] = useState<
+    number | undefined
+  >();
 
-  // TODO: load lazily, do not limit by 1000
-  const { data: categories } = useGetCategories({ limit: 1000 });
+  const categoryFilter = externalCategoryFilter ?? internalCategoryFilter;
+
+  const { data: categories } = useGetCategories();
 
   const queryParams = useMemo<Partial<GetProductsOptions>>(
     () => ({
-      skip: pagination.pageIndex * pagination.pageSize,
-      limit: pagination.pageSize,
+      skip: printMode ? 0 : pagination.pageIndex * pagination.pageSize,
+      limit: printMode ? null : pagination.pageSize,
       search: searchTerm || undefined,
       category_number: categoryFilter,
-      sort_by: sorting.sort_by as GetProductsOptions["sort_by"],
-      sort_order: sorting.sort_order ?? "desc",
+      sort_by: (externalSortBy ??
+        sorting.sort_by) as GetProductsOptions["sort_by"],
+      sort_order: externalSortOrder ?? sorting.sort_order ?? "desc",
     }),
-    [pagination, searchTerm, categoryFilter, sorting],
+    [
+      pagination,
+      searchTerm,
+      categoryFilter,
+      sorting,
+      printMode,
+      externalSortBy,
+      externalSortOrder,
+    ],
   );
 
-  const { data: paginatedResponse, isLoading } = useGetProducts(queryParams);
+  const {
+    data: paginatedResponse,
+    isLoading,
+    refetch,
+  } = useGetProducts(queryParams);
   const bulkDeleteMutation = useBulkDeleteProducts();
 
   const totalPages = paginatedResponse?.total_pages ?? 0;
@@ -80,10 +112,9 @@ export function useProducts(canDelete: boolean, canEdit: boolean) {
     ],
   );
 
-  // Bulk delete handler for DataTable
   const handleBulkDelete = async (items: Product[]) => {
     const productIds = items.map((item) => item.id_product);
-    await bulkDeleteMutation.mutateAsync({ product_ids: productIds });
+    await bulkDeleteMutation.mutateAsync({ ids: productIds });
   };
 
   return {
@@ -98,6 +129,9 @@ export function useProducts(canDelete: boolean, canEdit: boolean) {
     products,
     categories,
 
+    data: products, // alias
+    total: paginatedResponse?.total ?? 0,
+
     // Handlers
     handleSortingChange,
     categoryFilter,
@@ -109,5 +143,6 @@ export function useProducts(canDelete: boolean, canEdit: boolean) {
     setSearchTerm: handleInputChange,
     clearSearch,
     columns,
+    refetch,
   };
 }

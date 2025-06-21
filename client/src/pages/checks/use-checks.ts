@@ -22,7 +22,27 @@ type StoreProductWithName = StoreProduct & {
   product_name: string;
 };
 
-export function useChecks() {
+interface UseChecksOptions {
+  printMode?: boolean;
+  employeeFilter?: string | undefined;
+  productFilter?: string | undefined;
+  dateFrom?: string | undefined;
+  dateTo?: string | undefined;
+  sortBy?: GetChecksOptions["sort_by"];
+  sortOrder?: GetChecksOptions["sort_order"];
+}
+
+export function useChecks(options: UseChecksOptions = {}) {
+  const {
+    printMode = false,
+    employeeFilter: externalEmployeeFilter,
+    productFilter: externalProductFilter,
+    dateFrom: externalDateFrom,
+    dateTo: externalDateTo,
+    sortBy: externalSortBy,
+    sortOrder: externalSortOrder,
+  } = options;
+
   const { user } = useAuth();
   const canViewEmployees =
     user?.scopes.includes(scopes.employee.can_view) ?? false;
@@ -37,8 +57,8 @@ export function useChecks() {
     resetPagination,
   } = useTableState({
     defaultSorting: {
-      sort_by: "print_date",
-      sort_order: "desc",
+      sort_by: externalSortBy ?? "print_date",
+      sort_order: externalSortOrder ?? "desc",
     },
   });
 
@@ -48,12 +68,21 @@ export function useChecks() {
     },
   });
 
-  const [employeeFilter, setEmployeeFilter] = useState<string | undefined>();
-  const [productFilter, setProductFilter] = useState<string | undefined>();
-  const [dateFrom, setDateFrom] = useState<string | undefined>();
-  const [dateTo, setDateTo] = useState<string | undefined>();
+  const [internalEmployeeFilter, setEmployeeFilter] = useState<
+    string | undefined
+  >();
+  const [internalProductFilter, setProductFilter] = useState<
+    string | undefined
+  >();
+  const [internalDateFrom, setDateFrom] = useState<string | undefined>();
+  const [internalDateTo, setDateTo] = useState<string | undefined>();
   const [viewCheck, setViewCheck] = useState<Check | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
+  const employeeFilter = externalEmployeeFilter ?? internalEmployeeFilter;
+  const productFilter = externalProductFilter ?? internalProductFilter;
+  const dateFrom = externalDateFrom ?? internalDateFrom;
+  const dateTo = externalDateTo ?? internalDateTo;
 
   const { data: employeesResponse } = useQuery({
     queryKey: ["employees", { limit: 1000 }],
@@ -106,19 +135,34 @@ export function useChecks() {
 
   const queryParams = useMemo<Partial<GetChecksOptions>>(
     () => ({
-      skip: pagination.pageIndex * pagination.pageSize,
-      limit: pagination.pageSize,
+      skip: printMode ? 0 : pagination.pageIndex * pagination.pageSize,
+      limit: printMode ? null : pagination.pageSize,
       employee_id: employeeFilter,
       product_upc: productFilter,
       date_from: dateFrom,
       date_to: dateTo,
-      sort_by: sorting.sort_by as GetChecksOptions["sort_by"],
-      sort_order: sorting.sort_order,
+      sort_by: (externalSortBy ??
+        sorting.sort_by) as GetChecksOptions["sort_by"],
+      sort_order: externalSortOrder ?? sorting.sort_order,
     }),
-    [pagination, employeeFilter, productFilter, dateFrom, dateTo, sorting],
+    [
+      pagination,
+      employeeFilter,
+      productFilter,
+      dateFrom,
+      dateTo,
+      sorting,
+      printMode,
+      externalSortBy,
+      externalSortOrder,
+    ],
   );
 
-  const { data: paginatedResponse, isLoading } = useGetChecks(queryParams);
+  const {
+    data: paginatedResponse,
+    isLoading,
+    refetch,
+  } = useGetChecks(queryParams);
 
   const totalPages = Math.ceil(
     (paginatedResponse?.total ?? 0) / pagination.pageSize,
@@ -181,6 +225,9 @@ export function useChecks() {
     canViewProducts,
     metadata,
 
+    data: checksData, // alias
+    total: paginatedResponse?.total ?? 0,
+
     // Filters
     employeeFilter,
     setEmployeeFilter,
@@ -198,6 +245,7 @@ export function useChecks() {
     setSearchTerm: handleInputChange,
     clearSearch,
     columns,
+    refetch,
 
     // View Check
     viewCheck,

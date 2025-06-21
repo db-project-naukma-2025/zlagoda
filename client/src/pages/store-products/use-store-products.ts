@@ -15,7 +15,25 @@ import {
 
 import { createStoreInventoryColumns } from "./table";
 
-export function useStoreProducts(canDelete: boolean, canEdit: boolean) {
+interface UseStoreProductsOptions {
+  canDelete: boolean;
+  canEdit: boolean;
+  printMode?: boolean;
+  promotionalFilter?: boolean | undefined;
+  productFilter?: number | undefined;
+  sortBy?: GetStoreProductsOptions["sort_by"];
+  sortOrder?: GetStoreProductsOptions["sort_order"] | undefined;
+}
+
+export function useStoreProducts({
+  canDelete,
+  canEdit,
+  printMode = false,
+  promotionalFilter: externalPromotionalFilter,
+  productFilter: externalProductFilter,
+  sortBy: externalSortBy,
+  sortOrder: externalSortOrder,
+}: UseStoreProductsOptions) {
   const {
     pagination,
     setPagination,
@@ -35,10 +53,17 @@ export function useStoreProducts(canDelete: boolean, canEdit: boolean) {
     },
   });
 
-  const [promotionalFilter, setPromotionalFilter] = useState<
+  const [internalPromotionalFilter, setPromotionalFilter] = useState<
     boolean | undefined
   >();
-  const [productFilter, setProductFilter] = useState<number | undefined>();
+  const [internalProductFilter, setProductFilter] = useState<
+    number | undefined
+  >();
+
+  // Use external filters if provided (for print mode), otherwise use internal state
+  const promotionalFilter =
+    externalPromotionalFilter ?? internalPromotionalFilter;
+  const productFilter = externalProductFilter ?? internalProductFilter;
 
   // TODO: load lazily, do not limit by 1000
   const { data: categoriesResponse } = useGetCategories({ limit: 1000 });
@@ -62,19 +87,33 @@ export function useStoreProducts(canDelete: boolean, canEdit: boolean) {
 
   const queryParams = useMemo<Partial<GetStoreProductsOptions>>(
     () => ({
-      skip: pagination.pageIndex * pagination.pageSize,
-      limit: pagination.pageSize,
+      // In print mode, skip pagination and get all results
+      skip: printMode ? 0 : pagination.pageIndex * pagination.pageSize,
+      limit: printMode ? null : pagination.pageSize,
       search: searchTerm,
       promotional_only: promotionalFilter,
       id_product: productFilter,
-      sort_by: sorting.sort_by as GetStoreProductsOptions["sort_by"],
-      sort_order: sorting.sort_order ?? "asc",
+      sort_by: (externalSortBy ??
+        sorting.sort_by) as GetStoreProductsOptions["sort_by"],
+      sort_order: externalSortOrder ?? sorting.sort_order ?? "asc",
     }),
-    [pagination, searchTerm, promotionalFilter, productFilter, sorting],
+    [
+      pagination,
+      searchTerm,
+      promotionalFilter,
+      productFilter,
+      sorting,
+      printMode,
+      externalSortBy,
+      externalSortOrder,
+    ],
   );
 
-  const { data: paginatedResponse, isLoading } =
-    useGetStoreProducts(queryParams);
+  const {
+    data: paginatedResponse,
+    isLoading,
+    refetch,
+  } = useGetStoreProducts(queryParams);
   const bulkDeleteMutation = useBulkDeleteStoreProducts();
 
   const totalPages = paginatedResponse?.total_pages ?? 0;
@@ -116,10 +155,9 @@ export function useStoreProducts(canDelete: boolean, canEdit: boolean) {
     [productLookup, productList, allStoreProducts, canDelete, canEdit],
   );
 
-  // Bulk delete handler for DataTable
   const handleBulkDelete = async (items: StoreProduct[]) => {
-    const upcs = items.map((item) => item.UPC);
-    await bulkDeleteMutation.mutateAsync({ upcs });
+    const ids = items.map((item) => item.UPC);
+    await bulkDeleteMutation.mutateAsync({ ids });
   };
 
   return {
@@ -135,6 +173,10 @@ export function useStoreProducts(canDelete: boolean, canEdit: boolean) {
     allStoreProducts,
     categories,
     products: productList,
+
+    // Print-specific data
+    data: storeProductsData, // Unified alias for print compatibility
+    total: paginatedResponse?.total ?? 0,
 
     // Filters
     promotionalFilter,
@@ -152,5 +194,6 @@ export function useStoreProducts(canDelete: boolean, canEdit: boolean) {
     setSearchTerm: handleInputChange,
     clearSearch,
     columns,
+    refetch,
   };
 }

@@ -11,7 +11,17 @@ import {
   type GetCategoriesOptions,
 } from "@/lib/api/categories/types";
 
-export function useCategories() {
+interface UseCategoriesOptions {
+  printMode?: boolean;
+  sortBy?: GetCategoriesOptions["sort_by"];
+  sortOrder?: GetCategoriesOptions["sort_order"] | undefined;
+}
+
+export function useCategories({
+  printMode = false,
+  sortBy: externalSortBy,
+  sortOrder: externalSortOrder,
+}: UseCategoriesOptions = {}) {
   const {
     pagination,
     setPagination,
@@ -33,16 +43,28 @@ export function useCategories() {
 
   const queryParams = useMemo<Partial<GetCategoriesOptions>>(
     () => ({
-      skip: pagination.pageIndex * pagination.pageSize,
-      limit: pagination.pageSize,
+      skip: printMode ? 0 : pagination.pageIndex * pagination.pageSize,
+      limit: printMode ? null : pagination.pageSize,
       search: searchTerm,
-      sort_by: sorting.sort_by as GetCategoriesOptions["sort_by"],
-      sort_order: sorting.sort_order ?? "desc",
+      sort_by: (externalSortBy ??
+        sorting.sort_by) as GetCategoriesOptions["sort_by"],
+      sort_order: externalSortOrder ?? sorting.sort_order ?? "desc",
     }),
-    [pagination, searchTerm, sorting],
+    [
+      pagination,
+      searchTerm,
+      sorting,
+      printMode,
+      externalSortBy,
+      externalSortOrder,
+    ],
   );
 
-  const { data: paginatedResponse, isLoading } = useGetCategories(queryParams);
+  const {
+    data: paginatedResponse,
+    isLoading,
+    refetch,
+  } = useGetCategories(queryParams);
   const bulkDeleteMutation = useBulkDeleteCategories();
 
   const totalPages = paginatedResponse?.total_pages ?? 0;
@@ -51,10 +73,9 @@ export function useCategories() {
 
   const categories: Category[] = paginatedResponse?.data ?? [];
 
-  // Bulk delete handler for DataTable
   const handleBulkDelete = async (items: Category[]) => {
     const categoryIds = items.map((item) => item.category_number);
-    await bulkDeleteMutation.mutateAsync({ category_numbers: categoryIds });
+    await bulkDeleteMutation.mutateAsync({ ids: categoryIds });
   };
 
   return {
@@ -68,6 +89,9 @@ export function useCategories() {
     setSelectedCategories,
     categories,
 
+    data: categories, // alias
+    total: paginatedResponse?.total ?? 0,
+
     // Handlers
     handleSortingChange,
     handleBulkDelete,
@@ -75,5 +99,6 @@ export function useCategories() {
     searchTerm: inputValue,
     setSearchTerm: handleInputChange,
     clearSearch,
+    refetch,
   };
 }

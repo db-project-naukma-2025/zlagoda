@@ -23,7 +23,7 @@ export type UpdateCustomerCardFormData = z.infer<
 >;
 
 export type BulkDeleteCustomerCardRequest = z.infer<
-  typeof apiSchemas.BulkDeleteCustomerCardRequest
+  typeof apiSchemas.BulkDeleteCustomerCard
 >;
 
 export const baseCustomerCardSchema = z.object({

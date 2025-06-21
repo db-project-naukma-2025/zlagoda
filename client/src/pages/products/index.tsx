@@ -1,8 +1,10 @@
 import { DataTable } from "@/components/data-table";
 import { PageLayout } from "@/components/layout/page-layout";
+import { PrintButton } from "@/components/print-button";
 import { TableToolbar } from "@/components/table-toolbar";
 import scopes from "@/config/scopes";
 import { useAuth } from "@/lib/api/auth";
+import { type GetProductsOptions } from "@/lib/api/products/types";
 
 import { CreateProductDialog } from "./dialogs";
 import { useProducts } from "./use-products";
@@ -30,7 +32,17 @@ export default function ProductsPage() {
     clearSearch,
     columns,
     categories,
-  } = useProducts(canDelete, canEdit);
+    categoryFilter,
+  } = useProducts({ canDelete, canEdit });
+
+  const { data: printData } = useProducts({
+    canDelete: false,
+    canEdit: false,
+    printMode: true,
+    categoryFilter,
+    sortBy: sorting.sort_by as GetProductsOptions["sort_by"],
+    sortOrder: sorting.sort_order,
+  });
 
   const createButton = canAdd ? (
     <CreateProductDialog categories={categories?.data ?? []} />
@@ -41,17 +53,20 @@ export default function ProductsPage() {
       description="Manage base product catalog and product definitions."
       title="Base Products"
     >
-      <TableToolbar
-        bulkDeleteItemName="products"
-        createButton={createButton}
-        enableBulkDelete={canDelete}
-        isBulkDeletePending={bulkDeleteMutation.isPending}
-        searchValue={searchTerm}
-        selectedItems={selectedProducts}
-        onBulkDelete={handleBulkDelete}
-        onClearSearch={clearSearch}
-        onSearch={setSearchTerm}
-      />
+      <div className="flex justify-between items-center">
+        <PrintButton columns={columns} data={printData} title="Products" />
+        <TableToolbar
+          bulkDeleteItemName="products"
+          createButton={createButton}
+          enableBulkDelete={canDelete}
+          isBulkDeletePending={bulkDeleteMutation.isPending}
+          searchValue={searchTerm}
+          selectedItems={selectedProducts}
+          onBulkDelete={handleBulkDelete}
+          onClearSearch={clearSearch}
+          onSearch={setSearchTerm}
+        />
+      </div>
       <DataTable
         columns={columns}
         data={products}

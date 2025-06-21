@@ -16,8 +16,8 @@ export type GetProductsOptions = {
 
 export type CreateProductFormData = z.infer<typeof apiSchemas.CreateProduct>;
 export type UpdateProductFormData = z.infer<typeof apiSchemas.UpdateProduct>;
-export type BulkDeleteRequest = z.infer<
-  typeof apiSchemas.app__views__product__BulkDeleteRequest
+export type BulkDeleteProductRequest = z.infer<
+  typeof apiSchemas.BulkDeleteProduct
 >;
 
 export const baseProductSchema = z.object({

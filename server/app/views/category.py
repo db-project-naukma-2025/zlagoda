@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Literal
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_utils.cbv import cbv
@@ -13,19 +13,12 @@ from ..dal.schemas.auth import User
 from ..dal.schemas.category import Category
 from ..db.connection.exceptions import IntegrityError
 from ..ioc_container import category_modification_controller, category_query_controller
+from ._base import BulkDelete, PaginatedResponse, PaginationHelper
 from .auth import BasicPermission, require_permission, require_user
 
 router = APIRouter(
     prefix="/categories", tags=["categories"], dependencies=[Depends(require_user)]
 )
-
-
-class PaginatedCategories(BaseModel):
-    data: list[Category]
-    total: int
-    page: int
-    page_size: int
-    total_pages: int
 
 
 class CreateCategoryRequest(BaseModel):
@@ -34,10 +27,6 @@ class CreateCategoryRequest(BaseModel):
 
 class UpdateCategoryRequest(BaseModel):
     category_name: str
-
-
-class BulkDeleteCategoryRequest(BaseModel):
-    category_numbers: list[int]
 
 
 class CategoryRevenueReport(BaseModel):
@@ -52,6 +41,10 @@ class CategoryWithAllProductsSold(BaseModel):
     category_name: str
 
 
+class BulkDeleteCategory(BulkDelete[int]):
+    pass
+
+
 @cbv(router)
 class CategoryViewSet:
     category_query_controller: CategoryQueryController = Depends(
@@ -61,14 +54,16 @@ class CategoryViewSet:
         category_modification_controller
     )
 
-    @router.get("/", response_model=PaginatedCategories, operation_id="getCategories")
+    @router.get(
+        "/", response_model=PaginatedResponse[Category], operation_id="getCategories"
+    )
     async def get_categories(
         self,
         skip: int = Query(0, ge=0, description="Number of records to skip"),
-        limit: int = Query(
+        limit: Optional[int] = Query(
             10, ge=1, le=1000, description="Maximum number of records to return"
         ),
-        search: str = Query(None, description="Search categories by name"),
+        search: Optional[str] = Query(None, description="Search categories by name"),
         sort_by: Literal["category_number", "category_name"] = Query(
             "category_number", description="Field to sort by"
         ),
@@ -82,14 +77,9 @@ class CategoryViewSet:
             sort_by=sort_by,
             sort_order=sort_order,
         )
-        total_pages = (total + limit - 1) // limit
 
-        return PaginatedCategories(
-            data=categories,
-            total=total,
-            page=(skip // limit) + 1,
-            page_size=limit,
-            total_pages=total_pages,
+        return PaginationHelper.create_paginated_response(
+            data=categories, total=total, skip=skip, limit=limit
         )
 
     @router.get(
@@ -140,13 +130,11 @@ class CategoryViewSet:
     @router.post("/bulk-delete", operation_id="bulkDeleteCategories")
     async def bulk_delete_categories(
         self,
-        request: BulkDeleteCategoryRequest,
+        request: BulkDeleteCategory,
         _: User = Security(require_permission((Category, BasicPermission.DELETE))),
     ):
         try:
-            return self.category_modification_controller.delete_multiple(
-                request.category_numbers
-            )
+            return self.category_modification_controller.delete_multiple(request.ids)
         except IntegrityError:
             raise HTTPException(
                 status_code=400,

@@ -1,10 +1,12 @@
 import { makeApi, Zodios, type ZodiosOptions } from "@zodios/core";
 import { z } from "zod";
 
+const limit = z.union([z.number(), z.null()]).optional().default(10);
+const search = z.union([z.string(), z.null()]).optional();
 const Category = z
   .object({ category_number: z.number().int(), category_name: z.string() })
   .passthrough();
-const PaginatedCategories = z
+const PaginatedResponse_Category_ = z
   .object({
     data: z.array(Category),
     total: z.number().int(),
@@ -30,8 +32,8 @@ const CreateCategoryRequest = z
 const UpdateCategoryRequest = z
   .object({ category_name: z.string() })
   .passthrough();
-const BulkDeleteCategoryRequest = z
-  .object({ category_numbers: z.array(z.number().int()) })
+const BulkDeleteCategory = z
+  .object({ ids: z.array(z.number().int()) })
   .passthrough();
 const CategoryRevenueReport = z
   .object({
@@ -61,7 +63,7 @@ const CustomerCard = z
     percent: z.number().int().gte(0).lte(100),
   })
   .passthrough();
-const PaginatedCustomerCards = z
+const PaginatedResponse_CustomerCard_ = z
   .object({
     data: z.array(CustomerCard),
     total: z.number().int(),
@@ -109,8 +111,8 @@ const CustomerCardUpdate = z
   })
   .partial()
   .passthrough();
-const BulkDeleteCustomerCardRequest = z
-  .object({ card_numbers: z.array(z.string()) })
+const BulkDeleteCustomerCard = z
+  .object({ ids: z.array(z.string()) })
   .passthrough();
 const category_number = z.union([z.number(), z.null()]).optional();
 const Product = z
@@ -121,7 +123,7 @@ const Product = z
     id_product: z.number().int(),
   })
   .passthrough();
-const PaginatedProducts = z
+const PaginatedResponse_Product_ = z
   .object({
     data: z.array(Product),
     total: z.number().int(),
@@ -145,8 +147,8 @@ const UpdateProduct = z
     id_product: z.number().int(),
   })
   .passthrough();
-const app__views__product__BulkDeleteRequest = z
-  .object({ product_ids: z.array(z.number().int()) })
+const BulkDeleteProduct = z
+  .object({ ids: z.array(z.number().int()) })
   .passthrough();
 const promotional_only = z.union([z.boolean(), z.null()]).optional();
 const StoreProduct = z
@@ -159,7 +161,7 @@ const StoreProduct = z
     UPC: z.string().min(12).max(12),
   })
   .passthrough();
-const PaginatedStoreProducts = z
+const PaginatedResponse_StoreProduct_ = z
   .object({
     data: z.array(StoreProduct),
     total: z.number().int(),
@@ -194,8 +196,8 @@ const CreatePromotionalProduct = z
     operation_type: z.enum(["convert", "add"]).optional().default("convert"),
   })
   .passthrough();
-const app__views__store_product__BulkDeleteRequest = z
-  .object({ upcs: z.array(z.string()) })
+const BulkDeleteStoreProduct = z
+  .object({ ids: z.array(z.string()) })
   .passthrough();
 const CreateSale = z
   .object({
@@ -231,7 +233,6 @@ const Check = z
     sales: z.array(Sale),
   })
   .passthrough();
-const date_from = z.union([z.string(), z.null()]).optional();
 const sort_by = z
   .union([z.enum(["check_number", "print_date", "sum_total"]), z.null()])
   .optional();
@@ -270,7 +271,7 @@ const Employee = z
     id_employee: z.string().min(10).max(10),
   })
   .passthrough();
-const PaginatedEmployees = z
+const PaginatedResponse_Employee_ = z
   .object({
     data: z.array(Employee),
     total: z.number().int(),
@@ -310,9 +311,7 @@ const UpdateEmployee = z
     zip_code: z.string().min(5).max(9),
   })
   .passthrough();
-const app__views__employee__BulkDeleteRequest = z
-  .object({ employee_ids: z.array(z.string()) })
-  .passthrough();
+const BulkDeleteEmployee = z.object({ ids: z.array(z.string()) }).passthrough();
 const Body_login = z
   .object({
     grant_type: z.union([z.string(), z.null()]).optional(),
@@ -340,48 +339,49 @@ const UserWithScopes = z
   .passthrough();
 
 export const schemas = {
+  limit,
+  search,
   Category,
-  PaginatedCategories,
+  PaginatedResponse_Category_,
   ValidationError,
   HTTPValidationError,
   CreateCategoryRequest,
   UpdateCategoryRequest,
-  BulkDeleteCategoryRequest,
+  BulkDeleteCategory,
   CategoryRevenueReport,
   CategoryWithAllProductsSold,
   CustomerCard,
-  PaginatedCustomerCards,
+  PaginatedResponse_CustomerCard_,
   CustomerCardCreate,
   CardSoldCategoriesReport,
   CustomerCardUpdate,
-  BulkDeleteCustomerCardRequest,
+  BulkDeleteCustomerCard,
   category_number,
   Product,
-  PaginatedProducts,
+  PaginatedResponse_Product_,
   CreateProduct,
   UpdateProduct,
-  app__views__product__BulkDeleteRequest,
+  BulkDeleteProduct,
   promotional_only,
   StoreProduct,
-  PaginatedStoreProducts,
+  PaginatedResponse_StoreProduct_,
   CreateStoreProduct,
   UpdateStoreProduct,
   CreatePromotionalProduct,
-  app__views__store_product__BulkDeleteRequest,
+  BulkDeleteStoreProduct,
   CreateSale,
   CreateCheck,
   Sale,
   Check,
-  date_from,
   sort_by,
   sort_order,
   ChecksMetadata,
   PaginatedChecks,
   Employee,
-  PaginatedEmployees,
+  PaginatedResponse_Employee_,
   CreateEmployee,
   UpdateEmployee,
-  app__views__employee__BulkDeleteRequest,
+  BulkDeleteEmployee,
   Body_login,
   TokenResponse,
   ErrorResponse,
@@ -436,12 +436,12 @@ const endpoints = makeApi([
       {
         name: "limit",
         type: "Query",
-        schema: z.number().int().gte(1).lte(1000).optional().default(10),
+        schema: limit,
       },
       {
         name: "search",
         type: "Query",
-        schema: z.string().optional(),
+        schema: search,
       },
       {
         name: "sort_by",
@@ -457,7 +457,7 @@ const endpoints = makeApi([
         schema: z.enum(["asc", "desc"]).optional().default("asc"),
       },
     ],
-    response: PaginatedCategories,
+    response: PaginatedResponse_Category_,
     errors: [
       {
         status: 422,
@@ -564,7 +564,7 @@ const endpoints = makeApi([
       {
         name: "body",
         type: "Body",
-        schema: BulkDeleteCategoryRequest,
+        schema: BulkDeleteCategory,
       },
     ],
     response: z.unknown(),
@@ -649,22 +649,22 @@ const endpoints = makeApi([
       {
         name: "date_from",
         type: "Query",
-        schema: date_from,
+        schema: search,
       },
       {
         name: "date_to",
         type: "Query",
-        schema: date_from,
+        schema: search,
       },
       {
         name: "employee_id",
         type: "Query",
-        schema: date_from,
+        schema: search,
       },
       {
         name: "product_upc",
         type: "Query",
-        schema: date_from,
+        schema: search,
       },
       {
         name: "sort_by",
@@ -721,10 +721,10 @@ const endpoints = makeApi([
       {
         name: "limit",
         type: "Query",
-        schema: z.number().int().gte(1).lte(1000).optional().default(10),
+        schema: limit,
       },
     ],
-    response: PaginatedCustomerCards,
+    response: PaginatedResponse_CustomerCard_,
     errors: [
       {
         status: 422,
@@ -831,7 +831,7 @@ const endpoints = makeApi([
       {
         name: "body",
         type: "Body",
-        schema: BulkDeleteCustomerCardRequest,
+        schema: BulkDeleteCustomerCard,
       },
     ],
     response: z.unknown(),
@@ -893,17 +893,17 @@ const endpoints = makeApi([
       {
         name: "limit",
         type: "Query",
-        schema: z.number().int().gte(1).lte(1000).optional().default(10),
+        schema: limit,
       },
       {
         name: "search",
         type: "Query",
-        schema: date_from,
+        schema: search,
       },
       {
         name: "role_filter",
         type: "Query",
-        schema: date_from,
+        schema: search,
       },
       {
         name: "sort_by",
@@ -926,7 +926,7 @@ const endpoints = makeApi([
         schema: z.enum(["asc", "desc"]).optional().default("asc"),
       },
     ],
-    response: PaginatedEmployees,
+    response: PaginatedResponse_Employee_,
     errors: [
       {
         status: 422,
@@ -1033,7 +1033,7 @@ const endpoints = makeApi([
       {
         name: "body",
         type: "Body",
-        schema: app__views__employee__BulkDeleteRequest,
+        schema: BulkDeleteEmployee,
       },
     ],
     response: z.unknown(),
@@ -1066,7 +1066,7 @@ const endpoints = makeApi([
       {
         name: "limit",
         type: "Query",
-        schema: z.number().int().gte(1).lte(1000).optional().default(10),
+        schema: limit,
       },
       {
         name: "search",
@@ -1092,7 +1092,7 @@ const endpoints = makeApi([
         schema: category_number,
       },
     ],
-    response: PaginatedProducts,
+    response: PaginatedResponse_Product_,
     errors: [
       {
         status: 422,
@@ -1199,7 +1199,7 @@ const endpoints = makeApi([
       {
         name: "body",
         type: "Body",
-        schema: app__views__product__BulkDeleteRequest,
+        schema: BulkDeleteProduct,
       },
     ],
     response: z.unknown(),
@@ -1225,7 +1225,7 @@ const endpoints = makeApi([
       {
         name: "limit",
         type: "Query",
-        schema: z.number().int().gte(1).lte(1000).optional().default(10),
+        schema: limit,
       },
       {
         name: "search",
@@ -1262,7 +1262,7 @@ const endpoints = makeApi([
         schema: category_number,
       },
     ],
-    response: PaginatedStoreProducts,
+    response: PaginatedResponse_StoreProduct_,
     errors: [
       {
         status: 422,
@@ -1395,7 +1395,7 @@ const endpoints = makeApi([
       {
         name: "body",
         type: "Body",
-        schema: app__views__store_product__BulkDeleteRequest,
+        schema: BulkDeleteStoreProduct,
       },
     ],
     response: z.unknown(),

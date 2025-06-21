@@ -1,8 +1,10 @@
 import { DataTable } from "@/components/data-table";
 import { PageLayout } from "@/components/layout/page-layout";
+import { PrintButton } from "@/components/print-button";
 import { TableToolbar } from "@/components/table-toolbar";
 import scopes from "@/config/scopes";
 import { useAuth } from "@/lib/api/auth";
+import { type GetCategoriesOptions } from "@/lib/api/categories/types";
 
 import { CreateCategoryDialog } from "./dialogs";
 import {
@@ -29,6 +31,16 @@ export default function CategoriesPage() {
     setSearchTerm,
     clearSearch,
   } = useCategories();
+  if (!sorting.sort_by || !sorting.sort_order) {
+    throw new Error("Sorting is required");
+  }
+
+  const { data: printData } = useCategories({
+    printMode: true,
+    sortBy: sorting.sort_by as GetCategoriesOptions["sort_by"],
+    sortOrder: sorting.sort_order,
+  });
+
   const { user } = useAuth();
   const canView = user?.scopes.includes(scopes.category.can_view) ?? false;
   const canAdd = user?.scopes.includes(scopes.category.can_create) ?? false;
@@ -45,12 +57,19 @@ export default function CategoriesPage() {
       title="Categories"
     >
       <div className="flex justify-between items-center mb-4">
-        {canView && (
-          <div className="flex gap-2">
-            <CategoryRevenueReportDialog />
-            <AllProductsSoldReportDialog />
-          </div>
-        )}
+        <div className="flex gap-2">
+          <PrintButton
+            columns={categoryColumns}
+            data={printData}
+            title="Categories"
+          />
+          {canView && (
+            <>
+              <CategoryRevenueReportDialog />
+              <AllProductsSoldReportDialog />
+            </>
+          )}
+        </div>
         <TableToolbar
           bulkDeleteItemName="categories"
           createButton={createButton}

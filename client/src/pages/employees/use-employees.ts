@@ -13,13 +13,23 @@ import {
 
 import { createEmployeeColumns } from "./table";
 
-interface UseEmployeesProps {
+interface UseEmployeesOptions {
   canDelete: boolean;
   canEdit: boolean;
-  roleFilter?: string;
+  printMode?: boolean;
+  roleFilter?: string | undefined;
+  sortBy?: GetEmployeesOptions["sort_by"];
+  sortOrder?: GetEmployeesOptions["sort_order"] | undefined;
 }
 
-export function useEmployees({ canDelete, canEdit }: UseEmployeesProps) {
+export function useEmployees({
+  canDelete,
+  canEdit,
+  printMode = false,
+  roleFilter: externalRoleFilter,
+  sortBy: externalSortBy,
+  sortOrder: externalSortOrder,
+}: UseEmployeesOptions) {
   const {
     pagination,
     setPagination,
@@ -39,21 +49,38 @@ export function useEmployees({ canDelete, canEdit }: UseEmployeesProps) {
     },
   });
 
-  const [roleFilter, setRoleFilter] = useState<string | undefined>();
+  const [internalRoleFilter, setRoleFilter] = useState<string | undefined>();
+
+  // Use external filters if provided (for print mode), otherwise use internal state
+  const roleFilter = externalRoleFilter ?? internalRoleFilter;
 
   const queryParams = useMemo<Partial<GetEmployeesOptions>>(
     () => ({
-      skip: pagination.pageIndex * pagination.pageSize,
-      limit: pagination.pageSize,
+      // In print mode, skip pagination and get all results
+      skip: printMode ? 0 : pagination.pageIndex * pagination.pageSize,
+      limit: printMode ? null : pagination.pageSize,
       search: searchTerm,
       role_filter: roleFilter,
-      sort_by: sorting.sort_by as GetEmployeesOptions["sort_by"],
-      sort_order: sorting.sort_order ?? "asc",
+      sort_by: (externalSortBy ??
+        sorting.sort_by) as GetEmployeesOptions["sort_by"],
+      sort_order: externalSortOrder ?? sorting.sort_order ?? "asc",
     }),
-    [pagination, searchTerm, roleFilter, sorting],
+    [
+      pagination,
+      searchTerm,
+      roleFilter,
+      sorting,
+      printMode,
+      externalSortBy,
+      externalSortOrder,
+    ],
   );
 
-  const { data: paginatedResponse, isLoading } = useGetEmployees(queryParams);
+  const {
+    data: paginatedResponse,
+    isLoading,
+    refetch,
+  } = useGetEmployees(queryParams);
   const bulkDeleteMutation = useBulkDeleteEmployees();
 
   const totalPages = paginatedResponse?.total_pages ?? 0;
@@ -75,10 +102,9 @@ export function useEmployees({ canDelete, canEdit }: UseEmployeesProps) {
     [canDelete, canEdit, roleFilter, setRoleFilter, employees, resetPagination],
   );
 
-  // Bulk delete handler for DataTable
   const handleBulkDelete = async (items: Employee[]) => {
     const employeeIds = items.map((item) => item.id_employee);
-    await bulkDeleteMutation.mutateAsync({ employee_ids: employeeIds });
+    await bulkDeleteMutation.mutateAsync({ ids: employeeIds });
   };
 
   return {
@@ -91,6 +117,10 @@ export function useEmployees({ canDelete, canEdit }: UseEmployeesProps) {
     selectedEmployees,
     setSelectedEmployees,
     employees,
+
+    // Print-specific data
+    data: employees, // Alias for print compatibility
+    total: paginatedResponse?.total ?? 0,
 
     // Filters
     roleFilter,
@@ -105,5 +135,6 @@ export function useEmployees({ canDelete, canEdit }: UseEmployeesProps) {
     setSearchTerm: handleInputChange,
     clearSearch,
     columns,
+    refetch,
   };
 }

@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, Generic, Type, TypeVar
+from typing import Any, Generic, Optional, Tuple, Type, TypeVar
 
 from pydantic import BaseModel
 
@@ -14,6 +14,28 @@ class DBRepository(ABC):
 
     def __init__(self, db: IDatabase):
         self._db = db
+
+    def _build_pagination_clause(
+        self, skip: int = 0, limit: Optional[int] = None
+    ) -> Tuple[str, list]:
+        """
+        Build pagination LIMIT/OFFSET clause with proper parameter binding.
+        """
+        clause = ""
+        params = []
+
+        if limit is not None:
+            if skip > 0:
+                clause = "LIMIT %s OFFSET %s"
+                params.extend([limit, skip])
+            else:
+                clause = "LIMIT %s"
+                params.append(limit)
+        elif skip > 0:
+            clause = "OFFSET %s"
+            params.append(skip)
+
+        return clause, params
 
 
 class PydanticDBRepository(DBRepository, Generic[_T_BaseModel]):

@@ -18,7 +18,7 @@ class CategoryQueryController(BaseCategoryController):
     def get_all(
         self,
         skip: int = 0,
-        limit: int = 10,
+        limit: Optional[int] = 10,
         search: Optional[str] = None,
         sort_by: Literal["category_number", "category_name"] = "category_number",
         sort_order: Literal["asc", "desc"] = "asc",

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { employeeQueryKeys, employeesService } from "./service";
 import {
-  type BulkDeleteRequest,
+  type BulkDeleteEmployeeRequest,
   type CreateEmployeeFormData,
   type EmployeeId,
   type GetEmployeesOptions,
@@ -74,7 +74,7 @@ export function useBulkDeleteEmployees() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: BulkDeleteRequest) =>
+    mutationFn: (data: BulkDeleteEmployeeRequest) =>
       employeesService.bulkDeleteEmployees(data),
     onSuccess: () => {
       void queryClient.invalidateQueries({

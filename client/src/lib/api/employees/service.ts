@@ -1,7 +1,7 @@
 import { apiClient } from "../client";
 
 import {
-  type BulkDeleteRequest,
+  type BulkDeleteEmployeeRequest,
   type CreateEmployeeFormData,
   type EmployeeId,
   type GetEmployeesOptions,
@@ -46,7 +46,7 @@ export const employeesService = {
     });
   },
 
-  async bulkDeleteEmployees(data: BulkDeleteRequest) {
+  async bulkDeleteEmployees(data: BulkDeleteEmployeeRequest) {
     return apiClient.bulkDeleteEmployees(data);
   },
 

@@ -59,12 +59,10 @@ class CheckRepository(PydanticDBRepository[RelationalCheck]):
             f"ORDER BY c.{sort_by} {sort_order}",
         ]
 
-        if limit is not None:
-            query_parts.append("LIMIT %s")
-            params.append(limit)
-
-        query_parts.append("OFFSET %s")
-        params.append(skip)
+        limit_clause, limit_params = self._build_pagination_clause(skip, limit)
+        if limit_clause:
+            query_parts.append(limit_clause)
+        params.extend(limit_params)
 
         query = " ".join(filter(None, query_parts))
         rows = self._db.execute(query, tuple(params))

@@ -1,9 +1,11 @@
 import { DataTable } from "@/components/data-table";
 import { PageLayout } from "@/components/layout/page-layout";
+import { PrintButton } from "@/components/print-button";
 import { TableToolbar } from "@/components/table-toolbar";
 import { Combobox } from "@/components/ui/combobox";
 import scopes from "@/config/scopes";
 import { useAuth } from "@/lib/api/auth";
+import { type GetStoreProductsOptions } from "@/lib/api/store-products/types";
 
 import { CreateStoreProductDialog } from "./dialogs";
 import { useStoreProducts } from "./use-store-products";
@@ -38,7 +40,17 @@ export default function StoreProductsPage() {
     setSearchTerm,
     clearSearch,
     columns,
-  } = useStoreProducts(canDelete, canEdit);
+  } = useStoreProducts({ canDelete, canEdit });
+
+  const { data: printData } = useStoreProducts({
+    canDelete: false,
+    canEdit: false,
+    printMode: true,
+    promotionalFilter,
+    productFilter,
+    sortBy: sorting.sort_by as GetStoreProductsOptions["sort_by"],
+    sortOrder: sorting.sort_order,
+  });
 
   const productFilterCombobox = (
     <Combobox
@@ -105,18 +117,25 @@ export default function StoreProductsPage() {
       loadingText="Loading inventory..."
       title="Store Inventory"
     >
-      <TableToolbar
-        additionalFilters={additionalFilters}
-        bulkDeleteItemName="store products"
-        createButton={createButton}
-        enableBulkDelete={canDelete}
-        isBulkDeletePending={bulkDeleteMutation.isPending}
-        searchValue={searchTerm}
-        selectedItems={selectedStoreProducts}
-        onBulkDelete={handleBulkDelete}
-        onClearSearch={clearSearch}
-        onSearch={setSearchTerm}
-      />
+      <div className="flex justify-between items-center">
+        <PrintButton
+          columns={columns}
+          data={printData}
+          title="Store Products"
+        />
+        <TableToolbar
+          additionalFilters={additionalFilters}
+          bulkDeleteItemName="store products"
+          createButton={createButton}
+          enableBulkDelete={canDelete}
+          isBulkDeletePending={bulkDeleteMutation.isPending}
+          searchValue={searchTerm}
+          selectedItems={selectedStoreProducts}
+          onBulkDelete={handleBulkDelete}
+          onClearSearch={clearSearch}
+          onSearch={setSearchTerm}
+        />
+      </div>
       <DataTable
         columns={columns}
         data={storeProducts}

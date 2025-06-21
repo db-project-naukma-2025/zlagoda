@@ -39,7 +39,9 @@ class EmployeeRepository(PydanticDBRepository[Employee]):
             params.append(role_filter)
 
         where_clause = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
-        limit_clause = "LIMIT %s" if limit else ""
+
+        limit_clause, limit_params = self._build_pagination_clause(skip, limit)
+        params.extend(limit_params)
 
         query = f"""
             SELECT {", ".join(self._fields)}
@@ -47,9 +49,8 @@ class EmployeeRepository(PydanticDBRepository[Employee]):
             {where_clause}
             ORDER BY {sort_by} {sort_order}
             {limit_clause}
-            OFFSET %s
         """
-        params.extend([limit, skip] if limit else [skip])
+
         logger.debug(f"Executing query: {query}")
         logger.debug(f"Parameters: {params}")
         rows = self._db.execute(query, tuple(params))

@@ -1,7 +1,7 @@
 import { apiClient } from "@/lib/api/client";
 
 import {
-  type BulkDeleteRequest,
+  type BulkDeleteStoreProductRequest,
   type CreatePromotionalProductFormData,
   type CreateStoreProductFormData,
   type GetStoreProductsOptions,
@@ -58,7 +58,7 @@ export const storeProductsApi = {
     });
   },
 
-  async bulkDeleteStoreProducts(request: BulkDeleteRequest) {
+  async bulkDeleteStoreProducts(request: BulkDeleteStoreProductRequest) {
     return apiClient.bulkDeleteStoreProducts(request);
   },
 };

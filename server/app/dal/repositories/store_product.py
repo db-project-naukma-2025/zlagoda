@@ -19,7 +19,7 @@ class StoreProductRepository(PydanticDBRepository[StoreProduct]):
     def get_all(
         self,
         skip: int = 0,
-        limit: int = 10,
+        limit: Optional[int] = 10,
         search: Optional[str] = None,
         sort_by: Literal[
             "UPC",
@@ -58,6 +58,9 @@ class StoreProductRepository(PydanticDBRepository[StoreProduct]):
         if where_clauses:
             where_clause = "WHERE " + " AND ".join(where_clauses)
 
+        limit_clause, limit_params = self._build_pagination_clause(skip, limit)
+        params.extend(limit_params)
+
         query = f"""
             SELECT {", ".join([f"sp.{field}" for field in self._fields])}
             FROM {self.table_name} sp
@@ -65,10 +68,8 @@ class StoreProductRepository(PydanticDBRepository[StoreProduct]):
             LEFT JOIN category c ON p.category_number = c.category_number
             {where_clause}
             ORDER BY sp.{sort_by} {sort_order.upper()}
-            LIMIT %s OFFSET %s
+            {limit_clause}
         """
-
-        params.extend([limit, skip])
 
         rows = self._db.execute(query, tuple(params))
         return [self._row_to_model(row) for row in rows]
