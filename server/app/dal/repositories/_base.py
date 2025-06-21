@@ -38,8 +38,12 @@ class PydanticDBRepository(DBRepository, Generic[_T_BaseModel]):
         exclude_fields: list[str] | None = None,
     ) -> tuple[list[str], list[Any]]:
         clauses, params = [], []
-        if parameters is not None and exclude_fields is not None:
-            filtered_fields = [field for field in fields if field not in exclude_fields]
+        if parameters is not None:
+            filtered_fields = fields
+            if exclude_fields is not None:
+                filtered_fields = [
+                    field for field in filtered_fields if field not in exclude_fields
+                ]
 
             filter_values = {}
             for field in filtered_fields:
