@@ -13,7 +13,7 @@ import {
 
 import { createEmployeeColumns } from "./table";
 
-export function useEmployees() {
+export function useEmployees(canDelete: boolean, canEdit: boolean) {
   const {
     pagination,
     setPagination,
@@ -56,7 +56,10 @@ export function useEmployees() {
 
   const employees: Employee[] = paginatedResponse?.data ?? [];
 
-  const columns = useMemo(() => createEmployeeColumns(), []);
+  const columns = useMemo(
+    () => createEmployeeColumns(canDelete, canEdit),
+    [canDelete, canEdit],
+  );
 
   // Bulk delete handler for DataTable
   const handleBulkDelete = async (items: Employee[]) => {
