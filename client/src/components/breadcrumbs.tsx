@@ -1,4 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
+import React from "react";
 
 import {
   Breadcrumb,
@@ -40,9 +41,9 @@ export function Breadcrumbs() {
     <Breadcrumb className="text-base">
       <BreadcrumbList className="text-base gap-2">
         {breadcrumbs.map((item, index) => (
-          <>
-            {index > 0 && <BreadcrumbSeparator key={`separator-${item.id}`} />}
-            <BreadcrumbItem key={item.id}>
+          <React.Fragment key={item.id}>
+            {index > 0 && <BreadcrumbSeparator />}
+            <BreadcrumbItem>
               {index === breadcrumbs.length - 1 ? (
                 <BreadcrumbPage className="text-base font-semibold">
                   {item.title}
@@ -58,7 +59,7 @@ export function Breadcrumbs() {
                 </BreadcrumbLink>
               )}
             </BreadcrumbItem>
-          </>
+          </React.Fragment>
         ))}
       </BreadcrumbList>
     </Breadcrumb>

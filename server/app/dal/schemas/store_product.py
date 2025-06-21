@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -29,4 +29,9 @@ class CreatePromotionalProduct(BaseModel):
     promotional_UPC: str = Field(
         min_length=12, max_length=12, examples=["036000291453"]
     )
-    units_to_convert: int = Field(ge=1, examples=[5, 10, 15])
+    units: int = Field(ge=1, examples=[5, 10, 15])
+    operation_type: Literal["convert", "add"] = Field(
+        default="convert",
+        examples=["convert", "add"],
+        description="Whether to convert existing units or add new promotional units",
+    )

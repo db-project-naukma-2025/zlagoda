@@ -190,7 +190,8 @@ const UpdateStoreProduct = z
 const CreatePromotionalProduct = z
   .object({
     promotional_UPC: z.string().min(12).max(12),
-    units_to_convert: z.number().int().gte(1),
+    units: z.number().int().gte(1),
+    operation_type: z.enum(["convert", "add"]).optional().default("convert"),
   })
   .passthrough();
 const app__views__store_product__BulkDeleteRequest = z

@@ -53,9 +53,8 @@ export const updateStoreProductSchema: z.ZodType<UpdateStoreProductFormData> =
   baseStoreProductSchema;
 
 export const createPromotionalProductSchema: z.ZodType<CreatePromotionalProductFormData> =
-  baseStoreProductSchema.extend({
+  z.object({
     promotional_UPC: upcSchema,
-    units_to_convert: z
-      .number()
-      .min(1, "Units to convert must be greater than 0"),
+    units: z.number().min(1, "Units must be greater than 0"),
+    operation_type: z.enum(["convert", "add"]),
   });

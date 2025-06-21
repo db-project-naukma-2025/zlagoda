@@ -145,11 +145,13 @@ class StoreProductViewSet:
                 detail="Cannot create promotional product from another promotional product",
             )
 
-        # Validate units to convert
-        if request.units_to_convert > source_product.products_number:
+        if (
+            request.operation_type == "convert"
+            and request.units > source_product.products_number
+        ):
             raise HTTPException(
                 status_code=400,
-                detail=f"Cannot convert {request.units_to_convert} units. Only {source_product.products_number} units available.",
+                detail=f"Cannot convert {request.units} units. Only {source_product.products_number} units available.",
             )
 
         # Check if promotional product already exists for this product
@@ -178,20 +180,36 @@ class StoreProductViewSet:
             UPC_prom=None,
             id_product=source_product.id_product,
             selling_price=source_product.selling_price * 0.8,  # 20% discount
-            products_number=request.units_to_convert,
+            products_number=request.units,
             promotional_product=True,
         )
-        updated_source_data = UpdateStoreProduct(
-            UPC_prom=request.promotional_UPC,
-            id_product=source_product.id_product,
-            selling_price=source_product.selling_price,
-            products_number=source_product.products_number - request.units_to_convert,
-            promotional_product=False,
-        )
 
-        with transaction(repo._db):
-            promotional_product = repo.create(promotional_product_data)
-            repo.update(source_upc, updated_source_data)
+        if request.operation_type == "convert":
+            # Convert units: reduce source product stock and update UPC_prom reference
+            updated_source_data = UpdateStoreProduct(
+                UPC_prom=request.promotional_UPC,
+                id_product=source_product.id_product,
+                selling_price=source_product.selling_price,
+                products_number=source_product.products_number - request.units,
+                promotional_product=False,
+            )
+
+            with transaction(repo._db):
+                promotional_product = repo.create(promotional_product_data)
+                repo.update(source_upc, updated_source_data)
+        else:
+            # Add units: create promotional product without reducing source stock
+            updated_source_data = UpdateStoreProduct(
+                UPC_prom=request.promotional_UPC,
+                id_product=source_product.id_product,
+                selling_price=source_product.selling_price,
+                products_number=source_product.products_number,  # Keep original stock
+                promotional_product=False,
+            )
+
+            with transaction(repo._db):
+                promotional_product = repo.create(promotional_product_data)
+                repo.update(source_upc, updated_source_data)
 
         return promotional_product
 

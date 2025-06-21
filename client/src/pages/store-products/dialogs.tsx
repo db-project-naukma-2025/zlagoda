@@ -214,6 +214,9 @@ export function CreatePromotionalDialog({
 }: CreatePromotionalDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [promotionalUnitsValue, setPromotionalUnitsValue] = useState(1);
+  const [operationType, setOperationType] = useState<"convert" | "add">(
+    "convert",
+  );
   const createPromotionalMutation = useCreatePromotionalProduct();
 
   const product = products.find(
@@ -222,8 +225,9 @@ export function CreatePromotionalDialog({
 
   const form = useForm({
     defaultValues: {
-      units_to_convert: 1,
+      units: 1,
       promotional_UPC: "",
+      operation_type: "convert" as "convert" | "add",
     },
     validators: {
       onBlur: createPromotionalProductSchema,
@@ -241,6 +245,7 @@ export function CreatePromotionalDialog({
         onOpenChange(false);
         form.reset();
         setPromotionalUnitsValue(1);
+        setOperationType("convert");
       } catch (error) {
         console.error("Failed to create promotional product:", error);
         const errorMessage = getApiErrorMessage(
@@ -263,8 +268,7 @@ export function CreatePromotionalDialog({
           <DialogTitle>Create Promotional Product</DialogTitle>
           <DialogDescription>
             Create a promotional version of {product?.product_name} with 20%
-            discount. This will move units from the original product to the new
-            promotional product.
+            discount.
           </DialogDescription>
         </DialogHeader>
 
@@ -292,7 +296,8 @@ export function CreatePromotionalDialog({
 
             <PromotionalProductFormFields
               form={form}
-              maxUnits={maxUnits}
+              maxUnits={operationType === "convert" ? maxUnits : Infinity}
+              onOperationTypeChange={setOperationType}
               onUnitsChange={setPromotionalUnitsValue}
             />
 
@@ -319,15 +324,19 @@ export function CreatePromotionalDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>After Conversion</Label>
+              <Label>
+                After {operationType === "convert" ? "Conversion" : "Creation"}
+              </Label>
               <div className="p-3 border rounded-md bg-muted/50">
                 <div className="text-sm">
                   <div className="flex justify-between">
                     <span>Original product stock:</span>
                     <span>
                       {String(
-                        sourceStoreProduct.products_number -
-                          promotionalUnitsValue,
+                        operationType === "convert"
+                          ? sourceStoreProduct.products_number -
+                              promotionalUnitsValue
+                          : sourceStoreProduct.products_number,
                       )}{" "}
                       units
                     </span>
@@ -336,6 +345,12 @@ export function CreatePromotionalDialog({
                     <span>Promotional product stock:</span>
                     <span>{String(promotionalUnitsValue)} units</span>
                   </div>
+                  {operationType === "add" && (
+                    <div className="flex justify-between text-green-600 text-xs mt-1">
+                      <span>Total inventory increase:</span>
+                      <span>+{String(promotionalUnitsValue)} units</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -353,7 +368,9 @@ export function CreatePromotionalDialog({
               Cancel
             </Button>
             <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? "Creating..." : "Create Promotional Product"}
+              {isSubmitting
+                ? "Creating..."
+                : `${operationType === "convert" ? "Convert &" : "Add &"} Create Promotional Product`}
             </Button>
           </DialogFooter>
         </form>

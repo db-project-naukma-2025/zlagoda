@@ -30,6 +30,7 @@ export default function CategoriesPage() {
     clearSearch,
   } = useCategories();
   const { user } = useAuth();
+  const canView = user?.scopes.includes(scopes.category.can_view) ?? false;
   const canAdd = user?.scopes.includes(scopes.category.can_create) ?? false;
   const canDelete = user?.scopes.includes(scopes.category.can_delete) ?? false;
   const canEdit = user?.scopes.includes(scopes.category.can_update) ?? false;
@@ -44,10 +45,12 @@ export default function CategoriesPage() {
       title="Categories"
     >
       <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-2">
-          <CategoryRevenueReportDialog />
-          <AllProductsSoldReportDialog />
-        </div>
+        {canView && (
+          <div className="flex gap-2">
+            <CategoryRevenueReportDialog />
+            <AllProductsSoldReportDialog />
+          </div>
+        )}
         <TableToolbar
           bulkDeleteItemName="categories"
           createButton={createButton}

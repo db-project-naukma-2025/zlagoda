@@ -98,7 +98,7 @@ export function StoreProductFormFields({
                   ? String(field.state.value)
                   : ""
               }
-              onValueChange={(value) => {
+              onValueChange={(value: string) => {
                 field.handleChange(Number(value));
               }}
             />
@@ -188,12 +188,14 @@ interface PromotionalProductFormFieldsProps {
   };
   maxUnits: number;
   onUnitsChange?: (units: number) => void;
+  onOperationTypeChange?: (operationType: "convert" | "add") => void;
 }
 
 export function PromotionalProductFormFields({
   form,
   maxUnits,
   onUnitsChange,
+  onOperationTypeChange,
 }: PromotionalProductFormFieldsProps) {
   return (
     <div className="space-y-4">
@@ -222,11 +224,50 @@ export function PromotionalProductFormFields({
         children={(field) => (
           <div className="space-y-2">
             <Label htmlFor={field.name}>
-              Units to Convert <RequiredIndicator />
+              Operation Type <RequiredIndicator />
+            </Label>
+            <Combobox
+              emptyMessage="No operation types found."
+              options={[
+                {
+                  value: "convert",
+                  label: "Convert Units",
+                  searchText: "Convert units from regular to promotional",
+                },
+                {
+                  value: "add",
+                  label: "Add New Units",
+                  searchText:
+                    "Add new promotional units without reducing regular stock",
+                },
+              ]}
+              placeholder="Select operation type"
+              searchPlaceholder="Search operation types..."
+              value={field.state.value as string}
+              onValueChange={(value: string) => {
+                const operationType = value as "convert" | "add";
+                field.handleChange(operationType);
+                onOperationTypeChange?.(operationType);
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              Convert: Move units from regular to promotional • Add: Create new
+              promotional units
+            </p>
+            <FieldError field={field} />
+          </div>
+        )}
+        name="operation_type"
+      />
+
+      <form.Field
+        children={(field) => (
+          <div className="space-y-2">
+            <Label htmlFor={field.name}>
+              Units <RequiredIndicator />
             </Label>
             <Input
               id={field.name}
-              max={maxUnits}
               min="1"
               placeholder="e.g., 10"
               type="number"
@@ -239,12 +280,14 @@ export function PromotionalProductFormFields({
               }}
             />
             <p className="text-xs text-muted-foreground">
-              Available: {maxUnits} units
+              {maxUnits === Infinity
+                ? "Enter the number of promotional units to create"
+                : `Available: ${maxUnits} units`}
             </p>
             <FieldError field={field} />
           </div>
         )}
-        name="units_to_convert"
+        name="units"
       />
     </div>
   );

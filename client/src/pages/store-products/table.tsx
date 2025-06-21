@@ -174,12 +174,7 @@ export function createStoreInventoryColumns({
       const [isPromotionalOpen, setIsPromotionalOpen] = useState(false);
 
       const canCreatePromotional =
-        !storeProduct.promotional_product &&
-        storeProduct.products_number > 0 &&
-        !allStoreProducts.some(
-          (sp) =>
-            sp.id_product === storeProduct.id_product && sp.promotional_product,
-        );
+        !storeProduct.promotional_product && storeProduct.UPC_prom === null;
 
       const menuItems = [];
       const dialogs = [];
