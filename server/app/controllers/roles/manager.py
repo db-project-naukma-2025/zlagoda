@@ -1,5 +1,12 @@
 from ...controllers.permissions import BasicPermission
-from ...dal.schemas import Category, CustomerCard, Employee, Product, StoreProduct
+from ...dal.schemas import (
+    Category,
+    CustomerCard,
+    Employee,
+    Product,
+    RelationalCheck,
+    StoreProduct,
+)
 from ._base import UserRoleController
 
 
@@ -29,4 +36,5 @@ class UserManagerPermissionController(UserRoleController):
             (CustomerCard, BasicPermission.CREATE),
             (CustomerCard, BasicPermission.UPDATE),
             (CustomerCard, BasicPermission.DELETE),
+            (RelationalCheck, BasicPermission.VIEW),
         ]

@@ -29,6 +29,10 @@ const scopes = {
     can_update: "customercard.can_update",
     can_delete: "customercard.can_delete",
   },
+  check: {
+    can_view: "relationalcheck.can_view",
+    can_create: "relationalcheck.can_create",
+  },
 };
 
 export default scopes;

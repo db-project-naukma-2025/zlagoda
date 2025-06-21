@@ -1,14 +1,15 @@
 from datetime import date
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Security
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
 from ..controllers.check import CheckModificationController, CheckQueryController
-from ..dal.schemas.check import Check, CreateCheck
+from ..dal.schemas.auth import User
+from ..dal.schemas.check import Check, CreateCheck, RelationalCheck
 from ..ioc_container import check_modification_controller, check_query_controller
-from .auth import require_user
+from .auth import BasicPermission, require_permission, require_user
 
 router = APIRouter(
     prefix="/checks",
@@ -32,11 +33,21 @@ class CheckViewSet:
     )
 
     @router.post("/", response_model=Check, summary="Create new check with sales")
-    async def create_check(self, check_data: CreateCheck) -> Check:
+    async def create_check(
+        self,
+        check_data: CreateCheck,
+        _: User = Security(
+            require_permission((RelationalCheck, BasicPermission.CREATE))
+        ),
+    ) -> Check:
         return self.modification_controller.create(check_data)
 
     @router.get("/{check_number}", response_model=Check)
-    async def get_check(self, check_number: str) -> Check:
+    async def get_check(
+        self,
+        check_number: str,
+        _: User = Security(require_permission((RelationalCheck, BasicPermission.VIEW))),
+    ) -> Check:
         return self.query_controller.get_check(check_number)
 
     @router.get(
@@ -51,6 +62,7 @@ class CheckViewSet:
         date_from: Optional[date] = Query(None, description="Filter by date from"),
         date_to: Optional[date] = Query(None, description="Filter by date to"),
         employee_id: Optional[str] = Query(None, description="Filter by employee ID"),
+        _: User = Security(require_permission((RelationalCheck, BasicPermission.VIEW))),
     ) -> PaginatedChecks:
         checks = self.query_controller.get_all(
             skip=skip,
