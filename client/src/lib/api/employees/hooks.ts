@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { employeesService } from "./service";
+import { employeeQueryKeys, employeesService } from "./service";
 import {
   type BulkDeleteRequest,
   type CreateEmployeeFormData,
@@ -9,18 +9,16 @@ import {
   type UpdateEmployeeFormData,
 } from "./types";
 
-const EMPLOYEES_QUERY_KEY = "employees";
-
 export function useGetEmployees(options: Partial<GetEmployeesOptions> = {}) {
   return useQuery({
-    queryKey: [EMPLOYEES_QUERY_KEY, options],
+    queryKey: employeeQueryKeys.list(options),
     queryFn: () => employeesService.getEmployees(options),
   });
 }
 
 export function useGetEmployee(id: EmployeeId) {
   return useQuery({
-    queryKey: [EMPLOYEES_QUERY_KEY, id],
+    queryKey: employeeQueryKeys.detail(id),
     queryFn: () => employeesService.getEmployee(id),
     enabled: !!id,
   });
@@ -34,7 +32,7 @@ export function useCreateEmployee() {
       employeesService.createEmployee(data),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: [EMPLOYEES_QUERY_KEY],
+        queryKey: employeeQueryKeys.all(),
       });
     },
   });
@@ -44,11 +42,16 @@ export function useUpdateEmployee() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: EmployeeId; data: UpdateEmployeeFormData }) =>
-      employeesService.updateEmployee(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: EmployeeId;
+      data: UpdateEmployeeFormData;
+    }) => employeesService.updateEmployee(id, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: [EMPLOYEES_QUERY_KEY],
+        queryKey: employeeQueryKeys.all(),
       });
     },
   });
@@ -61,7 +64,7 @@ export function useDeleteEmployee() {
     mutationFn: (id: EmployeeId) => employeesService.deleteEmployee(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: [EMPLOYEES_QUERY_KEY],
+        queryKey: employeeQueryKeys.all(),
       });
     },
   });
@@ -75,8 +78,15 @@ export function useBulkDeleteEmployees() {
       employeesService.bulkDeleteEmployees(data),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: [EMPLOYEES_QUERY_KEY],
+        queryKey: employeeQueryKeys.all(),
       });
     },
   });
-} 
+}
+
+export function useGetEmployeesOnlyWithPromotionalSales() {
+  return useQuery({
+    queryKey: employeeQueryKeys.reports(),
+    queryFn: () => employeesService.getEmployeesOnlyWithPromotionalSales(),
+  });
+}

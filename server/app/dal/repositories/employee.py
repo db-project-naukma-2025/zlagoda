@@ -131,3 +131,26 @@ class EmployeeRepository(PydanticDBRepository[Employee]):
             """,
             tuple(employee_ids),
         )
+
+    def get_employees_only_with_promotional_sales(self) -> list[Employee]:
+        fields = ",".join(self._fields)
+        role = "cashier"
+
+        query = f"""
+        SELECT 
+            {fields}
+        FROM employee e
+        WHERE NOT EXISTS (
+            SELECT sp_outer.id_product AS id_product
+            FROM 
+                (store_product sp_outer INNER JOIN sale ON sp_outer.UPC = sale.UPC)
+                INNER JOIN "check" c ON sale.check_number = c.check_number
+            WHERE NOT EXISTS (
+                SELECT sp_inner.id_product
+                FROM store_product AS sp_inner
+                WHERE sp_inner.UPC_prom IS NOT NULL AND sp_outer.UPC = sp_inner.UPC_prom 
+            ) AND sp_outer.UPC_prom IS NULL AND c.id_employee = e.id_employee
+        ) AND e.empl_role = %s
+        """
+        rows = self._db.execute(query, (role,))
+        return [self._row_to_model(row) for row in rows]

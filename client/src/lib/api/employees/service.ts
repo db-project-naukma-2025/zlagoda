@@ -14,6 +14,7 @@ export const employeeQueryKeys = {
     [...employeeQueryKeys.all(), "list", params] as const,
   detail: (id: EmployeeId) =>
     [...employeeQueryKeys.all(), "detail", id] as const,
+  reports: () => [...employeeQueryKeys.all(), "reports"] as const,
 };
 
 export const employeesService = {
@@ -47,5 +48,9 @@ export const employeesService = {
 
   async bulkDeleteEmployees(data: BulkDeleteRequest) {
     return apiClient.bulkDeleteEmployees(data);
+  },
+
+  async getEmployeesOnlyWithPromotionalSales() {
+    return apiClient.getEmployeesOnlyWithPromotionalSales();
   },
 };

@@ -22,6 +22,10 @@ from .controllers.customer_card import (
     CustomerCardModificationController,
     CustomerCardQueryController,
 )
+from .controllers.employee import (
+    EmployeeModificationController,
+    EmployeeQueryController,
+)
 from .controllers.permissions.group import UserGroupController
 from .controllers.permissions.user import UserPermissionController
 from .controllers.roles.cashier import UserCashierPermissionController
@@ -294,3 +298,18 @@ def check_cleanup_controller(
     return CheckCleanupController(
         check_repo, customer_card_repo, store_product_repo, sale_repo
     )
+
+
+def employee_query_controller(
+    employee_repo: EmployeeRepository = Depends(employee_repository),
+) -> EmployeeQueryController:
+    return EmployeeQueryController(employee_repo)
+
+
+def employee_modification_controller(
+    employee_repo: EmployeeRepository = Depends(employee_repository),
+    perm_controller: UserEmployeePermissionController = Depends(
+        user_employee_permission_controller
+    ),
+) -> EmployeeModificationController:
+    return EmployeeModificationController(employee_repo, perm_controller)

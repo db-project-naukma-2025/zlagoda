@@ -4,6 +4,7 @@ import scopes from "@/config/scopes";
 import { useAuth } from "@/lib/api/auth";
 
 import { CreateEmployeeDialog } from "./dialogs";
+import { EmployeesOnlyWithPromotionalSalesReportDialog } from "./reports";
 import { useEmployees } from "./use-employees";
 
 export default function EmployeesPage() {
@@ -41,6 +42,9 @@ export default function EmployeesPage() {
             Manage employees and their information.
           </p>
         </div>
+      </div>
+      <div className="flex gap-2">
+        <EmployeesOnlyWithPromotionalSalesReportDialog />
       </div>
       <TableToolbar
         bulkDeleteItemName="employees"

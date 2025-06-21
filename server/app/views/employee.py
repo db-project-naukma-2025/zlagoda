@@ -4,11 +4,18 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Security
 from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
-from ..controllers.roles.employee import UserEmployeePermissionController
+from ..controllers.employee import (
+    EmployeeModificationController,
+    EmployeeQueryController,
+)
 from ..dal.repositories.employee import EmployeeRepository
 from ..dal.schemas.auth import User
 from ..dal.schemas.employee import CreateEmployee, Employee, UpdateEmployee
-from ..ioc_container import employee_repository, user_employee_permission_controller
+from ..ioc_container import (
+    employee_modification_controller,
+    employee_query_controller,
+    employee_repository,
+)
 from .auth import BasicPermission, require_permission, require_user
 
 router = APIRouter(
@@ -33,6 +40,10 @@ class BulkDeleteRequest(BaseModel):
 @cbv(router)
 class EmployeeViewSet:
     repo: EmployeeRepository = Depends(employee_repository)
+    query_controller: EmployeeQueryController = Depends(employee_query_controller)
+    modification_controller: EmployeeModificationController = Depends(
+        employee_modification_controller
+    )
 
     @router.get("/", response_model=PaginatedEmployees, operation_id="getEmployees")
     async def get_employees(
@@ -71,6 +82,17 @@ class EmployeeViewSet:
             total_pages=total_pages,
         )
 
+    @router.get(
+        "/reports/only-with-promotional-sales",
+        response_model=list[Employee],
+        operation_id="getEmployeesOnlyWithPromotionalSales",
+    )
+    async def get_employees_only_with_promotional_sales(
+        self,
+        _: User = Security(require_permission((Employee, BasicPermission.VIEW))),
+    ):
+        return self.query_controller.only_with_promotional_sales()
+
     @router.get("/{id_employee}", response_model=Employee, operation_id="getEmployee")
     async def get_employee(
         self,
@@ -88,7 +110,7 @@ class EmployeeViewSet:
         request: CreateEmployee,
         _: User = Security(require_permission((Employee, BasicPermission.CREATE))),
     ):
-        return self.repo.create(request)
+        return self.modification_controller.create_employee(request)
 
     @router.put(
         "/{id_employee}", response_model=Employee, operation_id="updateEmployee"
@@ -98,12 +120,8 @@ class EmployeeViewSet:
         id_employee: str,
         request: UpdateEmployee,
         _: User = Security(require_permission((Employee, BasicPermission.UPDATE))),
-        permission_controller: UserEmployeePermissionController = Depends(
-            user_employee_permission_controller
-        ),
     ):
-        employee = self.repo.update(id_employee, request)
-        permission_controller.update_related_roles(employee)
+        employee = self.modification_controller.update_employee(id_employee, request)
         return employee
 
     @router.delete("/{id_employee}", operation_id="deleteEmployee")
@@ -112,7 +130,7 @@ class EmployeeViewSet:
         id_employee: str,
         _: User = Security(require_permission((Employee, BasicPermission.DELETE))),
     ):
-        self.repo.delete(id_employee)
+        self.modification_controller.delete_employee(id_employee)
 
     @router.post("/bulk-delete", operation_id="bulkDeleteEmployees")
     async def bulk_delete_employees(
@@ -120,4 +138,4 @@ class EmployeeViewSet:
         request: BulkDeleteRequest,
         _: User = Security(require_permission((Employee, BasicPermission.DELETE))),
     ):
-        return self.repo.delete_multiple(request.employee_ids)
+        return self.modification_controller.bulk_delete(request.employee_ids)
