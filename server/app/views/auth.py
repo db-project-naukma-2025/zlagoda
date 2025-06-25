@@ -6,7 +6,11 @@ from fastapi_utils.cbv import cbv
 from pydantic import BaseModel
 
 from ..controllers.auth.exceptions import AuthenticationError
-from ..controllers.auth.login import InvalidCredentialsError, LoginController
+from ..controllers.auth.login import (
+    InvalidCredentialsError,
+    LoginController,
+    UserNotFoundError,
+)
 from ..controllers.permissions.group import UserGroupController
 from ..controllers.permissions.user import (
     BasicPermission,
@@ -100,6 +104,12 @@ class AuthViewSet:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        except UserNotFoundError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
