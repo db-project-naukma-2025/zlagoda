@@ -8,6 +8,7 @@ from ...dal.schemas import (
     StoreProduct,
 )
 from ._base import UserRoleController
+from .manager import PDF_PERMISSION
 
 VIEW_SELF_PERMISSION = "view_self"
 
@@ -26,4 +27,5 @@ class UserCashierPermissionController(UserRoleController):
             (RelationalCheck, BasicPermission.VIEW),
             (RelationalCheck, BasicPermission.CREATE),
             (Employee, VIEW_SELF_PERMISSION),
+            (RelationalCheck, PDF_PERMISSION),
         ]
